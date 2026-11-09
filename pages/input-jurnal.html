@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ENTRI JURNAL</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html, body, *, .modal-box, .list-container, .table-responsive {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .filter-section {
+            padding: 10px 12px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .periode-box {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 95px;
+        }
+
+        .filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #5114B9;
+        }
+
+        .btn-icon-action {
+            background: none;
+            border: none;
+            color: #5114B9;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-bottom: 80px;
+            overflow-y: auto;
+        }
+
+        .journal-card {
+            padding: 12px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .journal-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .card-action-btns {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-card-action {
+            background: none;
+            border: none;
+            padding: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-card-action:hover {
+            background-color: #f1f5f9;
+        }
+
+        .unit-badge {
+            background-color: #f1f5f9;
+            color: #5114B9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 2px;
+        }
+
+        .journal-ket {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .journal-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 4px;
+            font-size: 11px;
+        }
+
+        .journal-detail-table td {
+            padding: 3px 0;
+        }
+
+        .text-debit {
+            color: #10b981;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .text-kredit {
+            color: #ef4444;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .fab-add {
+            position: fixed;
+            bottom: 24px;
+            right: calc(50% - 210px);
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(81, 20, 185, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 200;
+            transition: transform 0.2s ease;
+        }
+
+        @media (max-width: 480px) {
+            .fab-add {
+                right: 20px;
+            }
+        }
+
+        .fab-add:active {
+            transform: scale(0.95);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 420px;
+            max-height: 92vh;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .modal-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            cursor: move;
+            user-select: none;
+        }
+
+        .modal-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .modal-body {
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .form-control-line {
+            width: 100%;
+            padding: 4px 0;
+            border: none;
+            border-bottom: 1px solid #cbd5e1;
+            font-size: 11px;
+            outline: none;
+            background: transparent;
+        }
+
+        .form-control-line:focus {
+            border-bottom-color: #5114B9;
+        }
+
+        .entry-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 6px;
+        }
+
+        .entry-table th {
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            padding: 6px 4px;
+            border-bottom: 1px solid #cbd5e1;
+            text-align: left;
+        }
+
+        .entry-table td {
+            padding: 6px 2px;
+            vertical-align: middle;
+        }
+
+        .select-account {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #cbd5e1;
+            font-size: 11px;
+            padding: 4px 0;
+            outline: none;
+            background: transparent;
+        }
+
+        .input-amount {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #cbd5e1;
+            font-size: 11px;
+            text-align: right;
+            padding: 4px 0;
+            outline: none;
+            background: transparent;
+        }
+
+        .total-row {
+            background-color: #e2e8f0;
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        .total-row td {
+            padding: 6px 4px !important;
+        }
+
+        .btn-add-row {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            align-self: flex-end;
+            margin-top: 4px;
+        }
+
+        .btn-remove-row {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .status-balance-info {
+            font-size: 10px;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .modal-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-save-modal {
+            background-color: #5114B9;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .btn-cancel-modal {
+            background-color: #ffffff;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 10px 0;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>ENTRI JURNAL</h1>
+            </div>
+        </header>
+
+        <div class="filter-section">
+            <div class="periode-box">
+                <span>Periode</span>
+                <input type="date" id="startDate" class="input-date-inline">
+                <span>s.d</span>
+                <input type="date" id="endDate" class="input-date-inline">
+            </div>
+            <div class="filter-actions">
+                <button class="btn-icon-action" id="btnSearchFilter">
+                    <span class="material-icons" style="font-size: 18px;">search</span>
+                </button>
+                <button class="btn-icon-action" id="btnSortFilter">
+                    <span class="material-icons" style="font-size: 18px;">sort_by_alpha</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="list-container" id="journalListContainer">
+            <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 11px;">
+                Memuat data jurnal...
+            </div>
+        </div>
+
+        <button class="fab-add" id="btnOpenAddModal">
+            <span class="material-icons" style="font-size: 26px;">add</span>
+        </button>
+    </div>
+
+    <!-- Modal Form Tambah/Edit Jurnal -->
+    <div class="modal-overlay" id="modalJournal">
+        <div class="modal-box" id="modalBox">
+            <div class="modal-header" id="modalHeader">
+                <div class="modal-title" id="modalHeaderTitle">
+                    <span class="material-icons" style="font-size:16px;">add</span>
+                    <span>TAMBAH JURNAL</span>
+                </div>
+                <button type="button" class="btn-icon-action" id="btnCloseModal" style="color:white;">
+                    <span class="material-icons" style="font-size: 18px;">close</span>
+                </button>
+            </div>
+
+            <form id="journalForm">
+                <input type="hidden" id="editingJournalId">
+                <div class="modal-body">
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label class="form-label" for="trxDate">Tanggal</label>
+                            <input type="date" id="trxDate" class="form-control-line" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="refNo">No Ref</label>
+                            <input type="text" id="refNo" class="form-control-line" placeholder="Memuat Ref..." readonly style="background-color: #f1f5f9; cursor: not-allowed; font-weight: bold; color: #5114B9;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="unitSelect">Unit Usaha</label>
+                        <select id="unitSelect" class="form-control-line">
+                            <!-- Opsi unit di-generate secara dinamis -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="description">Keterangan *</label>
+                        <input type="text" id="description" class="form-control-line" placeholder="Masukan keterangan transaksi..." required>
+                    </div>
+
+                    <table class="entry-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 45%;">Akun</th>
+                                <th style="width: 25%; text-align: right;">Debet</th>
+                                <th style="width: 25%; text-align: right;">Kredit</th>
+                                <th style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="journalRowsBody">
+                        </tbody>
+                        <tfoot>
+                            <tr class="total-row">
+                                <td>TOTAL</td>
+                                <td style="text-align: right;" id="totalDebitDisplay">0</td>
+                                <td style="text-align: right;" id="totalKreditDisplay">0</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <button type="button" class="btn-add-row" id="btnAddRow">
+                        <span class="material-icons" style="font-size: 18px;">add</span>
+                    </button>
+
+                    <div class="status-balance-info" id="balanceStatusText">
+                        Catatan: Pastikan Total Debet dan Kredit Seimbang (Balance).
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn-save-modal" id="btnSaveJournal">SIMPAN</button>
+                        <button type="button" class="btn-cancel-modal" id="btnCancelModal">BATAL</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { 
+            collection, 
+            getDocs, 
+            getDoc,
+            doc, 
+            setDoc, 
+            updateDoc,
+            deleteDoc,
+            query, 
+            orderBy, 
+            where,
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const journalListContainer = document.getElementById('journalListContainer');
+        const modalJournal = document.getElementById('modalJournal');
+        const modalBox = document.getElementById('modalBox');
+        const modalHeader = document.getElementById('modalHeader');
+        const btnOpenAddModal = document.getElementById('btnOpenAddModal');
+        const btnCloseModal = document.getElementById('btnCloseModal');
+        const btnCancelModal = document.getElementById('btnCancelModal');
+        const journalForm = document.getElementById('journalForm');
+        const journalRowsBody = document.getElementById('journalRowsBody');
+        const btnAddRow = document.getElementById('btnAddRow');
+        const modalHeaderTitle = document.getElementById('modalHeaderTitle');
+        const editingJournalIdInput = document.getElementById('editingJournalId');
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const btnSearchFilter = document.getElementById('btnSearchFilter');
+
+        const trxDateInput = document.getElementById('trxDate');
+        const refNoInput = document.getElementById('refNo');
+        const unitSelect = document.getElementById('unitSelect');
+        const descriptionInput = document.getElementById('description');
+        const totalDebitDisplay = document.getElementById('totalDebitDisplay');
+        const totalKreditDisplay = document.getElementById('totalKreditDisplay');
+        const balanceStatusText = document.getElementById('balanceStatusText');
+
+        let postableAccounts = [];
+        let journalEntries = [];
+        let cachedDefaultUnitCode = "00";
+
+        // Fitur Draggable (Geser Modal)
+        let isDragging = false;
+        let startX, startY, initialX = 0, initialY = 0;
+
+        modalHeader.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - initialX;
+            startY = e.clientY - initialY;
+            modalHeader.style.cursor = 'grabbing';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            let currentX = e.clientX - startX;
+            let currentY = e.clientY - startY;
+            initialX = currentX;
+            initialY = currentY;
+            modalBox.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+            modalHeader.style.cursor = 'move';
+        });
+
+        // Fitur Tombol ESC untuk menutup modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalJournal.classList.contains('active')) {
+                closeModalForm();
+            }
+        });
+
+        function formatNumber(val) {
+            if (val === '' || val === null || val === undefined) return '';
+            const cleanNum = String(val).replace(/\D/g, '');
+            if (cleanNum === '') return '';
+            return parseInt(cleanNum, 10).toLocaleString('id-ID');
+        }
+
+        function parseNumber(val) {
+            if (!val) return 0;
+            const cleanNum = String(val).replace(/\./g, '').replace(/,/g, '');
+            return parseFloat(cleanNum) || 0;
+        }
+
+        async function initActiveDates() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let targetYear = 2026;
+                let targetMonth = 10;
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        targetYear = parseInt(y, 10);
+                        targetMonth = parseInt(m, 10);
+                    }
+                }
+
+                const firstDay = new Date(targetYear, targetMonth - 1, 1);
+                const lastDay = new Date(targetYear, targetMonth, 0);
+
+                const startStr = `${firstDay.getFullYear()}-${String(firstDay.getMonth() + 1).padStart(2, '0')}-${String(firstDay.getDate()).padStart(2, '0')}`;
+                const endStr = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`;
+
+                startDateInput.value = startStr;
+                endDateInput.value = endStr;
+                trxDateInput.value = startStr;
+
+            } catch (err) {
+                console.error("Gagal memuat tanggal aktif:", err);
+                const now = new Date();
+                startDateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+                endDateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-31`;
+                trxDateInput.value = now.toISOString().split('T')[0];
+            }
+        }
+
+        function closeModalForm() {
+            modalJournal.classList.remove('active');
+        }
+
+        async function generateAutoRefNo() {
+            try {
+                if (editingJournalIdInput.value) return; 
+                const dateVal = trxDateInput.value;
+                if (!dateVal) return;
+
+                const [year, month] = dateVal.split('-');
+                const mmyy = `${month}${year.slice(-2)}`;
+                
+                const prefix = `JRU-${mmyy}-`;
+
+                const startOfMonth = `${year}-${month}-01`;
+                const lastDayNum = new Date(year, parseInt(month, 10), 0).getDate();
+                const endOfMonth = `${year}-${month}-${String(lastDayNum).padStart(2, '0')}`;
+
+                const q = query(
+                    collection(db, 'journals'),
+                    where('date', '>=', startOfMonth),
+                    where('date', '<=', endOfMonth)
+                );
+
+                const snap = await getDocs(q);
+                let maxSeq = 0;
+
+                snap.forEach(d => {
+                    const ref = d.data().refNo || '';
+                    if (ref.startsWith(prefix)) {
+                        const seqStr = ref.replace(prefix, '');
+                        const seqNum = parseInt(seqStr, 10);
+                        if (!isNaN(seqNum) && seqNum > maxSeq) {
+                            maxSeq = seqNum;
+                        }
+                    }
+                });
+
+                const newSeq = String(maxSeq + 1).padStart(4, '0');
+                refNoInput.value = `${prefix}${newSeq}`;
+            } catch (err) {
+                console.error("Gagal generate No Ref:", err);
+                refNoInput.value = "JRU-1220-0001";
+            }
+        }
+
+        async function loadUnitsList(selectedUnit = null) {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let unitsList = [];
+                cachedDefaultUnitCode = "00";
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const list = data.unitList || data.units || [];
+
+                    list.forEach(u => {
+                        const name = u.namaUnit || u.unitName || u.nama;
+                        const code = u.kodeUnit || u.unitCode || u.kode || name;
+                        if (name) {
+                            if (u.isDefault) {
+                                cachedDefaultUnitCode = code;
+                            }
+                            unitsList.push({ code, name, isDefault: !!u.isDefault });
+                        }
+                    });
+                }
+
+                const targetUnit = selectedUnit !== null ? selectedUnit : cachedDefaultUnitCode;
+
+                let optionsHTML = '';
+                const isIndukSelected = targetUnit === "00" ? 'selected' : '';
+                optionsHTML += `<option value="00" ${isIndukSelected}>- Induk / Non-Unit -</option>`;
+
+                unitsList.forEach(u => {
+                    const isSelected = u.code === targetUnit ? 'selected' : '';
+                    optionsHTML += `<option value="${u.code}" ${isSelected}>${u.name}</option>`;
+                });
+
+                unitSelect.innerHTML = optionsHTML;
+
+            } catch (err) {
+                console.error("Gagal memuat daftar unit dari database:", err);
+                unitSelect.innerHTML = '<option value="00">- Induk / Non-Unit -</option>';
+            }
+        }
+
+        async function loadPostableAccounts() {
+            try {
+                const q = query(
+                    collection(db, 'accounts'), 
+                    orderBy('accCode', 'asc')
+                );
+                const snap = await getDocs(q);
+                postableAccounts = [];
+                
+                snap.forEach(d => {
+                    const data = d.data();
+                    const lvl = parseInt(data.level, 10);
+                    if (lvl === 4 && data.isActive !== false) {
+                        postableAccounts.push({ id: d.id, ...data });
+                    }
+                });
+
+                if (journalRowsBody.children.length > 0) {
+                    const selects = journalRowsBody.querySelectorAll('.select-account');
+                    selects.forEach(select => {
+                        const currentVal = select.value;
+                        select.innerHTML = getAccountOptionsHTML(currentVal);
+                    });
+                }
+            } catch (err) {
+                console.error("Gagal memuat daftar akun level 4:", err);
+            }
+        }
+
+        function getAccountOptionsHTML(selectedAccCode = '') {
+            let html = '<option value="" disabled selected>Pilih Akun..</option>';
+            postableAccounts.forEach(acc => {
+                const isSelected = acc.accCode === selectedAccCode ? 'selected' : '';
+                html += `<option value="${acc.accCode}" ${isSelected}>${acc.accCode} - ${acc.accName}</option>`;
+            });
+            return html;
+        }
+
+        function addJournalRow(accCode = '', debit = 0, kredit = 0) {
+            const tr = document.createElement('tr');
+            
+            const formattedDebit = debit > 0 ? formatNumber(debit) : '0';
+            const formattedKredit = kredit > 0 ? formatNumber(kredit) : '0';
+
+            tr.innerHTML = `
+                <td>
+                    <select class="select-account" required>
+                        ${getAccountOptionsHTML(accCode)}
+                    </select>
+                </td>
+                <td>
+                    <input type="text" inputmode="numeric" class="input-amount input-debit" value="${formattedDebit}">
+                </td>
+                <td>
+                    <input type="text" inputmode="numeric" class="input-amount input-kredit" value="${formattedKredit}">
+                </td>
+                <td>
+                    <button type="button" class="btn-remove-row">
+                        <span class="material-icons" style="font-size: 16px;">close</span>
+                    </button>
+                </td>
+            `;
+
+            journalRowsBody.appendChild(tr);
+
+            const inputDebit = tr.querySelector('.input-debit');
+            const inputKredit = tr.querySelector('.input-kredit');
+            const btnRemove = tr.querySelector('.btn-remove-row');
+
+            inputDebit.addEventListener('input', (e) => {
+                const rawVal = e.target.value;
+                const formatted = formatNumber(rawVal);
+                e.target.value = formatted;
+
+                if (parseNumber(formatted) > 0) {
+                    inputKredit.value = '0';
+                }
+                calculateTotals();
+            });
+
+            inputKredit.addEventListener('input', (e) => {
+                const rawVal = e.target.value;
+                const formatted = formatNumber(rawVal);
+                e.target.value = formatted;
+
+                if (parseNumber(formatted) > 0) {
+                    inputDebit.value = '0';
+                }
+                calculateTotals();
+            });
+
+            inputDebit.addEventListener('blur', () => {
+                if (inputDebit.value.trim() === '') inputDebit.value = '0';
+            });
+
+            inputKredit.addEventListener('blur', () => {
+                if (inputKredit.value.trim() === '') inputKredit.value = '0';
+            });
+
+            btnRemove.addEventListener('click', () => {
+                if (journalRowsBody.children.length > 2) {
+                    tr.remove();
+                    calculateTotals();
+                } else {
+                    Swal.fire('Informasi', 'Minimal entri jurnal terdiri dari 2 baris.', 'info');
+                }
+            });
+
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let totalDebit = 0;
+            let totalKredit = 0;
+
+            document.querySelectorAll('.input-debit').forEach(i => totalDebit += parseNumber(i.value));
+            document.querySelectorAll('.input-kredit').forEach(i => totalKredit += parseNumber(i.value));
+
+            totalDebitDisplay.textContent = totalDebit.toLocaleString('id-ID');
+            totalKreditDisplay.textContent = totalKredit.toLocaleString('id-ID');
+
+            if (totalDebit === 0 && totalKredit === 0) {
+                balanceStatusText.textContent = "Catatan: Pastikan Total Debet dan Kredit Seimbang (Balance).";
+                balanceStatusText.style.color = "#64748b";
+            } else if (totalDebit === totalKredit) {
+                balanceStatusText.textContent = "✓ Status: SEIMBANG (BALANCE)";
+                balanceStatusText.style.color = "#10b981";
+            } else {
+                balanceStatusText.textContent = `✕ Selisih: ${Math.abs(totalDebit - totalKredit).toLocaleString('id-ID')} (TIDAK SEIMBANG)`;
+                balanceStatusText.style.color = "#ef4444";
+            }
+        }
+
+        async function resetModalForm() {
+            journalForm.reset();
+            journalRowsBody.innerHTML = '';
+            editingJournalIdInput.value = '';
+            modalHeaderTitle.innerHTML = '<span class="material-icons" style="font-size:16px;">add</span><span>TAMBAH JURNAL</span>';
+            trxDateInput.value = startDateInput.value || new Date().toISOString().split('T')[0];
+            
+            await loadUnitsList(cachedDefaultUnitCode);
+            await generateAutoRefNo();
+
+            addJournalRow();
+            addJournalRow();
+            calculateTotals();
+        }
+
+        trxDateInput.addEventListener('change', () => generateAutoRefNo());
+        unitSelect.addEventListener('change', () => generateAutoRefNo());
+
+        btnOpenAddModal.addEventListener('click', async () => {
+            initialX = 0; initialY = 0;
+            modalBox.style.transform = 'translate3d(0, 0, 0)';
+
+            await resetModalForm();
+            modalJournal.classList.add('active');
+            await loadPostableAccounts();
+        });
+
+        btnCloseModal.addEventListener('click', closeModalForm);
+        
+        btnCancelModal.addEventListener('click', async () => {
+            await resetModalForm();
+        });
+
+        btnAddRow.addEventListener('click', () => addJournalRow());
+
+        async function loadJournalEntries() {
+            try {
+                const sDate = startDateInput.value;
+                const eDate = endDateInput.value;
+
+                // Query hanya berdasarkan tanggal agar tidak memerlukan index komposit Firestore
+                const q = query(
+                    collection(db, 'journals'), 
+                    where('date', '>=', sDate), 
+                    where('date', '<=', eDate), 
+                    orderBy('date', 'desc')
+                );
+
+                const snap = await getDocs(q);
+                journalEntries = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    // Filter type 'Jurnal Umum' di JavaScript untuk menghindari error index
+                    if (!data.type || data.type === 'Jurnal Umum') {
+                        journalEntries.push({ id: d.id, ...data });
+                    }
+                });
+
+                renderJournalList();
+            } catch (err) {
+                console.error("Gagal memuat jurnal:", err);
+                journalListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ef4444; font-size: 11px;">
+                        Gagal memuat data entri jurnal: ${err.message}
+                    </div>`;
+            }
+        }
+
+        function renderJournalList() {
+            journalListContainer.innerHTML = '';
+
+            if (journalEntries.length === 0) {
+                journalListContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #94a3b8; font-size: 12px;">
+                        Tidak ada entri Jurnal Umum pada periode ini
+                    </div>`;
+                return;
+            }
+
+            journalEntries.forEach(entry => {
+                const card = document.createElement('div');
+                card.className = 'journal-card';
+
+                let rowsHTML = '';
+                entry.items.forEach(item => {
+                    let accName = item.accName;
+                    if (!accName) {
+                        const accObj = postableAccounts.find(a => a.accCode === item.accCode);
+                        accName = accObj ? accObj.accName : item.accCode;
+                    }
+
+                    rowsHTML += `
+                        <tr>
+                            <td style="color: #334155;">${item.accCode} - ${accName}</td>
+                            <td class="text-debit">${item.debit > 0 ? item.debit.toLocaleString('id-ID') : '-'}</td>
+                            <td class="text-kredit">${item.kredit > 0 ? item.kredit.toLocaleString('id-ID') : '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                const unitNameBadge = entry.unitName ? `<div class="unit-badge">UNIT: ${entry.unitName}</div>` : '';
+
+                card.innerHTML = `
+                    <div class="journal-header-info">
+                        <span>TGL: ${entry.date} &nbsp;|&nbsp; REF: ${entry.refNo || '-'}</span>
+                        <div class="card-action-btns">
+                            <button type="button" class="btn-card-action btn-edit" data-id="${entry.id}" title="Edit Jurnal">
+                                <span class="material-icons" style="font-size: 16px; color: #5114B9;">edit</span>
+                            </button>
+                            <button type="button" class="btn-card-action btn-delete" data-id="${entry.id}" title="Hapus Jurnal">
+                                <span class="material-icons" style="font-size: 16px; color: #ef4444;">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    ${unitNameBadge}
+                    <div class="journal-ket">${entry.description}</div>
+                    <table class="journal-detail-table">
+                        ${rowsHTML}
+                    </table>
+                `;
+
+                journalListContainer.appendChild(card);
+            });
+
+            document.querySelectorAll('.btn-edit').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const entry = journalEntries.find(j => j.id === id);
+                    if (!entry) return;
+
+                    initialX = 0; initialY = 0;
+                    modalBox.style.transform = 'translate3d(0, 0, 0)';
+
+                    await loadUnitsList(entry.unitName || '00');
+                    await loadPostableAccounts();
+
+                    editingJournalIdInput.value = entry.id;
+                    modalHeaderTitle.innerHTML = '<span class="material-icons" style="font-size:16px;">edit</span><span>EDIT JURNAL</span>';
+                    trxDateInput.value = entry.date || '';
+                    refNoInput.value = entry.refNo || '';
+                    descriptionInput.value = entry.description || '';
+
+                    journalRowsBody.innerHTML = '';
+                    if (entry.items && entry.items.length > 0) {
+                        entry.items.forEach(it => {
+                            addJournalRow(it.accCode, it.debit, it.kredit);
+                        });
+                    } else {
+                        addJournalRow();
+                        addJournalRow();
+                    }
+
+                    calculateTotals();
+                    modalJournal.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const confirmRes = await Swal.fire({
+                        title: 'Hapus Jurnal?',
+                        text: "Data jurnal yang dihapus tidak dapat dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ef4444',
+                        cancelButtonColor: '#64748b',
+                        confirmButtonText: 'Ya, Hapus!'
+                    });
+
+                    if (confirmRes.isConfirmed) {
+                        try {
+                            await deleteDoc(doc(db, 'journals', id));
+                            Swal.fire({ icon: 'success', title: 'Terhapus!', timer: 1200, showConfirmButton: false });
+                            loadJournalEntries();
+                        } catch (err) {
+                            Swal.fire('Gagal', err.message, 'error');
+                        }
+                    }
+                });
+            });
+        }
+
+        btnSearchFilter.addEventListener('click', () => loadJournalEntries());
+
+        journalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            let totalDebit = 0;
+            let totalKredit = 0;
+            const items = [];
+
+            const rows = journalRowsBody.querySelectorAll('tr');
+            for (let row of rows) {
+                const selectAcc = row.querySelector('.select-account');
+                const accCode = selectAcc.value;
+                const debit = parseNumber(row.querySelector('.input-debit').value);
+                const kredit = parseNumber(row.querySelector('.input-kredit').value);
+
+                if (!accCode) {
+                    Swal.fire('Peringatan', 'Silakan pilih Akun untuk semua baris.', 'warning');
+                    return;
+                }
+
+                if (debit === 0 && kredit === 0) {
+                    Swal.fire('Peringatan', 'Nilai Debet atau Kredit tidak boleh kosong pada baris terisi.', 'warning');
+                    return;
+                }
+
+                const selectedOption = selectAcc.options[selectAcc.selectedIndex];
+                let accName = '';
+                if (selectedOption) {
+                    const textParts = selectedOption.text.split(' - ');
+                    if (textParts.length > 1) {
+                        accName = textParts.slice(1).join(' - ');
+                    } else {
+                        accName = selectedOption.text;
+                    }
+                }
+
+                totalDebit += debit;
+                totalKredit += kredit;
+
+                items.push({ accCode, accName, debit, kredit });
+            }
+
+            if (totalDebit !== totalKredit || totalDebit === 0) {
+                Swal.fire('Tidak Seimbang', 'Total Debet dan Kredit harus seimbang dan bernilai lebih dari 0.', 'error');
+                return;
+            }
+
+            const editingId = editingJournalIdInput.value;
+            const payload = {
+                type: "Jurnal Umum",
+                date: trxDateInput.value,
+                refNo: refNoInput.value.trim() || '-',
+                unitName: unitSelect.value || '',
+                description: descriptionInput.value.trim(),
+                totalAmount: totalDebit,
+                items: items,
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                if (editingId) {
+                    await updateDoc(doc(db, 'journals', editingId), payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil Diperbarui!', timer: 1200, showConfirmButton: false });
+                } else {
+                    payload.createdAt = serverTimestamp();
+                    const newDocRef = doc(collection(db, 'journals'));
+                    await setDoc(newDocRef, payload);
+                    Swal.fire({ icon: 'success', title: 'Berhasil Disimpan!', timer: 1200, showConfirmButton: false });
+                }
+
+                await resetModalForm();
+                loadJournalEntries();
+            } catch (err) {
+                Swal.fire('Gagal', err.message, 'error');
+            }
+        });
+
+        // Eksekusi Utama
+        await initActiveDates();
+        await loadUnitsList();
+        await loadPostableAccounts();
+        loadJournalEntries();
+    </script>
+</body>
+</html>

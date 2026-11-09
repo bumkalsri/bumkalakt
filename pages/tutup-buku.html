@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tutup Buku Akhir Tahun</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Hilangkan Scrollbar Visual */
+        html, body, *, .content-body {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Top Header Bar */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Body Content */
+        .content-body {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background-color: #f8fafc;
+            padding-bottom: 80px;
+        }
+
+        .card-info {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #5114B9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+
+        .dot-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .dot-yellow { background-color: #eab308; }
+
+        .period-box {
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .period-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .period-label {
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .period-val {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.4;
+        }
+
+        .step-icon {
+            color: #16a34a;
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* Warning Banner */
+        .warning-box {
+            background-color: #fffbeb;
+            border: 1px solid #fef08a;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: #854d0e;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .warning-box .material-icons {
+            font-size: 20px;
+            color: #d97706;
+            flex-shrink: 0;
+        }
+
+        /* Form Controls untuk Buka Periode */
+        .form-control {
+            width: 100%;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            background-color: #ffffff;
+            color: #0f172a;
+        }
+
+        .reopen-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-submit-yellow {
+            height: 38px;
+            background-color: #eab308;
+            color: #1e293b;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(234, 179, 8, 0.25);
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit-yellow:active {
+            opacity: 0.85;
+        }
+
+        /* Styling Kartu Akun Level 4 */
+        .account-cards-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+
+        .acc-card-item {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .acc-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .acc-badge-code {
+            background-color: #f3e8ff;
+            color: #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.3px;
+        }
+
+        .acc-normal-saldo {
+            font-size: 10px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .acc-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .acc-value-box {
+            width: 100%;
+            height: 38px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+        }
+
+        .acc-val-prefix {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        .acc-val-number {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        /* Bottom Fixed Button */
+        .bottom-bar {
+            background-color: #ffffff;
+            padding: 14px 16px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .btn-tutup-buku {
+            width: 100%;
+            height: 44px;
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(81, 20, 185, 0.25);
+            transition: opacity 0.2s, background-color 0.2s;
+        }
+
+        .btn-tutup-buku:active {
+            opacity: 0.85;
+        }
+
+        .btn-tutup-buku:disabled {
+            background-color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>TUTUP BUKU AKHIR TAHUN</h1>
+            </div>
+            <span class="material-icons">published_with_changes</span>
+        </header>
+
+        <!-- Content -->
+        <main class="content-body">
+            <!-- Card Informasi Periode -->
+            <div class="card-info">
+                <div class="card-title">
+                    <span class="material-icons" style="font-size: 18px;">date_range</span>
+                    <span>Status Periode Akuntansi</span>
+                </div>
+
+                <div class="period-box">
+                    <div class="period-row">
+                        <span class="period-label">Periode Aktif Saat Ini:</span>
+                        <span class="period-val" id="textPeriodeSekarang">Memuat...</span>
+                    </div>
+                    <div class="period-row" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed #cbd5e1;">
+                        <span class="period-label">Periode Baru Berikutnya:</span>
+                        <span class="period-val" id="textPeriodeBaru" style="color: #2563eb;">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Ringkasan Eksekusi -->
+            <div class="card-info">
+                <div class="card-title">
+                    <span class="material-icons" style="font-size: 18px;">settings_suggest</span>
+                    <span>Proses Otomatis Sistem</span>
+                </div>
+
+                <div class="step-list">
+                    <div class="step-item">
+                        <span class="material-icons step-icon">check_circle</span>
+                        <span>Merekap Laba/Rugi Bersih periode ini dan membuat Jurnal Penutup bertanggal 1 Januari tahun berikutnya ke akun Laba Ditahan.</span>
+                    </div>
+                    <div class="step-item">
+                        <span class="material-icons step-icon">check_circle</span>
+                        <span>Memindahkan seluruh saldo akhir akun Neraca sebagai **Saldo Awal** periode baru.</span>
+                    </div>
+                    <div class="step-item">
+                        <span class="material-icons step-icon">check_circle</span>
+                        <span>Secara otomatis memperbarui tanggal periode aktif ke tahun berikutnya.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Pratinjau Saldo Akun Neraca (Level 4) -->
+            <div class="card-info">
+                <div class="card-title" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="material-icons" style="font-size: 18px;">view_agenda</span>
+                        <span>Pratinjau Saldo Akun Neraca (Level 4)</span>
+                    </div>
+                    <span style="font-size: 10px; color: #64748b; font-weight: normal;" id="countAkunNeraca">0 Akun</span>
+                </div>
+                <p style="font-size: 11px; color: #64748b;">
+                    Daftar akun neraca tingkat detail (Level 4) beserta saldo akhir penutupan yang akan dibawa ke tahun berikutnya:
+                </p>
+
+                <!-- Container Kartu Akun -->
+                <div class="account-cards-container" id="accountCardsContainer">
+                    <div style="text-align: center; color: #94a3b8; padding: 20px; font-size: 12px;">Memuat data akun neraca...</div>
+                </div>
+            </div>
+
+            <!-- Card Buka Kembali Tahun Lampau (Revisi) -->
+            <div class="card-info">
+                <div class="card-title">
+                    <span class="dot-indicator dot-yellow"></span>
+                    <span>Buka Kembali Tahun Lampau (Revisi)</span>
+                </div>
+
+                <p style="font-size: 11px; color: #64748b; line-height: 1.4;">
+                    Gunakan fitur ini jika Anda perlu merevisi transaksi pada tahun lampau. Masukkan format tahun (Contoh: <b>2020</b>).
+                </p>
+
+                <div class="reopen-row">
+                    <input type="text" class="form-control" id="inputReopenYear" placeholder="Format: YYYY (Cth: 2020)">
+                    <button type="button" class="btn-submit-yellow" id="btnProsesBukaTahun">
+                        <span class="material-icons" style="font-size: 16px;">lock_open</span>
+                        <span>Buka Tahun</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Warning Box -->
+            <div class="warning-box" id="warningBoxText">
+                <span class="material-icons">warning</span>
+                <div id="warningDesc">
+                    Proses Tutup Buku Akhir Tahun **hanya dapat dilakukan pada bulan Desember** di tahun berjalan periode aktif.
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer Action -->
+        <footer class="bottom-bar">
+            <button class="btn-tutup-buku" id="btnEksekusiTutupBuku">
+                <span class="material-icons">lock</span>
+                <span>Proses Tutup Buku Sekarang</span>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Firebase Script Logic -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import {  
+            doc,  
+            getDoc,  
+            collection,
+            getDocs,
+            query,
+            where,
+            addDoc,
+            deleteDoc,
+            writeBatch,  
+            serverTimestamp  
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const textPeriodeSekarang = document.getElementById('textPeriodeSekarang');
+        const textPeriodeBaru = document.getElementById('textPeriodeBaru');
+        const btnEksekusiTutupBuku = document.getElementById('btnEksekusiTutupBuku');
+        const warningDesc = document.getElementById('warningDesc');
+        const accountCardsContainer = document.getElementById('accountCardsContainer');
+        const countAkunNeraca = document.getElementById('countAkunNeraca');
+        const inputReopenYear = document.getElementById('inputReopenYear');
+        const btnProsesBukaTahun = document.getElementById('btnProsesBukaTahun');
+
+        let currentYear = new Date().getFullYear();
+        let nextYear = currentYear + 1;
+        let isEligibleForClose = false; 
+        let configuredLabaDitahan = '';
+
+        let startDateStr = `${currentYear}-01-01`;
+        let endDateStr = `${currentYear}-12-31`;
+
+        // Load Informasi Periode & Kalkulasi Saldo Akun Neraca Level 4
+        async function loadCurrentPeriodAndBalances() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let activeMonthCode = '';
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.activeMonthCode) {
+                        activeMonthCode = data.activeMonthCode;
+                    }
+                    if (data.akunLabaDitahan) {
+                        configuredLabaDitahan = data.akunLabaDitahan;
+                    }
+                    if (data.tglMulai && data.tglSelesai) {
+                        startDateStr = data.tglMulai;
+                        endDateStr = data.tglSelesai;
+                        const startD = new Date(startDateStr);
+                        currentYear = startD.getFullYear();
+                        nextYear = currentYear + 1;
+
+                        textPeriodeSekarang.textContent = `${startDateStr} s.d ${endDateStr}`;
+                        textPeriodeBaru.textContent = `${nextYear}-01-01 s.d ${nextYear}-12-31`;
+                    }
+                } else {
+                    textPeriodeSekarang.textContent = `${startDateStr} s.d ${endDateStr}`;
+                    textPeriodeBaru.textContent = `${nextYear}-01-01 s.d ${nextYear}-12-31`;
+                }
+
+                validateDecemberPeriod(activeMonthCode);
+                await calculateAndRenderBalanceCards(startDateStr, endDateStr);
+
+            } catch (err) {
+                console.error("Gagal memuat periode:", err);
+                textPeriodeSekarang.textContent = "Gagal memuat data";
+            }
+        }
+
+        // Kalkulasi & Render Kartu Akun Neraca Level 4 (Akumulatif sampai akhir periode aktif)
+        async function calculateAndRenderBalanceCards(sDate, eDate) {
+            try {
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountsMap = {};
+                
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const cat = (data.category || '').toLowerCase();
+                    const name = (data.accName || '').toLowerCase();
+
+                    const parts = code.split('.');
+                    const isLevel4 = parts.length >= 4 || code.length >= 9; 
+
+                    const isNeraca = code.startsWith('1') || code.startsWith('2') || code.startsWith('3') ||
+                                     cat.includes('aset') || cat.includes('harta') || cat.includes('kas') || 
+                                     cat.includes('bank') || cat.includes('piutang') || cat.includes('persediaan') || 
+                                     cat.includes('aktiva') || cat.includes('hutang') || cat.includes('kewajiban') || 
+                                     cat.includes('modal') || name.includes('modal');
+
+                    if (isNeraca && isLevel4) {
+                        const normalSaldo = (code.startsWith('1')) ? 'DEBIT' : 'KREDIT';
+
+                        accountsMap[code] = {
+                            code: code,
+                            name: data.accName || '',
+                            normalSaldo: normalSaldo,
+                            balance: 0
+                        };
+                    }
+                });
+
+                // Ambil seluruh jurnal hingga akhir periode aktif
+                const qJurnal = query(
+                    collection(db, 'journals'),
+                    where('date', '<=', eDate)
+                );
+                const jSnap = await getDocs(qJurnal);
+
+                jSnap.forEach(d => {
+                    const journal = d.data();
+                    const itemsList = journal.items || journal.entries || [];
+                    if (Array.isArray(itemsList)) {
+                        itemsList.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || parseFloat(item.credit) || 0;
+
+                            if (accountsMap[code]) {
+                                if (accountsMap[code].normalSaldo === 'DEBIT') {
+                                    accountsMap[code].balance += (debit - kredit);
+                                } else {
+                                    accountsMap[code].balance += (kredit - debit);
+                                }
+                            }
+                        });
+                    }
+                });
+
+                accountCardsContainer.innerHTML = '';
+                const sortedCodes = Object.keys(accountsMap).sort();
+
+                if (sortedCodes.length === 0) {
+                    accountCardsContainer.innerHTML = `<div style="text-align: center; color: #94a3b8; padding: 20px; font-size: 12px;">Tidak ada akun neraca Level 4 ditemukan.</div>`;
+                    countAkunNeraca.textContent = '0 Akun';
+                    return;
+                }
+
+                countAkunNeraca.textContent = `${sortedCodes.length} Akun`;
+
+                sortedCodes.forEach(code => {
+                    const acc = accountsMap[code];
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'acc-card-item';
+                    cardDiv.innerHTML = `
+                        <div class="acc-card-header">
+                            <span class="acc-badge-code">${acc.code}</span>
+                            <span class="acc-normal-saldo">SALDO NORMAL: ${acc.normalSaldo}</span>
+                        </div>
+                        <div class="acc-name">${acc.name}</div>
+                        <div class="acc-value-box">
+                            <span class="acc-val-prefix">Rp</span>
+                            <span class="acc-val-number">${acc.balance.toLocaleString('id-ID')}</span>
+                        </div>
+                    `;
+                    accountCardsContainer.appendChild(cardDiv);
+                });
+
+            } catch (err) {
+                console.error("Gagal menghitung saldo neraca:", err);
+                accountCardsContainer.innerHTML = `<div style="text-align: center; color: #dc2626; padding: 20px; font-size: 12px;">Gagal memuat pratinjau saldo akun.</div>`;
+            }
+        }
+
+        // Validasi Berdasarkan Bulan Aktif di Database (Harus Bulan Desember / Bulan ke-12)
+        function validateDecemberPeriod(activeMonthCode) {
+            let isDecember = false;
+            let activeYearNum = currentYear;
+
+            if (activeMonthCode && activeMonthCode.includes('-')) {
+                const parts = activeMonthCode.split('-');
+                activeYearNum = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                if (m === 12) {
+                    isDecember = true;
+                }
+            }
+
+            if (isDecember) {
+                isEligibleForClose = true;
+                btnEksekusiTutupBuku.disabled = false;
+                warningDesc.innerHTML = `
+                    <b>Periode Siap Ditutup:</b> Bulan aktif saat ini adalah <b>Desember ${activeYearNum}</b> (Bulan ke-12). Pastikan seluruh entri jurnal transaksi dan penyesuaian sudah lengkap sebelum melakukan tutup buku akhir tahun.
+                `;
+            } else {
+                isEligibleForClose = false;
+                btnEksekusiTutupBuku.disabled = true;
+                warningDesc.innerHTML = `
+                    <b>Belum Bisa Tutup Buku:</b> Bulan aktif saat ini belum berada di bulan Desember (Bulan ke-12) pada tahun berjalan. Proses Tutup Buku Akhir Tahun <b>hanya dapat dilakukan jika bulan aktif berada di bulan Desember</b>.
+                `;
+            }
+        }
+
+        // Fitur Buka Kembali Tahun Lampau (Revisi) + Hapus Bersih Jurnal Penutup (JKT-) Tahun Target & Tahun-Tahun Di Atasnya
+        btnProsesBukaTahun.addEventListener('click', async () => {
+            const targetYearStr = inputReopenYear.value.trim();
+
+            if (!/^\d{4}$/.test(targetYearStr)) {
+                Swal.fire('Format Salah', 'Gunakan format tahun YYYY (Contoh: 2020)', 'warning');
+                return;
+            }
+
+            const targetY = parseInt(targetYearStr, 10);
+
+            Swal.fire({
+                title: 'Memeriksa Data...',
+                text: `Mengecek status tutup buku tahun ${targetY} dan tahun-tahun setelahnya...`,
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            try {
+                // 1. Ambil seluruh jurnal untuk mendeteksi jurnal penutup
+                const journalsRef = collection(db, 'journals');
+                const querySnapshot = await getDocs(journalsRef);
+
+                let foundTargetClosing = false;
+                let closingDocsToDelete = [];
+
+                querySnapshot.forEach((docSnap) => {
+                    const jData = docSnap.data();
+                    const jNum = String(jData.journalNumber || jData.nomorJurnal || '');
+                    const jDate = String(jData.date || '');
+                    const jKet = String(jData.keterangan || '').toLowerCase();
+
+                    // Cek tahun dari nomor jurnal (misal JKT-0121-0001 -> tahun 2021) atau tanggal jurnal
+                    let journalYear = 0;
+                    if (jNum.includes('JKT-')) {
+                        const parts = jNum.split('-');
+                        if (parts.length >= 2) {
+                            const mmYY = parts[1]; // misal "0121"
+                            if (mmYY.length === 4) {
+                                const yy = mmYY.substring(2);
+                                journalYear = 2000 + parseInt(yy, 10) - 1; // Jika penutup per 1 Jan 2021, maka milik tahun 2020
+                            }
+                        }
+                    }
+                    if (!journalYear && jDate) {
+                        journalYear = parseInt(jDate.substring(0, 4), 10);
+                    }
+
+                    const isClosingKeyword = jNum.includes('JKT-') || jKet.includes('tutup buku') || jKet.includes('penutup');
+
+                    // Jika jurnal penutup ini berada pada tahun target atau TAHUN-TAHUN SETELAHNYA (>= targetY)
+                    if (isClosingKeyword) {
+                        // Cek apakah tanggal/tahun jurnal ini >= targetY
+                        if (journalYear >= targetY || jDate.startsWith(String(targetY)) || jDate > `${targetY}-12-31`) {
+                            closingDocsToDelete.push(docSnap.ref);
+                            if (journalYear === targetY || jDate.startsWith(String(targetY))) {
+                                foundTargetClosing = true;
+                            }
+                        }
+                    }
+                });
+
+                // 2. Validasi apakah tahun target tersebut memang pernah ditutup
+                if (!foundTargetClosing && closingDocsToDelete.length === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Belum Melakukan Tutup Buku',
+                        text: `Tahun ${targetY} belum pernah melalui proses Tutup Buku Akhir Tahun (tidak ditemukan data jurnal penutup). Anda hanya bisa membuka tahun yang sudah ditutup sebelumnya.`,
+                        confirmButtonColor: '#5114B9'
+                    });
+                    return;
+                }
+
+                // 3. Konfirmasi ke user bahwa tahun target dan tahun setelahnya akan dibersihkan jurnal penutupnya
+                const confirm = await Swal.fire({
+                    title: 'Yakin akan di buka?',
+                    text: `Membuka tahun ${targetY} akan mengubah periode aktif ke Desember ${targetY} serta menghapus jurnal penutup tahun ${targetY} dan seluruh tahun setelahnya secara otomatis agar alur akuntansi kembali sinkron. Lanjutkan?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#eab308',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Ya, Buka Tahun',
+                    cancelButtonText: 'Batal'
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                Swal.fire({
+                    title: 'Memproses...',
+                    text: 'Membersihkan jurnal penutup terkait dan memperbarui periode aktif...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                // 4. Eksekusi hapus seluruh jurnal penutup target & di atasnya
+                const deletePromises = closingDocsToDelete.map(ref => deleteDoc(ref));
+                await Promise.all(deletePromises);
+
+                // 5. Update Profile Settings ke Desember tahun target
+                const docRef = doc(db, 'settings', 'profile');
+                const batch = writeBatch(db);
+                batch.update(docRef, {
+                    tglMulai: `${targetY}-01-01`,
+                    tglSelesai: `${targetY}-12-31`,
+                    activeMonthCode: `${targetY}-12`,
+                    updatedAt: serverTimestamp()
+                });
+                await batch.commit();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `Tahun ${targetY} berhasil dibuka kembali. Jurnal penutup terkait telah dibersihkan.`,
+                    timer: 1800,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+
+            } catch (err) {
+                console.error("Gagal buka tahun:", err);
+                Swal.fire('Gagal', err.message, 'error');
+            }
+        });
+
+        // Eksekusi Tutup Buku Akhir Tahun & Buat Jurnal Penutup Bertanggal 1 Januari Tahun Berikutnya
+        btnEksekusiTutupBuku.addEventListener('click', async () => {
+            if (!isEligibleForClose) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Akses Ditolak',
+                    text: `Tutup buku hanya dapat dilakukan di bulan Desember ${currentYear}.`,
+                    confirmButtonColor: '#5114B9'
+                });
+                return;
+            }
+
+            if (!configuredLabaDitahan) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Mapping Laba Ditahan Kosong',
+                    text: 'Akun Laba Ditahan belum di-mapping di menu Pengaturan Profil (Tab 3: Mapping Akun). Silakan atur terlebih dahulu.',
+                    confirmButtonColor: '#5114B9'
+                });
+                return;
+            }
+
+            const confirmResult = await Swal.fire({
+                title: 'Yakin akan di tutup?',
+                text: `Apakah Anda yakin ingin menutup buku tahun ${currentYear} dan berpindah ke tahun ${nextYear}?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#5114B9',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Tutup Buku',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
+            Swal.fire({
+                title: 'Memproses Tutup Buku...',
+                text: 'Menghitung laba/rugi dan membuat jurnal penutup...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                // 1. Hitung total Pendapatan dan Beban selama tahun berjalan (startDateStr s.d endDateStr)
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountCategories = {};
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const cat = (data.category || '').toLowerCase();
+                    accountCategories[code] = cat;
+                });
+
+                const qJurnal = query(
+                    collection(db, 'journals'),
+                    where('date', '>=', startDateStr),
+                    where('date', '<=', endDateStr)
+                );
+                const jSnap = await getDocs(qJurnal);
+
+                let totalPendapatan = 0;
+                let totalBeban = 0;
+
+                jSnap.forEach(d => {
+                    const journal = d.data();
+                    const itemsList = journal.items || journal.entries || [];
+                    if (Array.isArray(itemsList)) {
+                        itemsList.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || parseFloat(item.credit) || 0;
+                            const cat = (accountCategories[code] || '').toLowerCase();
+
+                            if (code.startsWith('4') || cat.includes('pendapatan') || cat.includes('penjualan')) {
+                                totalPendapatan += (kredit - debit);
+                            } else if (code.startsWith('5') || code.startsWith('6') || code.startsWith('7') || code.startsWith('8') || code.startsWith('9') || cat.includes('beban') || cat.includes('biaya')) {
+                                totalBeban += (debit - kredit);
+                            }
+                        });
+                    }
+                });
+
+                const labaBersih = totalPendapatan - totalBeban;
+
+                // 2. Buat Nomor Jurnal Penutup Otomatis
+                const mmYY = `01${String(nextYear).substring(2)}`;
+                const journalsSnap = await getDocs(collection(db, 'journals'));
+                let maxSeq = 0;
+                const prefixJKT = `JKT-${mmYY}-`;
+
+                journalsSnap.forEach(d => {
+                    const jData = d.data();
+                    const jNum = jData.journalNumber || jData.nomorJurnal || '';
+                    if (jNum.startsWith(prefixJKT)) {
+                        const seqStr = jNum.replace(prefixJKT, '');
+                        const seqNum = parseInt(seqStr, 10);
+                        if (!isNaN(seqNum) && seqNum > maxSeq) {
+                            maxSeq = seqNum;
+                        }
+                    }
+                });
+
+                const nextSeq = maxSeq + 1;
+                const journalNumber = `${prefixJKT}${String(nextSeq).padStart(4, '0')}`;
+                const labaDitahanCode = configuredLabaDitahan.split(' - ')[0].trim();
+
+                // 3. Susun Entri Jurnal Penutup (Bertanggal 1 Januari Tahun Berikutnya)
+                let closingEntries = [];
+                if (labaBersih >= 0) {
+                    closingEntries = [
+                        {
+                            accCode: labaDitahanCode,
+                            debit: 0,
+                            kredit: labaBersih
+                        }
+                    ];
+                } else {
+                    const rugiBersih = Math.abs(labaBersih);
+                    closingEntries = [
+                        {
+                            accCode: labaDitahanCode,
+                            debit: rugiBersih,
+                            kredit: 0
+                        }
+                    ];
+                }
+
+                const jurnalTanggalBaru = `${nextYear}-01-01`;
+
+                const journalPayload = {
+                    journalNumber: journalNumber,
+                    date: jurnalTanggalBaru,
+                    keterangan: `Jurnal Penutup Tutup Buku Akhir Tahun ${currentYear} (Laba/Rugi Bersih)`,
+                    items: closingEntries,
+                    totalDebit: Math.abs(labaBersih),
+                    totalKredit: Math.abs(labaBersih),
+                    createdAt: serverTimestamp()
+                };
+
+                await addDoc(collection(db, 'journals'), journalPayload);
+
+                // 4. Update Profile Periode Aktif ke Tahun Berikutnya
+                const batch = writeBatch(db);
+                const profileRef = doc(db, 'settings', 'profile');
+
+                const newTglMulai = `${nextYear}-01-01`;
+                const newTglSelesai = `${nextYear}-12-31`;
+
+                batch.update(profileRef, {
+                    tglMulai: newTglMulai,
+                    tglSelesai: newTglSelesai,
+                    activeMonthCode: `${nextYear}-01`,
+                    lastClosedYear: currentYear,
+                    updatedAt: serverTimestamp()
+                });
+
+                await batch.commit();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `Tutup Buku Tahun ${currentYear} Berhasil! Jurnal penutup dicatat per tanggal ${jurnalTanggalBaru} ke Laba Ditahan (${configuredLabaDitahan}). Periode aktif beralih ke Tahun ${nextYear}.`,
+                    confirmButtonColor: '#5114B9'
+                }).then(() => {
+                    window.location.href = '../index.html';
+                });
+
+            } catch (err) {
+                console.error("Gagal melakukan tutup buku:", err);
+                Swal.fire('Gagal', err.message, 'error');
+            }
+        });
+
+        loadCurrentPeriodAndBalances();
+    </script>
+</body>
+</html>

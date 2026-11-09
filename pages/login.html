@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyBuk - Masuk</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            background-color: #f0f4f8;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Container PWA Fullscreen */
+        .app-welcome-card {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            min-height: 100vh;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Hero Banner Header - Typographic Hierarchy Smooth */
+        .hero-banner {
+            background: linear-gradient(135deg, #5114B9 0%, #3b82f6 100%);
+            color: #ffffff;
+            padding: 30px 20px 34px 20px;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 1. Brand Kicker Tag di Atas */
+        .hero-banner .app-brand {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 14px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            margin-bottom: 2px;
+        }
+
+        /* 1b. Sub Keterangan Brand (System BUMKal) */
+        .hero-banner .app-brand-sub {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        /* 2. Hero Greeting Utama */
+        .hero-banner .greeting {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+            color: #ffffff;
+        }
+
+        /* 3. Sub-Greeting / Keterangan */
+        .hero-banner .sub-greeting {
+            font-size: 12px;
+            opacity: 0.85;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        /* 4. Nama BUMKal */
+        .hero-banner .bumkal-name-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 4px;
+            color: #ffffff;
+            letter-spacing: 0.2px;
+        }
+
+        /* Fast Menu & Area Wallpaper */
+        .fast-menu-section {
+            padding: 24px 20px;
+            flex-grow: 1;
+            background-image: url('../assets/icons/wall.jpg');
+            background-size: 260px;
+            background-repeat: no-repeat;
+            background-position: center bottom 10px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fast-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .fast-menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .fast-menu-icon {
+            width: 52px;
+            height: 52px;
+            background-color: rgba(240, 235, 248, 0.9);
+            color: #5114B9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.12);
+            transition: transform 0.2s;
+            backdrop-filter: blur(4px);
+        }
+
+        .fast-menu-item:active .fast-menu-icon {
+            transform: scale(0.92);
+        }
+
+        .fast-menu-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #444444;
+            text-align: center;
+        }
+
+        /* Sticky Action Bottom Bar */
+        .welcome-bottom-action {
+            padding: 16px 20px 16px 20px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid #f0f0f0;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+
+        .btn-trigger-login {
+            width: 100%;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 14px 0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-trigger-login:active {
+            transform: scale(0.98);
+        }
+
+        /* Overlay Background untuk Modal Login & Info Pop-up */
+        .login-sheet-overlay, .modal-info-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .login-sheet-overlay.active, .modal-info-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Bottom Sheet Modal Form Login */
+        .login-sheet-card {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 20px 20px 24px 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .login-sheet-overlay.active .login-sheet-card {
+            transform: translateY(0);
+        }
+
+        /* Modal Dialog Tengah untuk Fast Menu */
+        .modal-dialog-card {
+            width: 90%;
+            max-width: 400px;
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin: auto;
+        }
+
+        .modal-info-overlay.active {
+            align-items: center;
+        }
+
+        .modal-info-overlay.active .modal-dialog-card {
+            transform: scale(1);
+        }
+
+        .sheet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .sheet-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111111;
+        }
+
+        .btn-close-sheet {
+            background: none;
+            border: none;
+            color: #777777;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            color: #555555;
+            font-weight: 600;
+        }
+
+        .password-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #a4c2f4;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input-password {
+            padding-right: 44px;
+        }
+
+        .form-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #888888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            user-select: none;
+        }
+
+        .options-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-size: 11px;
+            margin-top: -2px;
+        }
+
+        .text-muted {
+            color: #666666;
+            line-height: 1.4;
+        }
+
+        .link-blue {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: #3b82f6;
+            color: #ffffff;
+            border: none;
+            padding: 13px 0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 4px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        /* Tombol Google Sign-In */
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px;
+            background-color: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-google:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .btn-google:active {
+            transform: scale(0.98);
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 4px 0;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .auth-divider::before {
+            margin-right: .75em;
+        }
+
+        .auth-divider::after {
+            margin-left: .75em;
+        }
+
+        .auth-error {
+            color: #d32f2f;
+            font-size: 11px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Style Konten Modal Fast Menu */
+        .modal-content-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 13px;
+            color: #444444;
+            line-height: 1.5;
+        }
+
+        .modal-badge {
+            align-self: flex-start;
+            background-color: #e0e7ff;
+            color: #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .modal-list {
+            padding-left: 18px;
+            margin-top: 4px;
+        }
+
+        .modal-list li {
+            margin-bottom: 6px;
+        }
+
+        /* Copyright Footer */
+        .login-copyright {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        /* =========================================================
+            EFFECT SCREEN TRANSITION KEREN (SUCCESS LOGIN SPLASH SCREEN)
+            ========================================================= */
+        .transition-screen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #5114B9 0%, #3b82f6 100%);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        .transition-screen-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .transition-box {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        .transition-logo-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .transition-logo-icon .material-icons {
+            font-size: 42px;
+            color: #ffffff;
+        }
+
+        .transition-brand {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 2px;
+        }
+
+        .transition-subtext {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        /* Custom Modern Spinner */
+        .transition-spinner {
+            width: 38px;
+            height: 38px;
+            border: 3.5px solid rgba(255, 255, 255, 0.25);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .transition-status {
+            margin-top: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-welcome-card">
+        <!-- Hero Header -->
+        <div class="hero-banner">
+            <div class="app-brand">SyBuk</div>
+            <div class="app-brand-sub">(System BUMKal)</div>
+            <div class="greeting">Hallo!</div>
+            <div class="sub-greeting">Selamat datang di Sistem Akuntansi</div>
+            <div class="bumkal-name-title" id="welcomeBumkalName">BUMKal Sinar Mitra Desa</div>
+        </div>
+
+        <!-- Fast Menu dengan Wallpaper di Latar Belakang -->
+        <div class="fast-menu-section">
+            <div class="section-title">
+                <span>Fast Menu</span>
+                <span class="material-icons" style="font-size: 16px; color: #3b82f6;">info</span>
+            </div>
+
+            <div class="fast-menu-grid">
+                <div class="fast-menu-item" id="btnFastInfo">
+                    <div class="fast-menu-icon">
+                        <span class="material-icons">announcement</span>
+                    </div>
+                    <span class="fast-menu-label">Informasi</span>
+                </div>
+
+                <div class="fast-menu-item" id="btnFastAbout">
+                    <div class="fast-menu-icon">
+                        <span class="material-icons">info</span>
+                    </div>
+                    <span class="fast-menu-label">Tentang</span>
+                </div>
+
+                <div class="fast-menu-item" id="btnFastHelp">
+                    <div class="fast-menu-icon">
+                        <span class="material-icons">help</span>
+                    </div>
+                    <span class="fast-menu-label">Bantuan</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Utama Login + Copyright Langsung Terlihat -->
+        <div class="welcome-bottom-action">
+            <button class="btn-trigger-login" id="btnOpenLogin">Login</button>
+            <div class="login-copyright">
+                &copy; Copyright magadevelopment 2026
+            </div>
+        </div>
+    </div>
+
+    <!-- Sheet Modal Input Login (Pop-Up Bawah) -->
+    <div class="login-sheet-overlay" id="loginSheetOverlay">
+        <div class="login-sheet-card">
+            <div class="sheet-header">
+                <h2 class="sheet-title">Login</h2>
+                <button class="btn-close-sheet" id="btnCloseSheet">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- Form Login -->
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="email">Username / Email</label>
+                    <input type="email" id="email" class="form-input" placeholder="Email" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="password-container">
+                        <input type="password" id="password" class="form-input form-input-password" placeholder="Password" required autocomplete="current-password">
+                        <button type="button" class="toggle-password" id="btnTogglePassword">
+                            <span class="material-icons" id="eyeIcon">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="options-row">
+                    <div style="max-width: 60%;">
+                        <span class="text-muted">Belum punya akun? Hubungi Admin BUMKal.</span>
+                    </div>
+                    <a href="#" class="link-blue" id="linkLupaPassword">Lupa Username/Password?</a>
+                </div>
+
+                <div class="auth-error" id="authError">Email atau password salah!</div>
+
+                <button type="submit" class="btn-submit" id="btnSubmitLogin">Login dengan Email</button>
+
+                <div class="auth-divider">ATAU</div>
+
+                <!-- Tombol Login Google -->
+                <button type="button" id="btnGoogleLogin" class="btn-google">
+                    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9v3.49h4.84c-.21 1.12-.86 2.08-1.83 2.72v2.26h2.96c1.73-1.59 2.73-3.93 2.73-6.63z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.96-2.26c-.82.55-1.87.88-3 .88-2.32 0-4.28-1.57-4.98-3.68H1.01v2.33C2.51 15.96 5.54 18 9 18z"/><path fill="#FBBC05" d="M4.02 10.76c-.18-.55-.28-1.14-.28-1.76s.1-1.21.28-1.76V4.91H1.01C.37 6.19 0 7.63 0 9.2s.37 3.01 1.01 4.29l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.54 0 2.51 2.04 1.01 4.91l3.01 2.33C4.72 5.15 6.68 3.58 9 3.58z"/></svg>
+                    Masuk dengan Akun Google
+                </button>
+            </form>
+
+            <!-- Copyright di dalam Form Modal -->
+            <div class="login-copyright">
+                &copy; Copyright magadevelopment 2026
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. POP-UP MODAL INFORMASI -->
+    <div class="modal-info-overlay" id="infoModalOverlay">
+        <div class="modal-dialog-card">
+            <div class="sheet-header">
+                <h2 class="sheet-title">Informasi Pengumuman</h2>
+                <button class="btn-close-sheet" id="btnCloseInfo">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <div class="modal-content-body">
+                <span class="modal-badge">Pemberitahuan Sistem</span>
+                <p>Selamat datang di sistem akuntansi terpadu <strong>SyBuk (System BUMKal)</strong>.</p>
+                <ul class="modal-list">
+                    <li><strong>Status Sistem:</strong> Online & Berjalan Normal.</li>
+                    <li><strong>Versi Terbaru:</strong> Pembaruan antarmuka & peningkatan kecepatan PWA.</li>
+                    <li><strong>Backup Data:</strong> Lakukan pencadangan data rutin melalui menu Pengaturan setelah login.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. POP-UP MODAL TENTANG APLIKASI -->
+    <div class="modal-info-overlay" id="aboutModalOverlay">
+        <div class="modal-dialog-card">
+            <div class="sheet-header">
+                <h2 class="sheet-title">Tentang Aplikasi</h2>
+                <button class="btn-close-sheet" id="btnCloseAbout">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <div class="modal-content-body">
+                <span class="modal-badge">SyBuk v1.0</span>
+                <p><strong>SyBuk (System BUMKal)</strong> adalah aplikasi keuangan berbasis Progressive Web App (PWA) yang dirancang untuk membantu pengelolaan dan pencatatan akuntansi Badan Usaha Milik Kalurahan / Desa secara transparan dan terstruktur.</p>
+
+                <p><strong>Fitur Utama:</strong></p>
+                <ul class="modal-list">
+                    <li>Pencatatan Saldo Awal & Akun Perkiraan</li>
+                    <li>Jurnal Umum & Pengeluaran/Penerimaan Kas</li>
+                    <li>Laporan Keuangan Otomatis (Laba/Rugi, Neraca, Arus Kas)</li>
+                    <li>Dukungan Akses Offline (PWA Ready)</li>
+                </ul>
+
+                <div style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 10px; font-size: 11px; color: #777;">
+                    &copy; 2026 magadevelopment. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. POP-UP MODAL BANTUAN -->
+    <div class="modal-info-overlay" id="helpModalOverlay">
+        <div class="modal-dialog-card">
+            <div class="sheet-header">
+                <h2 class="sheet-title">Pusat Bantuan</h2>
+                <button class="btn-close-sheet" id="btnCloseHelp">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            
+            <div class="modal-content-body">
+                <span class="modal-badge">Panduan Ringkas</span>
+                <p>Butuh bantuan dalam menggunakan aplikasi <strong>SyBuk</strong>?</p>
+                
+                <ul class="modal-list">
+                    <li><strong>Lupa Akses Login:</strong> Hubungi Administrator BUMKal setempat untuk me-reset kata sandi Anda.</li>
+                    <li><strong>Aplikasi Tidak Bisa Dibuka:</strong> Pastikan koneksi internet stabil saat pertama kali login. Jika aplikasi sudah terinstal (PWA), aplikasi dapat diakses secara offline.</li>
+                    <li><strong>Kontak Dukungan:</strong> Kirim kendala teknis ke tim pengembang atau pengurus admin desa.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN TRANSITION OVERLAY KEREN -->
+    <div class="transition-screen-overlay" id="transitionScreenOverlay">
+        <div class="transition-box">
+            <div class="transition-logo-icon">
+                <span class="material-icons">verified_user</span>
+            </div>
+            <div class="transition-brand">SyBuk</div>
+            <div class="transition-subtext">Menyiapkan Dashboard Akuntansi...</div>
+            <div class="transition-spinner"></div>
+            <div class="transition-status" id="transitionStatusText">Otentikasi Berhasil</div>
+        </div>
+    </div>
+
+    <!-- Script Kontrol UI & Firebase Auth -->
+    <script type="module">
+        import { auth, db } from '../assets/js/firebase-config.js';
+        import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const welcomeBumkalName = document.getElementById('welcomeBumkalName');
+        const btnOpenLogin = document.getElementById('btnOpenLogin');
+        const btnCloseSheet = document.getElementById('btnCloseSheet');
+        const loginSheetOverlay = document.getElementById('loginSheetOverlay');
+
+        // Fast Menu Element References
+        const btnFastInfo = document.getElementById('btnFastInfo');
+        const infoModalOverlay = document.getElementById('infoModalOverlay');
+        const btnCloseInfo = document.getElementById('btnCloseInfo');
+
+        const btnFastAbout = document.getElementById('btnFastAbout');
+        const aboutModalOverlay = document.getElementById('aboutModalOverlay');
+        const btnCloseAbout = document.getElementById('btnCloseAbout');
+
+        const btnFastHelp = document.getElementById('btnFastHelp');
+        const helpModalOverlay = document.getElementById('helpModalOverlay');
+        const btnCloseHelp = document.getElementById('btnCloseHelp');
+
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const authError = document.getElementById('authError');
+        const btnTogglePassword = document.getElementById('btnTogglePassword');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const btnSubmitLogin = document.getElementById('btnSubmitLogin');
+        const btnGoogleLogin = document.getElementById('btnGoogleLogin');
+
+        // Transition Screen Elements
+        const transitionScreenOverlay = document.getElementById('transitionScreenOverlay');
+        const transitionStatusText = document.getElementById('transitionStatusText');
+
+        // Fungsi Helper Transisi Berhasil
+        function triggerSuccessTransition() {
+            loginSheetOverlay?.classList.remove('active');
+            transitionScreenOverlay?.classList.add('active');
+
+            setTimeout(() => {
+                if (transitionStatusText) transitionStatusText.textContent = "Memuat Data Akuntansi...";
+            }, 700);
+
+            setTimeout(() => {
+                if (transitionStatusText) transitionStatusText.textContent = "Selamat Datang!";
+            }, 1400);
+
+            setTimeout(() => {
+                window.location.href = '../index.html';
+            }, 2000);
+        }
+
+        // Memuat Nama Profil / BUMKal dari Firestore Database
+        async function loadBumkalName() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists() && docSnap.data().namaProfil) {
+                    welcomeBumkalName.textContent = docSnap.data().namaProfil;
+                }
+            } catch (err) {
+                console.warn("Gagal memuat nama BUMKal dari database:", err);
+            }
+        }
+
+        // Modal Login
+        btnOpenLogin?.addEventListener('click', () => {
+            loginSheetOverlay?.classList.add('active');
+        });
+
+        function closeSheet() {
+            loginSheetOverlay?.classList.remove('active');
+            authError.style.display = 'none';
+        }
+
+        btnCloseSheet?.addEventListener('click', closeSheet);
+        loginSheetOverlay?.addEventListener('click', (e) => {
+            if (e.target === loginSheetOverlay) closeSheet();
+        });
+
+        // 1. Modal Informasi
+        btnFastInfo?.addEventListener('click', () => {
+            infoModalOverlay?.classList.add('active');
+        });
+        btnCloseInfo?.addEventListener('click', () => {
+            infoModalOverlay?.classList.remove('active');
+        });
+        infoModalOverlay?.addEventListener('click', (e) => {
+            if (e.target === infoModalOverlay) infoModalOverlay?.classList.remove('active');
+        });
+
+        // 2. Modal Tentang Aplikasi
+        btnFastAbout?.addEventListener('click', () => {
+            aboutModalOverlay?.classList.add('active');
+        });
+        btnCloseAbout?.addEventListener('click', () => {
+            aboutModalOverlay?.classList.remove('active');
+        });
+        aboutModalOverlay?.addEventListener('click', (e) => {
+            if (e.target === aboutModalOverlay) aboutModalOverlay?.classList.remove('active');
+        });
+
+        // 3. Modal Bantuan
+        btnFastHelp?.addEventListener('click', () => {
+            helpModalOverlay?.classList.add('active');
+        });
+        btnCloseHelp?.addEventListener('click', () => {
+            helpModalOverlay?.classList.remove('active');
+        });
+        helpModalOverlay?.addEventListener('click', (e) => {
+            if (e.target === helpModalOverlay) helpModalOverlay?.classList.remove('active');
+        });
+
+        // Toggle Password Visibility
+        btnTogglePassword?.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.textContent = 'visibility';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.textContent = 'visibility_off';
+            }
+        });
+
+        // Submit Form Login Email & Password ke Firebase Auth
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authError.style.display = 'none';
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            btnSubmitLogin.disabled = true;
+            btnSubmitLogin.textContent = 'Diproses...';
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                triggerSuccessTransition();
+            } catch (error) {
+                console.error("Gagal Masuk:", error.code, error.message);
+                btnSubmitLogin.disabled = false;
+                btnSubmitLogin.textContent = 'Login dengan Email';
+                
+                let msg = "Email atau password salah!";
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    msg = "Password yang dimasukkan salah.";
+                } else if (error.code === 'auth/user-not-found') {
+                    msg = "Email belum terdaftar di Firebase Auth.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    msg = "Terlalu banyak percobaan. Coba lagi nanti.";
+                }
+
+                authError.textContent = msg;
+                authError.style.display = 'block';
+            }
+        });
+
+        // Handler Login dengan Akun Google
+        btnGoogleLogin?.addEventListener('click', async () => {
+            authError.style.display = 'none';
+            const provider = new GoogleAuthProvider();
+
+            try {
+                btnGoogleLogin.disabled = true;
+                btnGoogleLogin.style.opacity = "0.7";
+
+                await signInWithPopup(auth, provider);
+                triggerSuccessTransition();
+            } catch (error) {
+                console.error("Gagal login dengan Google:", error.code, error.message);
+                btnGoogleLogin.disabled = false;
+                btnGoogleLogin.style.opacity = "1";
+
+                authError.textContent = "Gagal login dengan Google: " + error.message;
+                authError.style.display = 'block';
+            }
+        });
+
+        loadBumkalName();
+    </script>
+</body>
+</html>

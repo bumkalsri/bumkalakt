@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPORAN ARUS KAS</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Hide Scrollbar Visual */
+        html, body, *, .page-container, .report-wrapper {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Periode Section */
+        .filter-section {
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 110px;
+        }
+
+        /* Paper Container */
+        .report-wrapper {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-paper {
+            border: 1px solid #cbd5e1;
+            padding: 16px 14px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tampilan Baris Laporan */
+        .report-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 2px;
+        }
+
+        .report-row-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0 2px 12px;
+            font-size: 11px;
+            color: #334155;
+        }
+
+        .report-row-summary {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .report-row-highlight {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            border-top: 1px dashed #cbd5e1;
+            margin-top: 8px;
+        }
+
+        .report-row-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            border-top: 1px solid #0f172a;
+            margin-top: 12px;
+        }
+
+        .val-num {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Atas -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>LAPORAN ARUS KAS</h1>
+            </div>
+            <div>
+                <span class="material-icons" style="font-size: 20px; cursor: pointer;">more_vert</span>
+            </div>
+        </header>
+
+        <!-- Baris Filter Periode -->
+        <div class="filter-section">
+            <span class="filter-label">Periode</span>
+            <input type="date" id="startDate" class="input-date-inline">
+            <span class="filter-label">s.d</span>
+            <input type="date" id="endDate" class="input-date-inline">
+        </div>
+
+        <!-- Area Isi Laporan Arus Kas -->
+        <div class="report-wrapper">
+            <div class="report-paper">
+                <!-- Container Dinamis Berdasarkan cashFlowGroup -->
+                <div id="cashFlowGroupsContainer">
+                    <!-- Kelompok Arus Kas akan dirender otomatis via JS -->
+                </div>
+
+                <!-- ARUS KAS BERSIH PERIODE BERJALAN -->
+                <div class="report-row-highlight">
+                    <span>ARUS KAS BERSIH</span>
+                    <span class="val-num" id="totalArusKasBersih">0</span>
+                </div>
+
+                <!-- SALDO KAS DAN BANK AWAL PERIODE -->
+                <div class="report-row-item" style="padding-left: 0; margin-top: 8px;">
+                    <span style="font-weight: 600; color: #0f172a;">Kas dan Bank Awal Periode</span>
+                    <span class="val-num" style="font-weight: 600; color: #0f172a;" id="kasAwalPeriode">0</span>
+                </div>
+
+                <!-- TOTAL AKHIR KAS DAN BANK AKHIR PERIODE -->
+                <div class="report-row-total">
+                    <span>KAS DAN BANK AKHIR PERIODE</span>
+                    <span class="val-num" id="kasAkhirPeriode">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore Integrasi Real-Time -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const cashFlowGroupsContainer = document.getElementById('cashFlowGroupsContainer');
+
+        const totalArusKasBersih = document.getElementById('totalArusKasBersih');
+        const kasAwalPeriode = document.getElementById('kasAwalPeriode');
+        const kasAkhirPeriode = document.getElementById('kasAkhirPeriode');
+
+        async function initActiveDates() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let startStr = '';
+                let endStr = '';
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
+                    if (data.activeMonthCode && data.activeMonthCode.includes('-')) {
+                        const [y, m] = data.activeMonthCode.split('-');
+                        const yearNum = parseInt(y, 10);
+                        const monthNum = parseInt(m, 10);
+
+                        const firstDay = new Date(yearNum, monthNum - 1, 1);
+                        const lastDay = new Date(yearNum, monthNum, 0);
+
+                        const fY = firstDay.getFullYear();
+                        const fM = String(firstDay.getMonth() + 1).padStart(2, '0');
+                        const fD = String(firstDay.getDate()).padStart(2, '0');
+                        startStr = `${fY}-${fM}-${fD}`;
+
+                        const lY = lastDay.getFullYear();
+                        const lM = String(lastDay.getMonth() + 1).padStart(2, '0');
+                        const lD = String(lastDay.getDate()).padStart(2, '0');
+                        endStr = `${lY}-${lM}-${lD}`;
+                    }
+                }
+
+                if (!startStr || !endStr) {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+                    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    startStr = firstDay.toISOString().split('T')[0];
+                    endStr = lastDay.toISOString().split('T')[0];
+                }
+
+                startDateInput.value = startStr;
+                endDateInput.value = endStr;
+
+                await generateArusKasReport();
+
+            } catch (err) {
+                console.error("Gagal memuat profil / tanggal aktif:", err);
+                const now = new Date();
+                startDateInput.value = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+                endDateInput.value = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+                await generateArusKasReport();
+            }
+        }
+
+        async function generateArusKasReport() {
+            const sDate = startDateInput.value;
+            const eDate = endDateInput.value;
+
+            try {
+                // 1. Ambil daftar Akun dari Firestore
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountsMap = {};
+                const groupDataMap = {}; 
+                const kasBankAccCodes = new Set();
+                let initialKasBankBase = 0;
+
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const name = data.accName || '';
+                    let cashFlowGroup = String(data.cashFlowGroup || '').trim();
+                    const cat = (data.category || '').toLowerCase();
+                    const isLevel4 = parseInt(data.level, 10) === 4 || data.isPostable === true || data.isPostable === 'true';
+
+                    accountsMap[code] = { name, cashFlowGroup, category: cat };
+
+                    // Deteksi akun Kas dan Bank berdasarkan cashFlowGroup = "Kas dan Bank" (atau variasinya)
+                    const isKasBank = cashFlowGroup.toLowerCase().includes('kas dan bank') || 
+                                      cashFlowGroup.toLowerCase() === 'kas' || 
+                                      cashFlowGroup.toLowerCase() === 'bank' ||
+                                      code.startsWith('1.01');
+
+                    if (isKasBank && isLevel4) {
+                        kasBankAccCodes.add(code);
+
+                        // Ambil saldo awal dari objek unitBalances
+                        if (data.unitBalances && typeof data.unitBalances === 'object') {
+                            Object.values(data.unitBalances).forEach(unit => {
+                                const deb = parseFloat(unit.initialDebit) || 0;
+                                const kre = parseFloat(unit.initialKredit) || 0;
+                                initialKasBankBase += (deb - kre);
+                            });
+                        }
+                    }
+
+                    if (isLevel4 && !isKasBank && cashFlowGroup !== '') {
+                        if (!groupDataMap[cashFlowGroup]) {
+                            groupDataMap[cashFlowGroup] = {};
+                        }
+                        groupDataMap[cashFlowGroup][code] = 0;
+                    }
+                });
+
+                const checkIsKasBank = (code) => {
+                    if (kasBankAccCodes.has(code)) return true;
+                    const accInfo = accountsMap[code] || {};
+                    const group = (accInfo.cashFlowGroup || '').toLowerCase();
+                    return group.includes('kas dan bank') || group === 'kas' || group === 'bank' || code.startsWith('1.01');
+                };
+
+                // 2. Query SEMUA jurnal s.d tanggal akhir
+                const qJurnalAll = query(
+                    collection(db, 'journals'),
+                    where('date', '<=', eDate),
+                    orderBy('date', 'asc')
+                );
+
+                const jSnapAll = await getDocs(qJurnalAll);
+
+                let mutasiKasBeforeStart = 0;
+                let grandTotalNet = 0;
+
+                jSnapAll.forEach(d => {
+                    const journal = d.data();
+                    const jDate = journal.date;
+
+                    if (journal.items && Array.isArray(journal.items)) {
+                        // A. Mutasi Kas/Bank SEBELUM startDate (untuk menyesuaikan saldo awal jika ada transaksi sebelum periode aktif)
+                        if (jDate < sDate) {
+                            journal.items.forEach(item => {
+                                const code = String(item.accCode || '').trim();
+                                const debit = parseFloat(item.debit) || 0;
+                                const kredit = parseFloat(item.kredit) || 0;
+
+                                if (checkIsKasBank(code)) {
+                                    mutasiKasBeforeStart += (debit - kredit);
+                                }
+                            });
+                        } 
+                        // B. Mutasi Arus Kas DALAM Periode (s.d endDate)
+                        else if (jDate >= sDate && jDate <= eDate) {
+                            let hasKasBank = false;
+                            journal.items.forEach(item => {
+                                if (checkIsKasBank(String(item.accCode || '').trim())) {
+                                    hasKasBank = true;
+                                }
+                            });
+
+                            if (hasKasBank) {
+                                journal.items.forEach(item => {
+                                    const code = String(item.accCode || '').trim();
+                                    const debit = parseFloat(item.debit) || 0;
+                                    const kredit = parseFloat(item.kredit) || 0;
+
+                                    const accInfo = accountsMap[code];
+                                    if (accInfo && accInfo.cashFlowGroup) {
+                                        const grp = accInfo.cashFlowGroup;
+                                        if (groupDataMap[grp] && groupDataMap[grp].hasOwnProperty(code)) {
+                                            const netVal = debit > 0 ? debit : kredit;
+                                            groupDataMap[grp][code] += netVal;
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+
+                // Total Kas Awal Periode = Saldo Awal Master (unitBalances) + Mutasi Jurnal sebelum startDate
+                const sumKasAwal = initialKasBankBase + mutasiKasBeforeStart;
+
+                // 3. Render secara dinamis ke HTML berdasarkan groupDataMap
+                cashFlowGroupsContainer.innerHTML = '';
+
+                const sortedGroups = Object.keys(groupDataMap).sort();
+
+                if (sortedGroups.length === 0) {
+                    cashFlowGroupsContainer.innerHTML = '<div style="font-size:11px; color:#94a3b8; padding: 8px 0;">Tidak ada data cashFlowGroup yang terkonfigurasi pada akun level 4.</div>';
+                }
+
+                sortedGroups.forEach(groupName => {
+                    const accountsInGroup = groupDataMap[groupName];
+                    let groupTotal = 0;
+
+                    const sectionTitle = document.createElement('div');
+                    sectionTitle.className = 'report-section-title';
+                    sectionTitle.textContent = groupName;
+                    cashFlowGroupsContainer.appendChild(sectionTitle);
+
+                    const listContainer = document.createElement('div');
+                    const sortedCodes = Object.keys(accountsInGroup).sort((a, b) => 
+                        a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+                    );
+
+                    sortedCodes.forEach(code => {
+                        const val = accountsInGroup[code];
+                        groupTotal += val;
+
+                        const accName = accountsMap[code]?.name || code;
+                        const row = document.createElement('div');
+                        row.className = 'report-row-item';
+                        row.innerHTML = `
+                            <span>${code} - ${accName}</span>
+                            <span class="val-num">${val.toLocaleString('id-ID')}</span>
+                        `;
+                        listContainer.appendChild(row);
+                    });
+
+                    if (sortedCodes.length === 0) {
+                        listContainer.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada rincian)</div>';
+                    }
+
+                    cashFlowGroupsContainer.appendChild(listContainer);
+
+                    const groupSummary = document.createElement('div');
+                    groupSummary.className = 'report-row-summary';
+                    groupSummary.style.marginTop = '4px';
+                    groupSummary.innerHTML = `
+                        <span>Total ${groupName}</span>
+                        <span class="val-num">${groupTotal.toLocaleString('id-ID')}</span>
+                    `;
+                    cashFlowGroupsContainer.appendChild(groupSummary);
+
+                    grandTotalNet += groupTotal;
+                });
+
+                // Rekalkulasi Total Arus Kas Bersih & Saldo Akhir
+                const sumKasAkhir = sumKasAwal + grandTotalNet;
+
+                totalArusKasBersih.textContent = grandTotalNet.toLocaleString('id-ID');
+                kasAwalPeriode.textContent = sumKasAwal.toLocaleString('id-ID');
+                kasAkhirPeriode.textContent = sumKasAkhir.toLocaleString('id-ID');
+
+            } catch (err) {
+                console.error("Gagal menghitung Laporan Arus Kas:", err);
+            }
+        }
+
+        startDateInput.addEventListener('change', generateArusKasReport);
+        endDateInput.addEventListener('change', generateArusKasReport);
+
+        initActiveDates();
+    </script>
+</body>
+</html>

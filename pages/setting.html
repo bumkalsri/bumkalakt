@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PENGATURAN PROFIL</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Link External CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-title-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .icon-menu {
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        /* Navigation Tab Header Bar (Sticky) */
+        .tabs-header {
+            display: flex;
+            background-color: #ffffff;
+            border-bottom: 2px solid #e2e8f0;
+            position: sticky;
+            top: 50px;
+            z-index: 90;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 4px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: #5114B9;
+            border-bottom-color: #5114B9;
+        }
+
+        /* Container Body */
+        .content-body {
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding-bottom: 40px;
+        }
+
+        /* Tab Content Panel */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        .form-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #5114B9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-add-unit {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1e293b;
+            outline: none;
+            background-color: #ffffff;
+        }
+
+        .form-control:focus {
+            border-color: #5114B9;
+            box-shadow: 0 0 0 2px rgba(81, 20, 185, 0.1);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        select.form-control {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M7 10l5 5 5-5z' fill='%23475569'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 32px;
+            appearance: none;
+        }
+
+        .form-row-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Multiselect Tag Container CSS */
+        .multiselect-container {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #ffffff;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .multiselect-container:focus-within {
+            border-color: #5114B9;
+            box-shadow: 0 0 0 2px rgba(81, 20, 185, 0.1);
+        }
+        .selected-tags-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: 24px;
+        }
+        .account-tag {
+            background-color: #ede9fe;
+            color: #5114B9;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .account-tag .remove-tag {
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #5114B9;
+        }
+        .account-tag .remove-tag:hover {
+            color: #dc2626;
+        }
+        .multiselect-select {
+            border: none;
+            outline: none;
+            font-size: 12px;
+            background: transparent;
+            color: #1e293b;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* List Unit Usaha */
+        .unit-list-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .unit-card-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .unit-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .unit-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .unit-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .badge-default {
+            background-color: #10b981;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .unit-code {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .unit-address {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        .unit-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-unit-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #64748b;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-unit-action:hover {
+            background-color: #e2e8f0;
+            color: #5114B9;
+        }
+
+        /* Container Mapping Baris Bank */
+        .mapping-bank-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mapping-bank-card {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .mapping-bank-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        /* Bottom Action Footer */
+        .btn-group-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-save-setting {
+            background-color: #5114B9;
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(81, 20, 185, 0.3);
+        }
+
+        .btn-cancel-setting {
+            background-color: #ffffff;
+            color: #5114B9;
+            border: 1.5px solid #5114B9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-save-setting:active, .btn-cancel-setting:active {
+            transform: scale(0.98);
+        }
+
+        /* Modal Overlay & Box */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 400px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .modal-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-footer {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Halaman Utama -->
+        <header class="page-header">
+            <div class="header-title-box">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>PENGATURAN PROFIL</h1>
+            </div>
+            <span class="material-icons icon-menu">more_vert</span>
+        </header>
+
+        <!-- Navigation Tab Header Bar -->
+        <div class="tabs-header">
+            <button type="button" class="tab-btn active" id="btnTabProfil">1. PROFIL</button>
+            <button type="button" class="tab-btn" id="btnTabUnit">2. UNIT USAHA</button>
+            <button type="button" class="tab-btn" id="btnTabMapping">3. MAPPING AKUN</button>
+        </div>
+
+        <!-- Body Form Pengaturan -->
+        <div class="content-body">
+            <form id="settingForm">
+
+                <!-- TAB 1: PROFIL BUMKAL -->
+                <div id="tab-profil" class="tab-content active">
+                    <div class="form-section-header">
+                        <span class="form-section-title">Informasi Utama BUMKal</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="namaProfil">Nama BUMKal / Induk</label>
+                        <input type="text" id="namaProfil" class="form-control" placeholder="Contoh: BUMKal Sinar Mitra Desa" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="direktur">Nama Direktur / Direktur Utama</label>
+                        <input type="text" id="direktur" class="form-control" placeholder="Nama Direktur BUMKal">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="pengawas">Nama Penasehat BUMKal</label>
+                        <input type="text" id="pengawas" class="form-control" placeholder="Nama Penasehat BUMKal">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="telepon">No. Telepon / Whatsapp</label>
+                        <input type="text" id="telepon" class="form-control" placeholder="Contoh: 081234567890">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="alamat">Alamat Lengkap</label>
+                        <textarea id="alamat" class="form-control" placeholder="Srihardono, Pundong, Bantul, Yogyakarta 55771"></textarea>
+                    </div>
+
+                    <div class="form-section-header" style="margin-top: 10px;">
+                        <span class="form-section-title">Periode Akuntansi</span>
+                    </div>
+
+                    <div class="form-row-2col">
+                        <div class="form-group">
+                            <label class="form-label" for="tglMulai">Tanggal Mulai</label>
+                            <input type="date" id="tglMulai" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="tglSelesai">Tanggal Selesai</label>
+                            <input type="date" id="tglSelesai" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: UNIT USAHA -->
+                <div id="tab-unit" class="tab-content">
+                    <div class="form-section-header">
+                        <span class="form-section-title">Daftar Unit Usaha</span>
+                        <button type="button" class="btn-add-unit" id="btnOpenAddUnitModal">
+                            <span class="material-icons" style="font-size: 14px;">add</span>
+                            <span>Tambah Unit</span>
+                        </button>
+                    </div>
+
+                    <div class="unit-list-box" id="unitListBox">
+                        <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 11px;">
+                            Belum ada unit usaha terdaftar.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: MAPPING AKUN TRANSAKSI & REKONSILIASI -->
+                <div id="tab-mapping" class="tab-content">
+                    <div class="form-section-header">
+                        <span class="form-section-title">Mapping Akun Transaksi Penjualan</span>
+                    </div>
+
+                    <!-- 1. Akun untuk Tunai (Kas) -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunTunaiKas">Akun Penjualan Tunai (Kas)</label>
+                        <select id="akunTunaiKas" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Kas Toko / Tunai...</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Akun untuk Transfer Bank -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunTransferBank">Akun Penjualan Transfer Bank</label>
+                        <select id="akunTransferBank" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Rekening Bank...</option>
+                        </select>
+                    </div>
+
+                    <!-- 3. Akun untuk Piutang / Kredit -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunPiutangKredit">Akun Penjualan Piutang / Kredit</label>
+                        <select id="akunPiutangKredit" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Piutang Usaha...</option>
+                        </select>
+                    </div>
+
+                    <!-- 4. Akun Pendapatan Penjualan -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunPendapatan">Akun Pendapatan Penjualan</label>
+                        <select id="akunPendapatan" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Pendapatan Penjualan...</option>
+                        </select>
+                    </div>
+
+                    <!-- 5. Akun Laba Ditahan (Tutup Tahun) -->
+                    <div class="form-group">
+                        <label class="form-label" for="akunLabaDitahan">Akun Laba Ditahan (Tutup Tahun)</label>
+                        <select id="akunLabaDitahan" class="form-control account-dropdown">
+                            <option value="">Pilih Akun Laba Ditahan...</option>
+                        </select>
+                        <span style="font-size: 10px; color: #64748b;">
+                            Digunakan untuk memindahkan saldo laba/rugi berjalan saat proses tutup tahun buku.
+                        </span>
+                    </div>
+
+                    <!-- 6. Akun Aset (Bisa Lebih Dari 1 Akun) -->
+                    <div class="form-group">
+                        <label class="form-label">Akun Aset (Multi-Pilih)</label>
+                        <div class="multiselect-container" id="containerAkunAset">
+                            <div class="selected-tags-box" id="tagsAkunAset"></div>
+                            <select id="selectAkunAsetHelper" class="multiselect-select">
+                                <option value="">-- Tambah Akun Aset --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 7. Akun Akumulasi (Bisa Lebih Dari 1 Akun) -->
+                    <div class="form-group">
+                        <label class="form-label">Akun Akumulasi (Multi-Pilih)</label>
+                        <div class="multiselect-container" id="containerAkunAkumulasi">
+                            <div class="selected-tags-box" id="tagsAkunAkumulasi"></div>
+                            <select id="selectAkunAkumulasiHelper" class="multiselect-select">
+                                <option value="">-- Tambah Akun Akumulasi --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 8. Akun Biaya / Penyusutan (Bisa Lebih Dari 1 Akun) -->
+                    <div class="form-group">
+                        <label class="form-label">Akun Biaya (Multi-Pilih)</label>
+                        <div class="multiselect-container" id="containerAkunBiaya">
+                            <div class="selected-tags-box" id="tagsAkunBiaya"></div>
+                            <select id="selectAkunBiayaHelper" class="multiselect-select">
+                                <option value="">-- Tambah Akun Biaya --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section-header" style="margin-top: 14px;">
+                        <span class="form-section-title">Mapping Kas Pendukung Rekonsiliasi Bank</span>
+                    </div>
+                    <span style="font-size: 10px; color: #64748b; margin-top: -8px;">
+                        Tentukan pasangan akun Kas Tunai fisik untuk masing-masing rekening Bank agar indikator selisih rekon akurat.
+                    </span>
+
+                    <div class="mapping-bank-container" id="mappingBankContainer">
+                        <div style="text-align: center; padding: 12px; color: #94a3b8; font-size: 11px;">
+                            Memuat daftar rekening bank...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tombol Aksi Simpan & Batal -->
+                <div class="btn-group-footer">
+                    <button type="submit" class="btn-save-setting" id="btnSaveSetting">SIMPAN</button>
+                    <button type="button" class="btn-cancel-setting" id="btnResetSetting">BATAL</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Form Tambah / Edit Unit Usaha -->
+    <div class="modal-overlay" id="modalUnit">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title" id="modalUnitTitle">Tambah Unit Usaha</span>
+                <button type="button" class="btn-unit-action" id="btnCloseUnitModal" style="color: white;">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="unitIndex">
+                
+                <div class="form-group">
+                    <label class="form-label" for="kodeUnit">Kode Unit *</label>
+                    <input type="text" id="kodeUnit" class="form-control" placeholder="Contoh: 00, 01, DAGANG" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="namaUnit">Nama Unit Usaha *</label>
+                    <input type="text" id="namaUnit" class="form-control" placeholder="Contoh: Kantor Pusat, Unit Toko Kelontong" required>
+                </div>
+
+                <!-- ALAMAT UNIT USAHA -->
+                <div class="form-group">
+                    <label class="form-label" for="alamatUnit">Alamat Unit Usaha</label>
+                    <textarea id="alamatUnit" class="form-control" rows="2" placeholder="Masukkan alamat lokasi unit usaha..."></textarea>
+                </div>
+
+                <!-- STATUS DEFAULT -->
+                <div class="form-group" style="margin-top: 4px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #334155; cursor: pointer; font-weight: 600;">
+                        <input type="checkbox" id="isDefaultUnit" style="accent-color: #5114B9; width: 16px; height: 16px;">
+                        <span>Jadikan Unit Default</span>
+                    </label>
+                    <span style="font-size: 10px; color: #64748b; margin-left: 24px;">
+                        Unit default akan otomatis terpilih saat entri jurnal transaksi baru.
+                    </span>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-save-setting" id="btnSaveUnitItem">SIMPAN UNIT</button>
+                    <button type="button" class="btn-cancel-setting" id="btnCancelUnitItem">BATAL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Integrasi Firestore & Logika Tab -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // Tab Navigation Elements
+        const btnTabProfil = document.getElementById('btnTabProfil');
+        const btnTabUnit = document.getElementById('btnTabUnit');
+        const btnTabMapping = document.getElementById('btnTabMapping');
+
+        const tabProfil = document.getElementById('tab-profil');
+        const tabUnit = document.getElementById('tab-unit');
+        const tabMapping = document.getElementById('tab-mapping');
+
+        // Form Elements
+        const settingForm = document.getElementById('settingForm');
+        const namaProfilInput = document.getElementById('namaProfil');
+        const direkturInput = document.getElementById('direktur');
+        const pengawasInput = document.getElementById('pengawas');
+        const teleponInput = document.getElementById('telepon');
+        const alamatInput = document.getElementById('alamat');
+        const tglMulaiInput = document.getElementById('tglMulai');
+        const tglSelesaiInput = document.getElementById('tglSelesai');
+        const btnResetSetting = document.getElementById('btnResetSetting');
+
+        // Mapping Elements
+        const akunTunaiKasSelect = document.getElementById('akunTunaiKas');
+        const akunTransferBankSelect = document.getElementById('akunTransferBank');
+        const akunPiutangKreditSelect = document.getElementById('akunPiutangKredit');
+        const akunPendapatanSelect = document.getElementById('akunPendapatan');
+        const akunLabaDitahanSelect = document.getElementById('akunLabaDitahan');
+        const mappingBankContainer = document.getElementById('mappingBankContainer');
+
+        // Multi-select Akun Aset, Akumulasi, & Biaya Elements
+        const tagsAkunAset = document.getElementById('tagsAkunAset');
+        const selectAkunAsetHelper = document.getElementById('selectAkunAsetHelper');
+        const tagsAkunAkumulasi = document.getElementById('tagsAkunAkumulasi');
+        const selectAkunAkumulasiHelper = document.getElementById('selectAkunAkumulasiHelper');
+        const tagsAkunBiaya = document.getElementById('tagsAkunBiaya');
+        const selectAkunBiayaHelper = document.getElementById('selectAkunBiayaHelper');
+
+        let selectedAkunAsetList = [];
+        let selectedAkunAkumulasiList = [];
+        let selectedAkunBiayaList = [];
+
+        // Modal Unit Elements
+        const unitListBox = document.getElementById('unitListBox');
+        const modalUnit = document.getElementById('modalUnit');
+        const modalUnitTitle = document.getElementById('modalUnitTitle');
+        const btnOpenAddUnitModal = document.getElementById('btnOpenAddUnitModal');
+        const btnCloseUnitModal = document.getElementById('btnCloseUnitModal');
+        const btnCancelUnitItem = document.getElementById('btnCancelUnitItem');
+        const btnSaveUnitItem = document.getElementById('btnSaveUnitItem');
+
+        const unitIndexInput = document.getElementById('unitIndex');
+        const kodeUnitInput = document.getElementById('kodeUnit');
+        const namaUnitInput = document.getElementById('namaUnit');
+        const alamatUnitInput = document.getElementById('alamatUnit');
+        const isDefaultUnitCheckbox = document.getElementById('isDefaultUnit');
+
+        let originalSettingData = {};
+        let unitList = [];
+        let allAccountsCOA = [];
+        let bankAccountsList = [];
+        let cashAccountsList = [];
+        let savedBankMapping = {};
+
+        // Kontrol Perpindahan Tab
+        function switchTab(activeBtn, activeTab) {
+            [btnTabProfil, btnTabUnit, btnTabMapping].forEach(btn => btn.classList.remove('active'));
+            [tabProfil, tabUnit, tabMapping].forEach(tab => tab.classList.remove('active'));
+
+            activeBtn.classList.add('active');
+            activeTab.classList.add('active');
+        }
+
+        btnTabProfil.addEventListener('click', () => switchTab(btnTabProfil, tabProfil));
+        btnTabUnit.addEventListener('click', () => switchTab(btnTabUnit, tabUnit));
+        btnTabMapping.addEventListener('click', () => switchTab(btnTabMapping, tabMapping));
+
+        // Load COA dari Firestore dan sort A-Z
+        async function loadChartOfAccounts() {
+            try {
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                allAccountsCOA = [];
+                bankAccountsList = [];
+                cashAccountsList = [];
+
+                let rawAccounts = [];
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || data.code || data.kodeAkun || data.kode || '').trim();
+                    const name = String(data.accName || data.name || data.namaAkun || data.nama || '').trim();
+                    const group = String(data.cashFlowGroup || data.group || data.kategori || '').trim();
+
+                    if (!code) return;
+                    rawAccounts.push({ code, name, group });
+                });
+
+                allAccountsCOA = rawAccounts.filter(acc => {
+                    const dotCount = (acc.code.match(/\./g) || []).length;
+                    return dotCount >= 3; 
+                });
+
+                if (allAccountsCOA.length === 0) {
+                    allAccountsCOA = [...rawAccounts];
+                }
+
+                allAccountsCOA.forEach(acc => {
+                    const lowerName = acc.name.toLowerCase();
+                    const lowerGroup = acc.group.toLowerCase();
+
+                    if (lowerGroup.includes('kas') || lowerGroup.includes('bank') || lowerName.includes('kas') || lowerName.includes('bank') || acc.code.startsWith('1.01')) {
+                        if (lowerName.includes('bank') || acc.code.startsWith('1.01.02')) {
+                            bankAccountsList.push(acc);
+                        } else {
+                            cashAccountsList.push(acc);
+                        }
+                    }
+                });
+
+                if (cashAccountsList.length === 0) {
+                    cashAccountsList = [...allAccountsCOA];
+                }
+
+                // SORTING KODE AKUN (A - Z / Numeric Ascending)
+                const sortByCode = (a, b) => a.code.localeCompare(b.code, undefined, { numeric: true });
+                allAccountsCOA.sort(sortByCode);
+                bankAccountsList.sort(sortByCode);
+                cashAccountsList.sort(sortByCode);
+
+                populateAccountDropdowns();
+                renderBankMappingUI();
+                renderMultiSelectOptions();
+            } catch (err) {
+                console.error("Gagal memuat COA:", err);
+            }
+        }
+
+        function populateAccountDropdowns() {
+            const dropdowns = [akunTunaiKasSelect, akunTransferBankSelect, akunPiutangKreditSelect, akunPendapatanSelect, akunLabaDitahanSelect];
+            dropdowns.forEach(sel => {
+                if (!sel) return;
+                const currentVal = sel.value;
+                sel.innerHTML = '<option value="">Pilih Akun...</option>';
+                allAccountsCOA.forEach(acc => {
+                    const opt = document.createElement('option');
+                    opt.value = `${acc.code} - ${acc.name}`;
+                    opt.textContent = `${acc.code} - ${acc.name}`;
+                    sel.appendChild(opt);
+                });
+                sel.value = currentVal;
+            });
+        }
+
+        function renderMultiSelectOptions() {
+            // Populate Akun Aset Helper Dropdown
+            if (selectAkunAsetHelper) {
+                selectAkunAsetHelper.innerHTML = '<option value="">-- Tambah Akun Aset --</option>';
+                allAccountsCOA.forEach(acc => {
+                    const valStr = `${acc.code} - ${acc.name}`;
+                    if (!selectedAkunAsetList.includes(valStr)) {
+                        const opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = valStr;
+                        selectAkunAsetHelper.appendChild(opt);
+                    }
+                });
+            }
+            renderTagsAset();
+
+            // Populate Akun Akumulasi Helper Dropdown
+            if (selectAkunAkumulasiHelper) {
+                selectAkunAkumulasiHelper.innerHTML = '<option value="">-- Tambah Akun Akumulasi --</option>';
+                allAccountsCOA.forEach(acc => {
+                    const valStr = `${acc.code} - ${acc.name}`;
+                    if (!selectedAkunAkumulasiList.includes(valStr)) {
+                        const opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = valStr;
+                        selectAkunAkumulasiHelper.appendChild(opt);
+                    }
+                });
+            }
+            renderTagsAkumulasi();
+
+            // Populate Akun Biaya Helper Dropdown
+            if (selectAkunBiayaHelper) {
+                selectAkunBiayaHelper.innerHTML = '<option value="">-- Tambah Akun Biaya --</option>';
+                allAccountsCOA.forEach(acc => {
+                    const valStr = `${acc.code} - ${acc.name}`;
+                    if (!selectedAkunBiayaList.includes(valStr)) {
+                        const opt = document.createElement('option');
+                        opt.value = valStr;
+                        opt.textContent = valStr;
+                        selectAkunBiayaHelper.appendChild(opt);
+                    }
+                });
+            }
+            renderTagsBiaya();
+        }
+
+        function renderTagsAset() {
+            if (!tagsAkunAset) return;
+            tagsAkunAset.innerHTML = '';
+            selectedAkunAsetList.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'account-tag';
+                tag.innerHTML = `<span>${item}</span><span class="remove-tag" data-index="${index}">&times;</span>`;
+                tagsAkunAset.appendChild(tag);
+            });
+
+            tagsAkunAset.querySelectorAll('.remove-tag').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.index;
+                    selectedAkunAsetList.splice(idx, 1);
+                    renderMultiSelectOptions();
+                });
+            });
+        }
+
+        function renderTagsAkumulasi() {
+            if (!tagsAkunAkumulasi) return;
+            tagsAkunAkumulasi.innerHTML = '';
+            selectedAkunAkumulasiList.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'account-tag';
+                tag.innerHTML = `<span>${item}</span><span class="remove-tag" data-index="${index}">&times;</span>`;
+                tagsAkunAkumulasi.appendChild(tag);
+            });
+
+            tagsAkunAkumulasi.querySelectorAll('.remove-tag').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.index;
+                    selectedAkunAkumulasiList.splice(idx, 1);
+                    renderMultiSelectOptions();
+                });
+            });
+        }
+
+        function renderTagsBiaya() {
+            if (!tagsAkunBiaya) return;
+            tagsAkunBiaya.innerHTML = '';
+            selectedAkunBiayaList.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'account-tag';
+                tag.innerHTML = `<span>${item}</span><span class="remove-tag" data-index="${index}">&times;</span>`;
+                tagsAkunBiaya.appendChild(tag);
+            });
+
+            tagsAkunBiaya.querySelectorAll('.remove-tag').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.index;
+                    selectedAkunBiayaList.splice(idx, 1);
+                    renderMultiSelectOptions();
+                });
+            });
+        }
+
+        if (selectAkunAsetHelper) {
+            selectAkunAsetHelper.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val && !selectedAkunAsetList.includes(val)) {
+                    selectedAkunAsetList.push(val);
+                    renderMultiSelectOptions();
+                }
+                e.target.value = '';
+            });
+        }
+
+        if (selectAkunAkumulasiHelper) {
+            selectAkunAkumulasiHelper.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val && !selectedAkunAkumulasiList.includes(val)) {
+                    selectedAkunAkumulasiList.push(val);
+                    renderMultiSelectOptions();
+                }
+                e.target.value = '';
+            });
+        }
+
+        if (selectAkunBiayaHelper) {
+            selectAkunBiayaHelper.addEventListener('change', (e) => {
+                const val = e.target.value;
+                if (val && !selectedAkunBiayaList.includes(val)) {
+                    selectedAkunBiayaList.push(val);
+                    renderMultiSelectOptions();
+                }
+                e.target.value = '';
+            });
+        }
+
+        // Render Mapping Bank dengan Kas Pendukung
+        function renderBankMappingUI() {
+            if (!mappingBankContainer) return;
+            mappingBankContainer.innerHTML = '';
+
+            if (bankAccountsList.length === 0) {
+                bankAccountsList = [...cashAccountsList];
+            }
+
+            bankAccountsList.forEach(bank => {
+                const card = document.createElement('div');
+                card.className = 'mapping-bank-card';
+
+                let cashOptionsHTML = '<option value="">-- Pilih Kas Pendukung / Fisik --</option>';
+                cashAccountsList.forEach(cash => {
+                    const selected = (savedBankMapping[bank.code] === cash.code) ? 'selected' : '';
+                    cashOptionsHTML += `<option value="${cash.code}" ${selected}>${cash.code} - ${cash.name}</option>`;
+                });
+
+                card.innerHTML = `
+                    <div class="mapping-bank-title">Rekening Bank: <b>${bank.code} - ${bank.name}</b></div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size: 9px;">Pasangan Akun Kas Fisik / Pendukung</label>
+                        <select class="form-control bank-cash-mapping-select" data-bankcode="${bank.code}" style="padding: 6px 10px; font-size: 11px;">
+                            ${cashOptionsHTML}
+                        </select>
+                    </div>
+                `;
+                mappingBankContainer.appendChild(card);
+            });
+        }
+
+        // Load Settings dari Firestore
+        async function loadSettings() {
+            await loadChartOfAccounts();
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    originalSettingData = docSnap.data();
+                    unitList = originalSettingData.unitList || [];
+                    savedBankMapping = originalSettingData.bankCashMapping || {};
+                    selectedAkunAsetList = originalSettingData.akunAsetList || [];
+                    selectedAkunAkumulasiList = originalSettingData.akunAkumulasiList || [];
+                    selectedAkunBiayaList = originalSettingData.akunBiayaList || [];
+                    
+                    populateForm(originalSettingData);
+                    renderBankMappingUI();
+                    renderMultiSelectOptions();
+                } else {
+                    const defaultData = {
+                        namaProfil: 'BUMKal Sinar Mitra Desa',
+                        direktur: '',
+                        pengawas: '',
+                        telepon: '',
+                        alamat: 'Srihardono, Pundong, Bantul, Yogyakarta 55771',
+                        tglMulai: '2026-01-01',
+                        tglSelesai: '2026-12-31',
+                        akunTunaiKas: '',
+                        akunTransferBank: '',
+                        akunPiutangKredit: '',
+                        akunPendapatan: '',
+                        akunLabaDitahan: '',
+                        akunAsetList: [],
+                        akunAkumulasiList: [],
+                        akunBiayaList: [],
+                        bankCashMapping: {},
+                        unitList: [
+                            { kodeUnit: '00', namaUnit: 'Kantor Pusat', alamatUnit: '', isDefault: true }
+                        ]
+                    };
+                    originalSettingData = { ...defaultData };
+                    unitList = [...defaultData.unitList];
+                    savedBankMapping = {};
+                    selectedAkunAsetList = [];
+                    selectedAkunAkumulasiList = [];
+                    selectedAkunBiayaList = [];
+                    populateForm(defaultData);
+                    renderMultiSelectOptions();
+                }
+            } catch (error) {
+                console.error("Gagal memuat pengaturan:", error);
+            }
+        }
+
+        function populateForm(data) {
+            namaProfilInput.value = data.namaProfil || '';
+            direkturInput.value = data.direktur || '';
+            pengawasInput.value = data.pengawas || '';
+            teleponInput.value = data.telepon || '';
+            alamatInput.value = data.alamat || '';
+            tglMulaiInput.value = data.tglMulai || '2026-01-01';
+            tglSelesaiInput.value = data.tglSelesai || '2026-12-31';
+
+            if (data.akunTunaiKas) akunTunaiKasSelect.value = data.akunTunaiKas;
+            else if (data.akunKasUtama) akunTunaiKasSelect.value = data.akunKasUtama;
+
+            if (data.akunTransferBank) akunTransferBankSelect.value = data.akunTransferBank;
+
+            if (data.akunPiutangKredit) akunPiutangKreditSelect.value = data.akunPiutangKredit;
+            else if (data.akunPiutang) akunPiutangKreditSelect.value = data.akunPiutang;
+
+            if (data.akunPendapatan) akunPendapatanSelect.value = data.akunPendapatan;
+            if (data.akunLabaDitahan) akunLabaDitahanSelect.value = data.akunLabaDitahan;
+
+            renderUnitList();
+        }
+
+        // Render List Unit Usaha
+        function renderUnitList() {
+            unitListBox.innerHTML = '';
+
+            if (unitList.length === 0) {
+                unitListBox.innerHTML = `
+                    <div style="text-align: center; padding: 16px; color: #94a3b8; font-size: 11px;">
+                        Belum ada unit usaha terdaftar.
+                    </div>`;
+                return;
+            }
+
+            unitList.forEach((unit, idx) => {
+                const item = document.createElement('div');
+                item.className = 'unit-card-item';
+
+                const defaultBadge = unit.isDefault ? `<span class="badge-default">Default</span>` : '';
+                const addressText = unit.alamatUnit ? `<span class="unit-address">${unit.alamatUnit}</span>` : '';
+
+                item.innerHTML = `
+                    <div class="unit-info">
+                        <div class="unit-name-row">
+                            <span class="unit-name">${unit.namaUnit}</span>
+                            ${defaultBadge}
+                        </div>
+                        <span class="unit-code">Kode: ${unit.kodeUnit}</span>
+                        ${addressText}
+                    </div>
+                    <div class="unit-actions">
+                        <button type="button" class="btn-unit-action btn-edit-unit" data-idx="${idx}">
+                            <span class="material-icons" style="font-size: 18px;">edit</span>
+                        </button>
+                        <button type="button" class="btn-unit-action btn-delete-unit" data-idx="${idx}">
+                            <span class="material-icons" style="font-size: 18px; color: #ef4444;">delete</span>
+                        </button>
+                    </div>
+                `;
+
+                unitListBox.appendChild(item);
+            });
+
+            document.querySelectorAll('.btn-edit-unit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.idx;
+                    const item = unitList[idx];
+
+                    unitIndexInput.value = idx;
+                    kodeUnitInput.value = item.kodeUnit || '';
+                    namaUnitInput.value = item.namaUnit || '';
+                    alamatUnitInput.value = item.alamatUnit || '';
+                    isDefaultUnitCheckbox.checked = !!item.isDefault;
+
+                    modalUnitTitle.textContent = 'Edit Unit Usaha';
+                    modalUnit.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('.btn-delete-unit').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = e.currentTarget.dataset.idx;
+                    unitList.splice(idx, 1);
+                    renderUnitList();
+                });
+            });
+        }
+
+        btnOpenAddUnitModal.addEventListener('click', () => {
+            unitIndexInput.value = '';
+            kodeUnitInput.value = '';
+            namaUnitInput.value = '';
+            alamatUnitInput.value = '';
+            isDefaultUnitCheckbox.checked = unitList.length === 0;
+            modalUnitTitle.textContent = 'Tambah Unit Usaha';
+            modalUnit.classList.add('active');
+        });
+
+        function closeUnitModal() {
+            modalUnit.classList.remove('active');
+        }
+
+        btnCloseUnitModal.addEventListener('click', closeUnitModal);
+        btnCancelUnitItem.addEventListener('click', closeUnitModal);
+
+        btnSaveUnitItem.addEventListener('click', () => {
+            const kode = kodeUnitInput.value.trim();
+            const nama = namaUnitInput.value.trim();
+            const alamat = alamatUnitInput.value.trim();
+            const isDefault = isDefaultUnitCheckbox.checked;
+            const idx = unitIndexInput.value;
+
+            if (!kode || !nama) {
+                Swal.fire('Peringatan', 'Kode dan Nama Unit wajib diisi.', 'warning');
+                return;
+            }
+
+            if (isDefault) {
+                unitList = unitList.map(u => ({ ...u, isDefault: false }));
+            }
+
+            const unitData = { kodeUnit: kode, namaUnit: nama, alamatUnit: alamat, isDefault: isDefault };
+
+            if (idx !== '') {
+                unitList[idx] = unitData;
+            } else {
+                unitList.push(unitData);
+            }
+
+            renderUnitList();
+            closeUnitModal();
+        });
+
+        btnResetSetting.addEventListener('click', () => {
+            unitList = originalSettingData.unitList ? JSON.parse(JSON.stringify(originalSettingData.unitList)) : [];
+            savedBankMapping = originalSettingData.bankCashMapping ? JSON.parse(JSON.stringify(originalSettingData.bankCashMapping)) : {};
+            selectedAkunAsetList = originalSettingData.akunAsetList ? [...originalSettingData.akunAsetList] : [];
+            selectedAkunAkumulasiList = originalSettingData.akunAkumulasiList ? [...originalSettingData.akunAkumulasiList] : [];
+            selectedAkunBiayaList = originalSettingData.akunBiayaList ? [...originalSettingData.akunBiayaList] : [];
+            populateForm(originalSettingData);
+            renderBankMappingUI();
+            renderMultiSelectOptions();
+        });
+
+        // Save All Settings ke Firestore
+        settingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!namaProfilInput.value.trim()) {
+                Swal.fire('Peringatan', 'Nama BUMKal / Induk wajib diisi.', 'warning');
+                return;
+            }
+
+            const currentBankMapping = {};
+            document.querySelectorAll('.bank-cash-mapping-select').forEach(sel => {
+                const bankCode = sel.dataset.bankcode;
+                const cashCode = sel.value;
+                if (bankCode && cashCode) {
+                    currentBankMapping[bankCode] = cashCode;
+                }
+            });
+
+            const confirmResult = await Swal.fire({
+                title: 'Simpan Pengaturan?',
+                text: 'Apakah Anda yakin ingin memperbarui profil, unit usaha, dan mapping akun transaksi?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#5114B9',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Ya, Simpan',
+                cancelButtonText: 'Batal'
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
+            const payload = {
+                namaProfil: namaProfilInput.value.trim(),
+                direktur: direkturInput.value.trim(),
+                pengawas: pengawasInput.value.trim(),
+                telepon: teleponInput.value.trim(),
+                alamat: alamatInput.value.trim(),
+                tglMulai: tglMulaiInput.value,
+                tglSelesai: tglSelesaiInput.value,
+                akunTunaiKas: akunTunaiKasSelect.value,
+                akunTransferBank: akunTransferBankSelect.value,
+                akunPiutangKredit: akunPiutangKreditSelect.value,
+                akunPendapatan: akunPendapatanSelect.value,
+                akunLabaDitahan: akunLabaDitahanSelect.value,
+                akunAsetList: selectedAkunAsetList,
+                akunAkumulasiList: selectedAkunAkumulasiList,
+                akunBiayaList: selectedAkunBiayaList,
+                bankCashMapping: currentBankMapping,
+                unitList: unitList,
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                await setDoc(docRef, payload, { merge: true });
+
+                originalSettingData = JSON.parse(JSON.stringify(payload));
+                savedBankMapping = currentBankMapping;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: 'Pengaturan dan mapping akun transaksi berhasil disimpan.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+            } catch (error) {
+                console.error("Gagal menyimpan:", error);
+                Swal.fire('Gagal', error.message, 'error');
+            }
+        });
+
+        loadSettings();
+    </script>
+</body>
+</html>

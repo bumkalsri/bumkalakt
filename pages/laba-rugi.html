@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPORAN LABA/RUGI</title>
+    
+    <!-- Link Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    <meta name="theme-color" content="#5114B9">
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* Hide Scrollbar Visual */
+        html, body, *, .page-container, .report-content {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .page-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Utama */
+        .page-header {
+            background-color: #5114B9;
+            color: #ffffff;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Filter Periode & Unit Section */
+        .filter-section {
+            padding: 10px 14px;
+            background-color: #ffffff;
+            border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 11px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .input-date-inline {
+            border: none;
+            border-bottom: 1px solid #5114B9;
+            font-size: 11px;
+            font-weight: 700;
+            color: #5114B9;
+            outline: none;
+            background: transparent;
+            padding: 2px 0;
+            text-align: center;
+            width: 110px;
+        }
+
+        .select-unit-filter {
+            width: 100%;
+            height: 32px;
+            padding: 0 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #0f172a;
+            background-color: #f8fafc;
+            outline: none;
+        }
+
+        .select-unit-filter:focus {
+            border-color: #5114B9;
+            background-color: #ffffff;
+        }
+
+        /* Main Report Paper Container */
+        .report-wrapper {
+            padding: 12px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .report-paper {
+            border: 1px solid #cbd5e1;
+            padding: 16px 14px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tampilan Tabel Baris Laba Rugi */
+        .lr-section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            margin-top: 10px;
+            margin-bottom: 4px;
+        }
+
+        .lr-row-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 0 2px 12px;
+            font-size: 11px;
+            color: #334155;
+        }
+
+        .lr-row-summary {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .lr-row-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f172a;
+            border-top: 1px solid #0f172a;
+            margin-top: 8px;
+        }
+
+        .val-num {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <!-- Header Atas -->
+        <header class="page-header">
+            <div class="header-left">
+                <a href="../index.html" class="btn-back">
+                    <span class="material-icons">arrow_back</span>
+                </a>
+                <h1>LAPORAN LABA/RUGI</h1>
+            </div>
+            <div>
+                <span class="material-icons" style="font-size: 20px; cursor: pointer;">more_vert</span>
+            </div>
+        </header>
+
+        <!-- Baris Filter Periode & Unit Usaha -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <span class="filter-label">Periode</span>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <input type="date" id="startDate" class="input-date-inline">
+                    <span class="filter-label">s.d</span>
+                    <input type="date" id="endDate" class="input-date-inline">
+                </div>
+            </div>
+            <div class="filter-row">
+                <span class="filter-label">Unit Usaha</span>
+                <select class="select-unit-filter" id="filterUnitLabaRugi">
+                    <option value="">Konsolidasi (Gabungan)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Area Isi Laporan Laba Rugi Dinamis Berbasis Level 2 -->
+        <div class="report-wrapper">
+            <div class="report-paper" id="reportPaperContent">
+                <!-- Konten laporan akan digenerate secara dinamis berdasarkan master level 2 COA -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firestore Integrasi Real-Time Berbasis Level 2 COA -->
+    <script type="module">
+        import { db } from '../assets/js/firebase-config.js';
+        import { doc, getDoc, collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const filterUnitLabaRugi = document.getElementById('filterUnitLabaRugi');
+        const reportPaperContent = document.getElementById('reportPaperContent');
+
+        function formatDateString(y, m, d) {
+            const mm = String(m).padStart(2, '0');
+            const dd = String(d).padStart(2, '0');
+            return `${y}-${mm}-${dd}`;
+        }
+
+        async function initActiveMonthDates() {
+            try {
+                const docRef = doc(db, 'settings', 'profile');
+                const docSnap = await getDoc(docRef);
+
+                let year = new Date().getFullYear();
+                let month = new Date().getMonth() + 1;
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+
+                    if (data.activeMonthCode) {
+                        const parts = data.activeMonthCode.split('-');
+                        year = parseInt(parts[0], 10);
+                        month = parseInt(parts[1], 10);
+                    } else if (data.tglMulai) {
+                        const d = new Date(data.tglMulai);
+                        year = d.getFullYear();
+                        month = d.getMonth() + 1;
+                    }
+
+                    if (filterUnitLabaRugi) {
+                        filterUnitLabaRugi.innerHTML = '<option value="">Konsolidasi (Gabungan)</option>';
+                        const unitList = data.unitList || [];
+                        unitList.forEach(unit => {
+                            const val = unit.kodeUnit || unit.namaUnit;
+                            const label = `Unit: ${unit.kodeUnit || ''} - ${unit.namaUnit}`;
+                            const opt = document.createElement('option');
+                            opt.value = val;
+                            opt.textContent = label;
+                            filterUnitLabaRugi.appendChild(opt);
+                        });
+                    }
+                }
+
+                const firstDayStr = formatDateString(year, month, 1);
+                const lastDayDate = new Date(year, month, 0);
+                const lastDayStr = formatDateString(year, month, lastDayDate.getDate());
+
+                startDateInput.value = firstDayStr;
+                endDateInput.value = lastDayStr;
+
+            } catch (err) {
+                console.error("Gagal memuat bulan aktif:", err);
+                const now = new Date();
+                const y = now.getFullYear();
+                const m = now.getMonth() + 1;
+                startDateInput.value = formatDateString(y, m, 1);
+                const lastDate = new Date(y, m, 0).getDate();
+                endDateInput.value = formatDateString(y, m, lastDate);
+            }
+
+            generateLabaRugiReport();
+        }
+
+        async function generateLabaRugiReport() {
+            const sDate = startDateInput.value;
+            const eDate = endDateInput.value;
+            const selectedUnit = filterUnitLabaRugi ? filterUnitLabaRugi.value : '';
+
+            try {
+                // 1. Fetch seluruh master akun dari koleksi 'accounts'
+                const accSnap = await getDocs(collection(db, 'accounts'));
+                const accountsMap = {};
+                const level2Map = {}; // Menyimpan akun level 2 (parent) dengan key accCode
+
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const name = data.accName || '';
+                    const level = parseInt(data.level, 10);
+                    const parentCode = String(data.parentCode || '').trim();
+                    const repGroup = (data.reportGroup || '').toLowerCase();
+                    const normalBalance = String(data.normalBalance || '').toLowerCase();
+                    const isPostable = data.isPostable === true || data.isPostable === 'true';
+
+                    accountsMap[code] = { 
+                        name, 
+                        level, 
+                        parentCode, 
+                        reportGroup: repGroup, 
+                        normalBalance,
+                        isPostable,
+                        accCode: code 
+                    };
+
+                    // Kumpulkan akun level 2 yang masuk ke Laba Rugi
+                    if (level === 2 && repGroup.includes('laba rugi')) {
+                        level2Map[code] = {
+                            code,
+                            name,
+                            normalBalance,
+                            items: {} // akan diisi akun level 4 di bawahnya
+                        };
+                    }
+                });
+
+                // Petakan akun level 4 (postable) ke masing-masing parent level 2 berdasarkan parentCode atau awalan kode
+                accSnap.forEach(d => {
+                    const data = d.data();
+                    const code = String(data.accCode || '').trim();
+                    const level = parseInt(data.level, 10);
+                    const parentCode = String(data.parentCode || '').trim();
+                    const repGroup = (data.reportGroup || '').toLowerCase();
+                    const isPostable = data.isPostable === true || data.isPostable === 'true' || level === 4;
+
+                    if (isPostable && repGroup.includes('laba rugi')) {
+                        // Cari parent level 2 yang cocok (berdasarkan parentCode atau awalan kode terdekat)
+                        let matchedParentCode = parentCode;
+                        if (!level2Map[matchedParentCode]) {
+                            // Fallback cari level 2 yang kodenya menjadi awalan dari kode akun ini
+                            const sortedL2Keys = Object.keys(level2Map).sort((a, b) => b.length - a.length);
+                            for (let l2Key of sortedL2Keys) {
+                                if (code.startsWith(l2Key)) {
+                                    matchedParentCode = l2Key;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (level2Map[matchedParentCode]) {
+                            level2Map[matchedParentCode].items[code] = 0;
+                        } else {
+                            // Jika belum ada level 2 yang cocok, masukkan ke level 2 pertama atau buat default
+                            const firstL2Key = Object.keys(level2Map)[0];
+                            if (firstL2Key) {
+                                level2Map[firstL2Key].items[code] = 0;
+                            }
+                        }
+                    }
+                });
+
+                // 2. Fetch Journals within Date Range
+                const qJurnal = query(
+                    collection(db, 'journals'),
+                    where('date', '>=', sDate),
+                    where('date', '<=', eDate),
+                    orderBy('date', 'asc')
+                );
+
+                const jSnap = await getDocs(qJurnal);
+
+                jSnap.forEach(d => {
+                    const journal = d.data();
+
+                    if (selectedUnit && journal.unitId && journal.unitId !== selectedUnit) {
+                        return;
+                    }
+
+                    if (journal.items && Array.isArray(journal.items)) {
+                        journal.items.forEach(item => {
+                            const code = String(item.accCode || '').trim();
+                            const debit = parseFloat(item.debit) || 0;
+                            const kredit = parseFloat(item.kredit) || 0;
+
+                            const accInfo = accountsMap[code] || {};
+                            if (accInfo.reportGroup && accInfo.reportGroup.includes('laba rugi')) {
+                                // Cari di level2Map akun mana yang memiliki item code ini
+                                for (let l2Code in level2Map) {
+                                    if (level2Map[l2Code].items.hasOwnProperty(code)) {
+                                        // Hitung nilai berdasarkan saldo normal akun
+                                        const isCreditNormal = accInfo.normalBalance === 'kredit';
+                                        const val = isCreditNormal ? (kredit - debit) : (debit - kredit);
+                                        level2Map[l2Code].items[code] += val;
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // 3. Render Dinamis Berdasarkan Level 2
+                reportPaperContent.innerHTML = '';
+
+                // Pisahkan kelompok berdasarkan karakteristik nama/kode level 2 (Pendapatan, HPP, Beban Usaha, Pendapatan/Beban Non Usaha)
+                let pendapatanUsahaTotal = 0;
+                let hppTotal = 0;
+                let bebanUsahaTotal = 0;
+                let pendapatanNonUsahaTotal = 0;
+                let bebanNonUsahaTotal = 0;
+
+                const l2Codes = Object.keys(level2Map).sort();
+
+                l2Codes.forEach(l2Code => {
+                    const l2Obj = level2Map[l2Code];
+                    const l2NameLower = l2Obj.name.toLowerCase();
+                    const itemCodes = Object.keys(l2Obj.items).sort();
+                    
+                    let subTotal = 0;
+                    itemCodes.forEach(code => {
+                        subTotal += l2Obj.items[code];
+                    });
+
+                    // Render Section Title Level 2
+                    const sectionTitle = document.createElement('div');
+                    sectionTitle.className = 'lr-section-title';
+                    if (l2Code !== l2Codes[0]) sectionTitle.style.marginTop = '14px';
+                    sectionTitle.textContent = l2Obj.name;
+                    reportPaperContent.appendChild(sectionTitle);
+
+                    // Render Items List
+                    const itemListContainer = document.createElement('div');
+                    if (itemCodes.length === 0) {
+                        itemListContainer.innerHTML = '<div style="font-size:10px; color:#94a3b8; padding-left:12px;">(Tidak ada akun)</div>';
+                    } else {
+                        itemCodes.forEach(code => {
+                            const accName = accountsMap[code]?.name || code;
+                            const row = document.createElement('div');
+                            row.className = 'lr-row-item';
+                            row.innerHTML = `
+                                <span>${code} - ${accName}</span>
+                                <span class="val-num">${l2Obj.items[code].toLocaleString('id-ID')}</span>
+                            `;
+                            itemListContainer.appendChild(row);
+                        });
+                    }
+                    reportPaperContent.appendChild(itemListContainer);
+
+                    // Render Subtotal Summary for this Level 2
+                    const summaryRow = document.createElement('div');
+                    summaryRow.className = 'lr-row-summary';
+                    summaryRow.innerHTML = `
+                        <span>Total ${l2Obj.name}</span>
+                        <span class="val-num">${subTotal.toLocaleString('id-ID')}</span>
+                    `;
+                    reportPaperContent.appendChild(summaryRow);
+
+                    // Klasifikasikan total untuk perhitungan Laba Kotor & Bersih
+                    if (l2NameLower.includes('pendapatan usaha') || (l2Code.startsWith('4.01') || l2Code.startsWith('4.1'))) {
+                        pendapatanUsahaTotal += subTotal;
+                    } else if (l2NameLower.includes('harga pokok') || l2NameLower.includes('hpp') || l2Code.startsWith('5.01')) {
+                        hppTotal += subTotal;
+                    } else if (l2NameLower.includes('beban') && (l2Code.startsWith('5') || l2Code.startsWith('6') || l2Code.startsWith('7'))) {
+                        bebanUsahaTotal += subTotal;
+                    } else if (l2NameLower.includes('pendapatan') && (l2Code.startsWith('4.02') || l2Code.startsWith('4.2') || l2Code.startsWith('8'))) {
+                        pendapatanNonUsahaTotal += subTotal;
+                    } else if (l2NameLower.includes('beban') && l2Code.startsWith('9')) {
+                        bebanNonUsahaTotal += subTotal;
+                    } else {
+                        // Default fallback jika tidak masuk kategori khusus
+                        if (l2Obj.normalBalance === 'kredit') {
+                            pendapatanUsahaTotal += subTotal;
+                        } else {
+                            bebanUsahaTotal += subTotal;
+                        }
+                    }
+
+                    // Jika kelompok ini adalah HPP, selipkan baris Laba Kotor di bawahnya
+                    if (l2NameLower.includes('harga pokok') || l2NameLower.includes('hpp') || l2Code.startsWith('5.01')) {
+                        const valLabaKotor = pendapatanUsahaTotal - hppTotal;
+                        const labaKotorRow = document.createElement('div');
+                        labaKotorRow.className = 'lr-row-summary';
+                        labaKotorRow.style.cssText = 'margin-top: 4px; border-top: 1px dashed #cbd5e1; padding-top: 6px;';
+                        labaKotorRow.innerHTML = `
+                            <span>LABA / RUGI KOTOR</span>
+                            <span class="val-num">${valLabaKotor.toLocaleString('id-ID')}</span>
+                        `;
+                        reportPaperContent.appendChild(labaKotorRow);
+                    }
+                });
+
+                // Hitung total akhir Laba / Rugi Bersih
+                // Total Pendapatan - HPP - Beban Usaha + Pendapatan Non Usaha - Beban Non Usaha
+                let totalPendapatanAll = pendapatanUsahaTotal + pendapatanNonUsahaTotal;
+                let totalBebanAll = hppTotal + bebanUsahaTotal + bebanNonUsahaTotal;
+                let valLabaRugiAkhir = totalPendapatanAll - totalBebanAll;
+
+                // Render Baris Total Akhir Laba/Rugi
+                const finalTotalRow = document.createElement('div');
+                finalTotalRow.className = 'lr-row-total';
+                finalTotalRow.style.marginTop = '16px';
+                finalTotalRow.innerHTML = `
+                    <span>LABA/RUGI</span>
+                    <span class="val-num">${valLabaRugiAkhir.toLocaleString('id-ID')}</span>
+                `;
+                reportPaperContent.appendChild(finalTotalRow);
+
+            } catch (err) {
+                console.error("Gagal menghitung Laporan Laba Rugi:", err);
+            }
+        }
+
+        startDateInput.addEventListener('change', generateLabaRugiReport);
+        endDateInput.addEventListener('change', generateLabaRugiReport);
+        filterUnitLabaRugi.addEventListener('change', generateLabaRugiReport);
+
+        initActiveMonthDates();
+    </script>
+</body>
+</html>
