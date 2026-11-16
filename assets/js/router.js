@@ -6,22 +6,26 @@ import { renderLogin, initLoginHandler } from './views/login.js';
 import { renderManajemen, initManajemenHandler } from './views/manajemen.js';
 import { renderTamu, initTamuHandler } from './views/tamu.js';
 import { renderStaf, initStafHandler } from './views/staf.js';
-import { renderPengaturan, initPengaturanHandler } from './views/pengaturan.js';
+import { renderKeuangan, initKeuanganHandler } from './views/keuangan.js';
+import { renderAkuntansi, initAkuntansiHandler } from './views/akuntansi.js';
+import { renderLaporan, initLaporanHandler } from './views/laporan.js';
 import { renderGaleri, initGaleriHandler } from './views/galeri.js';
 import { renderEvent, initEventHandler } from './views/event.js';
-import { renderLaporan, initLaporanHandler } from './views/laporan.js';
+import { renderMonitoring, initMonitoringHandler } from './views/monitoring.js';
 import { renderAnalytics, initAnalyticsHandler } from './views/analytics.js';
 
 const routes = {
     '/': renderHome,
     '/galeri': renderGaleri,
     '/event': renderEvent,
-    '/laporan': renderLaporan,
+    '/monitoring': renderMonitoring,
     '/analytics': renderAnalytics,
     '/tamu': renderTamu,
     '/staf': renderStaf,
+    '/keuangan': renderKeuangan,
+    '/akuntansi': renderAkuntansi,
+    '/laporan': renderLaporan,
     '/manajemen': renderManajemen,
-    '/pengaturan': renderPengaturan,
     '/login': renderLogin
 };
 
@@ -99,8 +103,12 @@ export async function router() {
             initTamuHandler();
         } else if (path === '/staf') {
             initStafHandler();
-        } else if (path === '/pengaturan') {
-            initPengaturanHandler();
+        } else if (path === '/keuangan') {
+            initKeuanganHandler();
+        } else if (path === '/akuntansi') {
+            initAkuntansiHandler();
+        } else if (path === '/laporan') {
+            initLaporanHandler();
         } else if (path === '/event') {
             initEventHandler();
         } else if (path === '/galeri') {
@@ -109,8 +117,8 @@ export async function router() {
             initAnalyticsHandler();
         } else if (path === '/manajemen') {
             initManajemenHandler();
-        } else if (path === '/laporan') {
-            initLaporanHandler();
+        } else if (path === '/monitoring') {
+            initMonitoringHandler();
         }
     }
 
@@ -170,7 +178,7 @@ export async function router() {
 
             // --- KONTROL VISIBILITAS MENU ADMINISTRATOR & ROUTE GUARD ---
             const adminMenuSection = document.getElementById('admin-menu-section');
-            const adminRoutes = ['/analytics', '/tamu', '/staf', '/manajemen', '/pengaturan'];
+            const adminRoutes = ['/analytics', '/tamu', '/staf', '/keuangan', '/akuntansi', '/laporan', '/manajemen'];
 
             if (userRole === 'Administrator') {
                 if (adminMenuSection) adminMenuSection.classList.remove('hidden');
@@ -262,9 +270,9 @@ export async function router() {
                     <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     <span class="text-[10px] font-medium">Event</span>
                 </a>
-                <a href="#/laporan" data-link class="flex flex-col items-center justify-center ${path === '/laporan' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'} flex-1 py-1">
+                <a href="#/monitoring" data-link class="flex flex-col items-center justify-center ${path === '/monitoring' ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'} flex-1 py-1">
                     <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span class="text-[10px] font-medium">Laporan</span>
+                    <span class="text-[10px] font-medium">Monitoring</span>
                 </a>
                 <div class="relative flex-1">
                     <button id="mobile-more-btn" class="w-full flex flex-col items-center justify-center text-slate-400 hover:text-slate-600 py-1 focus:outline-none">
@@ -277,8 +285,10 @@ export async function router() {
                             <a href="#/analytics" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Analytics</a>
                             <a href="#/tamu" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Tamu</a>
                             <a href="#/staf" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Staf</a>
+                            <a href="#/keuangan" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Keuangan</a>
+                            <a href="#/akuntansi" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Akuntansi</a>
+                            <a href="#/laporan" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Laporan</a>
                             <a href="#/manajemen" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Manajemen</a>
-                            <a href="#/pengaturan" data-link class="block px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Pengaturan</a>
                         ` : ''}
                         <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
                         <button onclick="handleLogout()" class="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition flex items-center gap-2">
