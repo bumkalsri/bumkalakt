@@ -1,13 +1,27 @@
 <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
-    <span class="font-bold text-base text-primary tracking-wide">AKUNTANSI PWA</span>
+    <span id="sidebar-brand-text" class="font-bold text-base text-primary tracking-wide">AKUNTANSI PWA</span>
+    <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 p-1.5 rounded hover:bg-slate-100 transition-colors cursor-pointer" title="Toggle Menu">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </button>
 </div>
-<nav class="p-2 space-y-1 flex-1 bg-white">
-    <a href="#dashboard" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">📊 Dashboard</a>
-    <a href="#coa" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">📑 Master Akun (COA)</a>
-    <a href="#jurnal" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">📝 Jurnal Umum</a>
-    <a href="#buku-besar" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">📚 Buku Besar</a>
-    <a href="#neraca-lajur" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">📋 Neraca Lajur</a>
-    <a href="#laba-rugi" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">📈 Laba Rugi</a>
-    <a href="#neraca" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">⚖️ Neraca Posisi</a>
-    <a href="#pengaturan" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors">⚙️ Pengaturan</a>
+<nav class="p-2 space-y-1 flex-1 bg-white overflow-x-hidden">
+    <a href="#dashboard" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📊 <span class="nav-label">Dashboard</span></a>
+    <a href="#coa" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📑 <span class="nav-label">Master Akun (COA)</span></a>
+    <a href="#jurnal" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📝 <span class="nav-label">Jurnal Umum</span></a>
+    <a href="#buku-besar" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📚 <span class="nav-label">Buku Besar</span></a>
+    <a href="#neraca-lajur" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📋 <span class="nav-label">Neraca Lajur</span></a>
+    <a href="#laba-rugi" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📈 <span class="nav-label">Laba Rugi</span></a>
+    <a href="#neraca" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">⚖️ <span class="nav-label">Neraca Posisi</span></a>
+    <a href="#pengaturan" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">⚙️ <span class="nav-label">Pengaturan</span></a>
+    <button onclick="window.doLogout()" class="w-full mt-4 flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 border-t border-slate-100 whitespace-nowrap cursor-pointer">🚪 <span class="nav-label">Keluar (Logout)</span></button>
 </nav>
+<!-- Profil Pengguna di Area Paling Bawah Sidebar Desktop -->
+<div class="p-3 border-t border-slate-200 flex items-center gap-3 bg-slate-50 mt-auto">
+    <img class="profile-avatar w-9 h-9 rounded-full object-cover border border-slate-300 shrink-0 bg-slate-200" src="https://via.placeholder.com/150" alt="Avatar">
+    <div class="overflow-hidden flex-1 nav-label">
+        <p class="profile-name font-bold text-xs text-slate-800 truncate">Memuat...</p>
+        <span class="profile-role inline-block px-1.5 py-0.5 mt-0.5 text-[9px] font-bold bg-blue-100 text-primary uppercase tracking-wider">Role</span>
+    </div>
+</div>

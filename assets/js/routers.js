@@ -56,64 +56,80 @@ async function updateProfileUI(user) {
     });
 }
 
-// Fungsi untuk memuat komponen UI Layout secara responsif
+// Fungsi untuk memuat komponen UI Layout secara responsif dari folder components/
 async function loadLayoutComponents(user) {
     try {
         const isMobile = window.innerWidth < 768;
 
-        // 1. Render Sidebar Desktop (Profil dipindah ke bagian paling bawah)
+        // 1. Render Sidebar Desktop (Memuat dari folder components/desktop/)
         const desktopSidebar = document.getElementById('desktop-sidebar-container');
         if (desktopSidebar) {
             if (!isMobile) {
                 desktopSidebar.style.display = 'flex';
-                desktopSidebar.innerHTML = `
-                    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
-                        <span id="sidebar-brand-text" class="font-bold text-base text-primary tracking-wide">AKUNTANSI PWA</span>
-                        <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 p-1.5 rounded hover:bg-slate-100 transition-colors cursor-pointer" title="Toggle Menu">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <nav class="p-2 space-y-1 flex-1 bg-white overflow-x-hidden">
-                        <a href="#dashboard" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📊 <span class="nav-label">Dashboard</span></a>
-                        <a href="#coa" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📑 <span class="nav-label">Master Akun (COA)</span></a>
-                        <a href="#jurnal" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📝 <span class="nav-label">Jurnal Umum</span></a>
-                        <a href="#buku-besar" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📚 <span class="nav-label">Buku Besar</span></a>
-                        <a href="#neraca-lajur" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📋 <span class="nav-label">Neraca Lajur</span></a>
-                        <a href="#laba-rugi" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📈 <span class="nav-label">Laba Rugi</span></a>
-                        <a href="#neraca" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">⚖️ <span class="nav-label">Neraca Posisi</span></a>
-                        <a href="#pengaturan" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">⚙️ <span class="nav-label">Pengaturan</span></a>
-                        <button onclick="window.doLogout()" class="w-full mt-4 flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 border-t border-slate-100 whitespace-nowrap cursor-pointer">🚪 <span class="nav-label">Keluar (Logout)</span></button>
-                    </nav>
-                    <!-- Profil Pengguna di Area Paling Bawah Sidebar -->
-                    <div class="p-3 border-t border-slate-200 flex items-center gap-3 bg-slate-50 mt-auto">
-                        <img class="profile-avatar w-9 h-9 rounded-full object-cover border border-slate-300 shrink-0 bg-slate-200" src="https://via.placeholder.com/150" alt="Avatar">
-                        <div class="overflow-hidden flex-1 nav-label">
-                            <p class="profile-name font-bold text-xs text-slate-800 truncate">Memuat...</p>
-                            <span class="profile-role inline-block px-1.5 py-0.5 mt-0.5 text-[9px] font-bold bg-blue-100 text-primary uppercase tracking-wider">Role</span>
-                        </div>
-                    </div>
-                `;
+                if (!desktopSidebar.dataset.loaded) {
+                    const res = await fetch('./components/desktop/sidebar-desktop.html');
+                    if (res.ok) {
+                        desktopSidebar.innerHTML = await res.text();
+                        desktopSidebar.dataset.loaded = "true";
+                    } else {
+                        // Fallback inline jika file komponen terlewat
+                        desktopSidebar.innerHTML = `
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+                                <span id="sidebar-brand-text" class="font-bold text-base text-primary tracking-wide">AKUNTANSI PWA</span>
+                                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-800 p-1.5 rounded hover:bg-slate-100 transition-colors cursor-pointer" title="Toggle Menu">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <nav class="p-2 space-y-1 flex-1 bg-white overflow-x-hidden">
+                                <a href="#dashboard" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📊 <span class="nav-label">Dashboard</span></a>
+                                <a href="#coa" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📑 <span class="nav-label">Master Akun (COA)</span></a>
+                                <a href="#jurnal" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📝 <span class="nav-label">Jurnal Umum</span></a>
+                                <a href="#buku-besar" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📚 <span class="nav-label">Buku Besar</span></a>
+                                <a href="#neraca-lajur" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📋 <span class="nav-label">Neraca Lajur</span></a>
+                                <a href="#laba-rugi" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">📈 <span class="nav-label">Laba Rugi</span></a>
+                                <a href="#neraca" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">⚖️ <span class="nav-label">Neraca Posisi</span></a>
+                                <a href="#pengaturan" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 whitespace-nowrap">⚙️ <span class="nav-label">Pengaturan</span></a>
+                                <button onclick="window.doLogout()" class="w-full mt-4 flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 border-t border-slate-100 whitespace-nowrap cursor-pointer">🚪 <span class="nav-label">Keluar (Logout)</span></button>
+                            </nav>
+                            <div class="p-3 border-t border-slate-200 flex items-center gap-3 bg-slate-50 mt-auto">
+                                <img class="profile-avatar w-9 h-9 rounded-full object-cover border border-slate-300 shrink-0 bg-slate-200" src="https://via.placeholder.com/150" alt="Avatar">
+                                <div class="overflow-hidden flex-1 nav-label">
+                                    <p class="profile-name font-bold text-xs text-slate-800 truncate">Memuat...</p>
+                                    <span class="profile-role inline-block px-1.5 py-0.5 mt-0.5 text-[9px] font-bold bg-blue-100 text-primary uppercase tracking-wider">Role</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
             } else {
                 desktopSidebar.style.display = 'none';
             }
         }
 
-        // 2. Render Header
+        // 2. Render Header (Memuat dari folder components/mobile/)
         const headerContainer = document.getElementById('header-container');
         if (headerContainer) {
             headerContainer.style.display = 'flex';
             if (isMobile) {
-                headerContainer.innerHTML = `
-                    <div class="flex items-center justify-between w-full px-4 h-16 bg-white border-b border-slate-200">
-                        <div class="flex items-center gap-3">
-                            <button onclick="toggleMobileDrawer()" class="text-slate-700 p-1 font-bold text-xl cursor-pointer">☰</button>
-                            <span id="page-title" class="font-bold text-slate-800 text-base">Dashboard</span>
-                        </div>
-                        <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-1 font-medium">Online</span>
-                    </div>
-                `;
+                if (!headerContainer.dataset.loaded) {
+                    const res = await fetch('./components/mobile/header-mobile.html');
+                    if (res.ok) {
+                        headerContainer.innerHTML = await res.text();
+                        headerContainer.dataset.loaded = "true";
+                    } else {
+                        headerContainer.innerHTML = `
+                            <div class="flex items-center justify-between w-full px-4 h-16 bg-white border-b border-slate-200">
+                                <div class="flex items-center gap-3">
+                                    <button onclick="toggleMobileDrawer()" class="text-slate-700 p-1 font-bold text-xl cursor-pointer">☰</button>
+                                    <span id="page-title" class="font-bold text-slate-800 text-base">Dashboard</span>
+                                </div>
+                                <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-1 font-medium">Online</span>
+                            </div>
+                        `;
+                    }
+                }
             } else {
                 headerContainer.innerHTML = `
                     <div class="flex items-center gap-3"><span id="page-title" class="font-semibold text-slate-800 text-base md:text-lg">Dashboard</span></div>
@@ -124,59 +140,74 @@ async function loadLayoutComponents(user) {
             }
         }
 
-        // 3. Render Bottom Navigation Bar (Mobile)
+        // 3. Render Bottom Navigation Bar (Memuat dari folder components/mobile/)
         const mobileNav = document.getElementById('mobile-nav-container');
         if (mobileNav) {
             if (isMobile) {
                 mobileNav.style.display = 'block';
-                mobileNav.innerHTML = `
-                    <div class="grid grid-cols-5 h-16 bg-white border-t border-slate-200 text-center w-full shadow-lg">
-                        <a href="#dashboard" class="flex flex-col items-center justify-center text-slate-600"><span>📊</span><span class="text-[10px]">Home</span></a>
-                        <a href="#coa" class="flex flex-col items-center justify-center text-slate-600"><span>📑</span><span class="text-[10px]">COA</span></a>
-                        <a href="#jurnal" class="flex flex-col items-center justify-center text-slate-600"><span>📝</span><span class="text-[10px]">Jurnal</span></a>
-                        <a href="#laba-rugi" class="flex flex-col items-center justify-center text-slate-600"><span>📈</span><span class="text-[10px]">Laporan</span></a>
-                        <a href="#pengaturan" class="flex flex-col items-center justify-center text-slate-600"><span>⚙️</span><span class="text-[10px]">Setel</span></a>
-                    </div>
-                `;
+                if (!mobileNav.dataset.loaded) {
+                    const res = await fetch('./components/mobile/nav-bottom.html');
+                    if (res.ok) {
+                        mobileNav.innerHTML = await res.text();
+                        mobileNav.dataset.loaded = "true";
+                    } else {
+                        mobileNav.innerHTML = `
+                            <div class="grid grid-cols-5 h-16 bg-white border-t border-slate-200 text-center w-full shadow-lg">
+                                <a href="#dashboard" class="flex flex-col items-center justify-center text-slate-600"><span>📊</span><span class="text-[10px]">Home</span></a>
+                                <a href="#coa" class="flex flex-col items-center justify-center text-slate-600"><span>📑</span><span class="text-[10px]">COA</span></a>
+                                <a href="#jurnal" class="flex flex-col items-center justify-center text-slate-600"><span>📝</span><span class="text-[10px]">Jurnal</span></a>
+                                <a href="#laba-rugi" class="flex flex-col items-center justify-center text-slate-600"><span>📈</span><span class="text-[10px]">Laporan</span></a>
+                                <a href="#pengaturan" class="flex flex-col items-center justify-center text-slate-600"><span>⚙️</span><span class="text-[10px]">Setel</span></a>
+                            </div>
+                        `;
+                    }
+                }
             } else {
                 mobileNav.style.display = 'none';
             }
         }
 
-        // 4. Drawer Menu Mobile (Profil dipindah ke bagian paling bawah)
+        // 4. Drawer Menu Mobile (Memuat dari folder components/mobile/)
         if (isMobile && !document.getElementById('mobile-drawer')) {
-            const drawerDiv = document.createElement('div');
-            drawerDiv.innerHTML = `
-                <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
-                    <div class="absolute inset-0 bg-slate-900/50" onclick="toggleMobileDrawer()"></div>
-                    <div class="absolute inset-y-0 left-0 w-72 bg-white shadow-xl flex flex-col z-10">
-                        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-                            <span class="font-bold text-base text-primary">MENU UTAMA</span>
-                            <button onclick="toggleMobileDrawer()" class="text-slate-500 font-bold text-lg px-2 cursor-pointer">✕</button>
-                        </div>
-                        <nav class="p-3 space-y-1 flex-1 overflow-y-auto">
-                            <a href="#dashboard" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📊 Dashboard Utama</a>
-                            <a href="#coa" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📑 Master Akun (COA)</a>
-                            <a href="#jurnal" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📝 Jurnal Transaksi</a>
-                            <a href="#buku-besar" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📚 Buku Besar</a>
-                            <a href="#neraca-lajur" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📋 Neraca Lajur</a>
-                            <a href="#laba-rugi" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📈 Laporan Laba Rugi</a>
-                            <a href="#neraca" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">⚖️ Laporan Neraca</a>
-                            <a href="#pengaturan" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">⚙️ Pengaturan</a>
-                            <button onclick="window.doLogout()" class="w-full mt-4 flex items-center gap-3 px-3 py-3 text-sm font-medium text-rose-600 hover:bg-rose-50 border-t border-slate-100 cursor-pointer">🚪 Keluar (Logout)</button>
-                        </nav>
-                        <!-- Profil Pengguna di Area Paling Bawah Drawer Mobile -->
-                        <div class="p-3 border-t border-slate-200 flex items-center gap-3 bg-slate-50 mt-auto">
-                            <img class="profile-avatar w-10 h-10 rounded-full object-cover border border-slate-300 shrink-0 bg-slate-200" src="https://via.placeholder.com/150" alt="Avatar">
-                            <div class="overflow-hidden flex-1">
-                                <p class="profile-name font-bold text-xs text-slate-800 truncate">Memuat...</p>
-                                <span class="profile-role inline-block px-1.5 py-0.5 mt-0.5 text-[9px] font-bold bg-blue-100 text-primary uppercase tracking-wider">Role</span>
+            const res = await fetch('./components/mobile/drawer-menu.html');
+            if (res.ok) {
+                const html = await res.text();
+                const drawerDiv = document.createElement('div');
+                drawerDiv.innerHTML = html;
+                document.body.appendChild(drawerDiv.firstElementChild);
+            } else {
+                const drawerDiv = document.createElement('div');
+                drawerDiv.innerHTML = `
+                    <div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+                        <div class="absolute inset-0 bg-slate-900/50" onclick="toggleMobileDrawer()"></div>
+                        <div class="absolute inset-y-0 left-0 w-72 bg-white shadow-xl flex flex-col z-10">
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                                <span class="font-bold text-base text-primary">MENU UTAMA</span>
+                                <button onclick="toggleMobileDrawer()" class="text-slate-500 font-bold text-lg px-2 cursor-pointer">✕</button>
+                            </div>
+                            <nav class="p-3 space-y-1 flex-1 overflow-y-auto">
+                                <a href="#dashboard" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📊 Dashboard Utama</a>
+                                <a href="#coa" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📑 Master Akun (COA)</a>
+                                <a href="#jurnal" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📝 Jurnal Transaksi</a>
+                                <a href="#buku-besar" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📚 Buku Besar</a>
+                                <a href="#neraca-lajur" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📋 Neraca Lajur</a>
+                                <a href="#laba-rugi" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📈 Laporan Laba Rugi</a>
+                                <a href="#neraca" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">⚖️ Laporan Neraca</a>
+                                <a href="#pengaturan" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">⚙️ Pengaturan</a>
+                                <button onclick="window.doLogout()" class="w-full mt-4 flex items-center gap-3 px-3 py-3 text-sm font-medium text-rose-600 hover:bg-rose-50 border-t border-slate-100 cursor-pointer">🚪 Keluar (Logout)</button>
+                            </nav>
+                            <div class="p-3 border-t border-slate-200 flex items-center gap-3 bg-slate-50 mt-auto">
+                                <img class="profile-avatar w-10 h-10 rounded-full object-cover border border-slate-300 shrink-0 bg-slate-200" src="https://via.placeholder.com/150" alt="Avatar">
+                                <div class="overflow-hidden flex-1">
+                                    <p class="profile-name font-bold text-xs text-slate-800 truncate">Memuat...</p>
+                                    <span class="profile-role inline-block px-1.5 py-0.5 mt-0.5 text-[9px] font-bold bg-blue-100 text-primary uppercase tracking-wider">Role</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-            document.body.appendChild(drawerDiv.firstElementChild);
+                `;
+                document.body.appendChild(drawerDiv.firstElementChild);
+            }
         }
 
         // Terapkan data profil (Foto, Nama, Role)
