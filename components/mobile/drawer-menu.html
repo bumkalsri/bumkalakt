@@ -1,0 +1,31 @@
+<div id="mobile-drawer" class="fixed inset-0 z-50 hidden">
+    <!-- Backdrop gelap di belakang -->
+    <div class="absolute inset-0 bg-slate-900/50" onclick="toggleMobileDrawer()"></div>
+    
+    <!-- Konten Menu Drawer (Geser dari kiri) -->
+    <div class="absolute inset-y-0 left-0 w-72 bg-white shadow-xl flex flex-col z-10">
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <span class="font-bold text-base text-primary">MENU UTAMA AKUNTANSI</span>
+            <button onclick="toggleMobileDrawer()" class="text-slate-500 font-bold text-lg px-2">✕</button>
+        </div>
+        <nav class="p-3 space-y-1 flex-1 overflow-y-auto">
+            <a href="#dashboard" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📊 Dashboard Utama</a>
+            <a href="#coa" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📑 Master Akun (COA)</a>
+            <a href="#jurnal" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📝 Jurnal Transaksi</a>
+            <a href="#buku-besar" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📚 Buku Besar</a>
+            <a href="#neraca-lajur" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📋 Neraca Lajur</a>
+            <a href="#laba-rugi" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">📈 Laporan Laba Rugi</a>
+            <a href="#neraca" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">⚖️ Laporan Neraca</a>
+            <a href="#pengaturan" onclick="toggleMobileDrawer()" class="flex items-center gap-3 px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-100">⚙️ Pengaturan & Tahun Buku</a>
+        </nav>
+    </div>
+</div>
+
+<script>
+    window.toggleMobileDrawer = function() {
+        const drawer = document.getElementById('mobile-drawer');
+        if (drawer) {
+            drawer.classList.toggle('hidden');
+        }
+    }
+</script>

@@ -1,0 +1,85 @@
+<div class="space-y-6">
+    <!-- Header & Tombol -->
+    <div class="bg-white p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800">Jurnal Transaksi Umum</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Catat transaksi keuangan harian berpasangan (Debit & Kredit)</p>
+        </div>
+        <button onclick="openModalJurnal()" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-colors">
+            + Tambah Transaksi
+        </button>
+    </div>
+
+    <!-- Tabel Daftar Jurnal -->
+    <div class="bg-white border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase text-xs tracking-wider">
+                        <th class="p-3.5 font-semibold">Tanggal</th>
+                        <th class="p-3.5 font-semibold">No. Bukti / Keterangan</th>
+                        <th class="p-3.5 font-semibold">Akun</th>
+                        <th class="p-3.5 font-semibold text-right">Debit (Rp)</th>
+                        <th class="p-3.5 font-semibold text-right">Kredit (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody id="table-jurnal-body" class="divide-y divide-slate-200">
+                    <tr>
+                        <td colspan="5" class="p-6 text-center text-slate-500">Belum ada data transaksi tercatat di Firebase.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Input Jurnal -->
+<div id="modal-jurnal" class="fixed inset-0 bg-slate-900/50 hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg border border-slate-200 shadow-xl p-6 space-y-4">
+        <h3 class="text-lg font-bold text-slate-800">Input Transaksi Baru</h3>
+        <form id="form-jurnal" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tanggal</label>
+                    <input type="date" id="tgl_transaksi" required class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-primary">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">No. Bukti</label>
+                    <input type="text" id="no_bukti" placeholder="BM-001" required class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-primary">
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Keterangan Transaksi</label>
+                <input type="text" id="keterangan" placeholder="Contoh: Penerimaan Simpanan Anggota" required class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-primary">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Pilih Akun</label>
+                    <select id="akun_id" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary">
+                        <option value="">-- Pilih Akun --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Posisi</label>
+                    <select id="posisi_DK" class="w-full border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none focus:border-primary">
+                        <option value="Debit">Debit</option>
+                        <option value="Kredit">Kredit</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nominal (Rp)</label>
+                <input type="number" id="nominal" placeholder="0" required class="w-full border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:border-primary">
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
+                <button type="button" onclick="closeModalJurnal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 text-sm font-medium">Batal</button>
+                <button type="submit" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium">Simpan Jurnal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    window.openModalJurnal = function() { document.getElementById('modal-jurnal').classList.remove('hidden'); }
+    window.closeModalJurnal = function() { document.getElementById('modal-jurnal').classList.add('hidden'); }
+</script>

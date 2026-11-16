@@ -1,0 +1,48 @@
+<div class="space-y-6">
+    <!-- Header sambutan & tombol aksi cepat -->
+    <div class="bg-white p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-slate-800">Dashboard Keuangan</h1>
+            <p class="text-sm text-slate-500 mt-0.5">Ringkasan transaksi dan posisi keuangan real-time (Firebase)</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="#jurnal" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-colors text-center">
+                + Input Jurnal Baru
+            </a>
+        </div>
+    </div>
+
+    <!-- Ringkasan Kartu Saldo (Grid 4 Kolom) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 border border-slate-200 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Kas & Bank</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-2" id="card-kas">Rp 0</h3>
+            <span class="text-xs text-emerald-600 font-medium mt-1 inline-block">Terupdate otomatis</span>
+        </div>
+        <div class="bg-white p-5 border border-slate-200 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Pendapatan</p>
+            <h3 class="text-2xl font-bold text-emerald-600 mt-2" id="card-pendapatan">Rp 0</h3>
+            <span class="text-xs text-slate-500 mt-1 inline-block">Bulan berjalan</span>
+        </div>
+        <div class="bg-white p-5 border border-slate-200 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Beban / Biaya</p>
+            <h3 class="text-2xl font-bold text-rose-600 mt-2" id="card-beban">Rp 0</h3>
+            <span class="text-xs text-slate-500 mt-1 inline-block">Bulan berjalan</span>
+        </div>
+        <div class="bg-white p-5 border border-slate-200 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Laba / Rugi Bersih</p>
+            <h3 class="text-2xl font-bold text-primary mt-2" id="card-labarugi">Rp 0</h3>
+            <span class="text-xs text-slate-500 mt-1 inline-block">Pendapatan - Beban</span>
+        </div>
+    </div>
+
+    <!-- Informasi / Petunjuk Cepat -->
+    <div class="bg-white p-6 border border-slate-200 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">Panduan Penggunaan Aplikasi</h3>
+        <ul class="list-disc list-inside text-sm text-slate-600 space-y-1">
+            <li>Buka menu <strong class="text-slate-800">Master Akun (COA)</strong> untuk mendaftarkan kode perkiraan akun (Aktiva, Kewajiban, Ekuitas, Pendapatan, Beban).</li>
+            <li>Gunakan menu <strong class="text-slate-800">Jurnal Umum</strong> untuk mencatat transaksi keuangan harian berpasangan (Debit & Kredit).</li>
+            <li>Laporan Buku Besar, Neraca Lajur, dan Laporan Laba Rugi akan terhitung dan tersinkronisasi langsung dari database Firestore.</li>
+        </ul>
+    </div>
+</div>
