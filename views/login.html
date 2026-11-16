@@ -27,27 +27,42 @@
 </div>
 
 <script type="module">
-    import { auth } from '../assets/js/firebase-config.js';
-    import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { auth } from './assets/js/firebase-config.js';
+    import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const btnGoogle = document.getElementById('btn-google-login');
     const errorBox = document.getElementById('login-error');
 
+    // Tangkap hasil login setelah halaman dialihkan kembali dari Google
+    getRedirectResult(auth)
+        .then((result) => {
+            if (result && result.user) {
+                window.location.hash = '#dashboard';
+            }
+        })
+        .catch((error) => {
+            console.error("Redirect Login Error:", error);
+            if (errorBox) {
+                errorBox.textContent = "Gagal Masuk: " + error.message;
+                errorBox.classList.remove('hidden');
+            }
+        });
+
     if (btnGoogle) {
         btnGoogle.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
-            errorBox.classList.add('hidden');
+            if (errorBox) errorBox.classList.add('hidden');
             btnGoogle.disabled = true;
 
             try {
-                const result = await signInWithPopup(auth, provider);
-                if (result.user) {
-                    window.location.hash = '#dashboard';
-                }
+                // Menggunakan Redirect agar aman di PWA & Mobile
+                await signInWithRedirect(auth, provider);
             } catch (error) {
                 console.error("Google Login Error:", error);
-                errorBox.textContent = "Gagal Masuk: " + error.message;
-                errorBox.classList.remove('hidden');
+                if (errorBox) {
+                    errorBox.textContent = "Gagal Masuk: " + error.message;
+                    errorBox.classList.remove('hidden');
+                }
                 btnGoogle.disabled = false;
             }
         });
