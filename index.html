@@ -145,7 +145,6 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         Staf
                     </a>
-                    <!-- MENU BARU: DATA -->
                     <a href="#/data" data-link class="flex items-center gap-3 px-3 py-2.5 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
                         Data
@@ -263,54 +262,66 @@
             </button>
         </nav>
 
-        <!-- Pop-up Menu More (Drawer Menu Lainnya) -->
-        <div id="mobile-more-popup" class="hidden fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 z-40 md:hidden flex items-end">
-            <div class="bg-white dark:bg-slate-900 w-full rounded-t-none border-t border-slate-200 dark:border-slate-800 p-4 space-y-2 max-h-[75vh] overflow-y-auto shadow-2xl">
-                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Menu Lainnya</span>
-                    <button onclick="toggleMobileMoreMenu()" class="text-slate-400 hover:text-slate-600 p-1">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <!-- Pop-up Menu More -->
+        <div id="mobile-more-popup" class="hidden fixed inset-0 bg-slate-950/30 z-40 md:hidden flex items-end justify-end pb-16 pr-2">
+            <div id="mobile-more-box" class="bg-white dark:bg-slate-900 w-56 rounded-none border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+                <!-- Header Option Menu -->
+                <div class="bg-indigo-900 text-white px-3.5 py-2 flex items-center justify-between flex-shrink-0">
+                    <span class="text-[11px] font-bold tracking-widest uppercase">OPTION MENU</span>
+                    <button onclick="toggleMobileMoreMenu()" class="text-indigo-200 hover:text-white p-0.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
-                <div class="grid grid-cols-2 gap-2 pt-2">
-                    <!-- KELOMPOK MENU ADMIN KHUSUS MOBILE (DITAMBAHKAN MENU DATA) -->
-                    <div id="mobile-admin-menu-section" class="col-span-2 grid grid-cols-2 gap-2">
-                        <a href="#/analytics" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                            Analytics
+
+                <!-- Daftar Menu Vertikal -->
+                <div class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200 text-xs">
+                    
+                    <!-- MENU ADMIN (Tampil jika Admin) -->
+                    <div id="mobile-admin-menu-section" class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <a href="#/analytics" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span class="font-medium">Analytics</span>
                         </a>
-                        <a href="#/tamu" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                            Tamu
+                        <a href="#/tamu" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span class="font-medium">Tamu</span>
                         </a>
-                        <a href="#/staf" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                            Staf
+                        <a href="#/staf" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            <span class="font-medium">Staf</span>
                         </a>
-                        <a href="#/data" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                            Data
+                        <a href="#/data" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                            <span class="font-medium">Data</span>
                         </a>
-                        <a href="#/keuangan" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                            Keuangan
+                        <a href="#/keuangan" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span class="font-medium">Keuangan</span>
                         </a>
-                        <a href="#/akuntansi" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                            Akuntansi
+                        <a href="#/akuntansi" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"/></svg>
+                            <span class="font-medium">Akuntansi</span>
                         </a>
-                        <a href="#/laporan" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                            Laporan
+                        <a href="#/laporan" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span class="font-medium">Laporan</span>
                         </a>
-                        <a href="#/manajemen" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none col-span-2">
-                            Manajemen
+                        <a href="#/manajemen" data-link class="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756.2924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span class="font-medium">Manajemen</span>
                         </a>
                     </div>
 
-                    <!-- Tombol Gelap/Cerah (Selalu Tampil) -->
-                    <button onclick="toggleTheme()" class="flex items-center justify-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
-                        <svg class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                        <svg class="w-4 h-4 block dark:hidden text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-                        Tema Gelap/Cerah
+                    <!-- Tombol Tema Gelap/Cerah -->
+                    <button onclick="toggleTheme()" class="w-full flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition text-left cursor-pointer">
+                        <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <span class="font-medium">Tema Gelap/Cerah</span>
                     </button>
-                    <!-- Tombol Keluar (Selalu Tampil - Otomatis Menutup Pop-up saat Diklik) -->
-                    <button onclick="toggleMobileMoreMenu(); handleLogout();" class="flex items-center justify-center gap-2 p-3 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-medium rounded-none">
+
+                    <!-- Tombol Keluar -->
+                    <button onclick="toggleMobileMoreMenu(); handleLogout();" class="w-full flex items-center gap-3 px-3.5 py-2.5 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 transition text-left cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                        Keluar
+                        <span class="font-medium">Keluar</span>
                     </button>
                 </div>
             </div>
@@ -366,16 +377,32 @@
             }
         }
 
+        // Event listener untuk menutup pop-up saat klik luar atau saat menu/link di dalamnya ditekan
         document.addEventListener('click', (e) => {
+            const popup = document.getElementById('mobile-more-popup');
+            const menuBox = document.getElementById('mobile-more-box');
+            
+            if (popup && !popup.classList.contains('hidden')) {
+                const isClickInsideBox = menuBox && menuBox.contains(e.target);
+                const isClickMoreButton = e.target.closest('button[onclick="toggleMobileMoreMenu()"]');
+                
+                // Tutup jika klik di luar area kotak pop-up
+                if (!isClickInsideBox && !isClickMoreButton) {
+                    popup.classList.add('hidden');
+                }
+            }
+
+            // Otomatis tutup pop-up saat salah satu link menu di dalam pop-up diklik
+            if (e.target.closest('#mobile-more-box') && e.target.closest('a[data-link]')) {
+                if (popup) popup.classList.add('hidden');
+            }
+
+            // Tutup sidebar mobile juga jika link di-klik
             if (e.target.matches('[data-link]') && window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 const backdrop = document.getElementById('sidebar-backdrop');
                 if (sidebar) sidebar.classList.add('-translate-x-full');
                 if (backdrop) backdrop.classList.add('hidden');
-                
-                // Otomatis tutup popup more jika link di dalam more diklik
-                const popup = document.getElementById('mobile-more-popup');
-                if (popup) popup.classList.add('hidden');
             }
         });
     </script>
