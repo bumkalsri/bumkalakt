@@ -1,9 +1,9 @@
-import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { auth, db } from "../firebase-init.js";
 
 export function renderHome() {
     return `
-        <div class="space-y-6 pb-10 relative">
+        <div class="space-y-6 pb-10 relative animate-fade-in">
             
             <!-- Banner Utama Selamat Datang -->
             <div class="bg-indigo-900 dark:bg-indigo-950 text-white p-6 rounded-none shadow-sm relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-indigo-800 dark:border-indigo-900">
@@ -16,7 +16,7 @@ export function renderHome() {
                 </div>
             </div>
 
-            <!-- Area Beranda Bersih (Semua Card Utama Disembunyikan) -->
+            <!-- Area Beranda Bersih -->
             <div class="bg-white dark:bg-slate-900 p-8 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm text-center">
                 <p class="text-xs text-slate-400 dark:text-slate-500">Silakan gunakan menu navigasi di samping atau bawah untuk mengakses fitur aplikasi.</p>
             </div>

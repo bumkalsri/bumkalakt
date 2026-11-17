@@ -17,7 +17,8 @@
             darkMode: 'class',
         }
     </script>
-    <!-- Script Inisialisasi Tema untuk Mencegah Flash Putih -->
+
+    <!-- 1. SCRIPT INSTAN TEMA (Mencegah Flash Putih) -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('app_theme');
@@ -28,23 +29,82 @@
             }
         })();
     </script>
+
+    <!-- 2. ANTI-KEDIP & ANTI-HILANG UNTUK MENU ADMIN SAAT REFRESH -->
+    <style>
+        #admin-menu-section, #mobile-admin-menu-section {
+            display: block;
+        }
+        html.hide-admin-menu #admin-menu-section,
+        html.hide-admin-menu #mobile-admin-menu-section {
+            display: none !important;
+        }
+    </style>
+    <script>
+        (function() {
+            const role = (localStorage.getItem('user_role') || '').trim().toLowerCase();
+            if (role !== 'admin' && role !== 'administrator') {
+                document.documentElement.classList.add('hide-admin-menu');
+            } else {
+                document.documentElement.classList.remove('hide-admin-menu');
+            }
+        })();
+    </script>
+
+    <!-- 3. SCRIPT INSTAN ANTI-KEDIP UNTUK PROFIL & FOTO DI <HEAD> -->
+    <script>
+        (function() {
+            const savedAvatar = localStorage.getItem('user_avatar');
+            const savedName = localStorage.getItem('user_name');
+            const savedEmail = localStorage.getItem('user_email');
+            const savedRole = localStorage.getItem('user_role');
+            const savedInitial = localStorage.getItem('user_initial');
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const elName = document.getElementById('user-name');
+                const elMobName = document.getElementById('mobile-dropdown-name');
+                const elEmail = document.getElementById('user-email');
+                const elMobEmail = document.getElementById('mobile-dropdown-email');
+                const elInit = document.getElementById('user-initial');
+                const elMobAvatar = document.getElementById('mobile-user-avatar-img');
+
+                if (savedName) {
+                    if (elName) elName.textContent = savedName;
+                    if (elMobName) elMobName.textContent = savedName;
+                }
+                if (savedEmail) {
+                    if (elEmail) elEmail.textContent = savedEmail;
+                    if (elMobEmail) elMobEmail.textContent = savedEmail;
+                }
+                if (savedRole) {
+                    document.querySelectorAll('#user-role').forEach(el => el.textContent = savedRole);
+                }
+                if (savedInitial) {
+                    if (elInit) elInit.textContent = savedInitial;
+                }
+                if (savedAvatar && savedAvatar !== "null" && savedAvatar !== "") {
+                    if (elMobAvatar) elMobAvatar.src = savedAvatar;
+                }
+            });
+        })();
+    </script>
+
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex h-screen overflow-hidden relative transition-colors duration-200">
 
-    <!-- BACKDROP MOBILE (Overlay saat sidebar HP terbuka) -->
+    <!-- BACKDROP MOBILE -->
     <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 z-40 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
     <!-- SIDEBAR KIRI -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 md:static shadow-xl md:shadow-none">
         <div>
-            <!-- Logo / Brand Header Sidebar -->
+            <!-- Logo Header Sidebar -->
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <img src="assets/icons/icon-192.png" alt="Logo" class="h-6 object-contain">
                     <span class="font-bold text-slate-700 dark:text-slate-200 text-sm">Sistem Akuntansi</span>
                 </div>
-                <!-- Tombol Close Sidebar Khusus Mobile -->
                 <button onclick="toggleSidebar()" class="md:hidden text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -70,7 +130,7 @@
                 </a>
 
                 <!-- KELOMPOK ADMINISTRATOR -->
-                <div id="admin-menu-section" class="hidden">
+                <div id="admin-menu-section">
                     <div class="pt-4 pb-2 text-[11px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase px-3">Administrator</div>
                     
                     <a href="#/analytics" data-link class="flex items-center gap-3 px-3 py-2.5 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
@@ -84,6 +144,11 @@
                     <a href="#/staf" data-link class="flex items-center gap-3 px-3 py-2.5 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         Staf
+                    </a>
+                    <!-- MENU BARU: DATA -->
+                    <a href="#/data" data-link class="flex items-center gap-3 px-3 py-2.5 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/></svg>
+                        Data
                     </a>
                     <a href="#/keuangan" data-link class="flex items-center gap-3 px-3 py-2.5 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -127,32 +192,26 @@
         <!-- Header Atas -->
         <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 md:px-6 z-10 flex-shrink-0">
             <div class="flex items-center gap-3">
-                <!-- Tombol Toggle Sidebar (Disembunyikan di HP, tampil di Desktop) -->
                 <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="hidden md:flex items-center justify-center p-2 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none cursor-pointer" title="Sembunyikan/Tampilkan Sidebar">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
 
-                <!-- Logo hanya tampil di HP (md:hidden), disembunyikan di Desktop -->
                 <div class="flex items-center md:hidden">
                     <span class="border border-slate-200 dark:border-slate-800 rounded-none px-2.5 py-1 flex items-center shadow-xs bg-white dark:bg-slate-900">
                         <img src="assets/icons/icon-192.png" alt="Logo" class="h-5 object-contain">
                     </span>
                 </div>
 
-                <!-- Nama Perusahaan & Alamat | Telepon Dinamis -->
                 <div class="flex flex-col justify-center truncate">
                     <h2 class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-100 truncate" id="header-company-name">Sistem Akuntansi</h2>
                     <p class="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 truncate" id="header-company-info">Pengelolaan keuangan dan pencatatan akuntansi</p>
                 </div>
             </div>
             <div class="flex items-center gap-3">
-                <!-- Tombol Toggle Tema Cerah/Gelap HANYA TAMPIL di Desktop (hidden md:block) -->
                 <button id="theme-toggle-btn" onclick="toggleTheme()" class="hidden md:block p-2 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none cursor-pointer" title="Ubah Tema Cerah/Gelap">
-                    <!-- Icon Matahari (tampil saat mode gelap) -->
                     <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-                    <!-- Icon Bulan (tampil saat mode terang) -->
                     <svg class="w-5 h-5 block dark:hidden text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
                 </button>
 
@@ -163,16 +222,15 @@
                 <div class="md:hidden relative">
                     <button id="mobile-profile-btn" class="w-8 h-8 rounded-none overflow-hidden border border-slate-200 dark:border-slate-800 flex items-center justify-center bg-indigo-600 text-white text-xs font-bold focus:outline-none">
                         <img src="" alt="Profile" class="w-full h-full object-cover" id="mobile-user-avatar-img">
+                        <script>
+                            (function() {
+                                const avatar = localStorage.getItem('user_avatar');
+                                if (avatar && avatar !== "null" && avatar !== "") {
+                                    document.currentScript.previousElementSibling.src = avatar;
+                                }
+                            })();
+                        </script>
                     </button>
-
-                    <!-- Dropdown Menu Profil -->
-                    <div id="mobile-dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none shadow-lg py-1.5 z-50">
-                        <div class="px-4 py-2">
-                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate" id="mobile-dropdown-name">Ismanto Aithy</p>
-                            <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate" id="mobile-dropdown-email">ismanto.khs@gmail.com</p>
-                            <span class="text-[9px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-none mt-0.5 inline-block" id="user-role">-</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </header>
@@ -181,16 +239,89 @@
         <main id="app" class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-slate-950 pb-20 md:pb-6">
         </main>
 
-        <!-- BOTTOM NAVIGATION DINAMIS -->
+        <!-- BOTTOM NAVIGATION & MORE MENU -->
         <nav id="bottom-nav" class="md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 h-16 flex items-center justify-around px-2 fixed bottom-0 left-0 right-0 z-30 shadow-lg">
+            <a href="#/" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Beranda
+            </a>
+            <a href="#/galeri" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Galeri
+            </a>
+            <a href="#/event" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Event
+            </a>
+            <a href="#/monitoring" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Monitoring
+            </a>
+            <button onclick="toggleMobileMoreMenu()" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full focus:outline-none cursor-pointer">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                More
+            </button>
         </nav>
+
+        <!-- Pop-up Menu More (Drawer Menu Lainnya) -->
+        <div id="mobile-more-popup" class="hidden fixed inset-0 bg-slate-900/50 dark:bg-slate-950/80 z-40 md:hidden flex items-end">
+            <div class="bg-white dark:bg-slate-900 w-full rounded-t-none border-t border-slate-200 dark:border-slate-800 p-4 space-y-2 max-h-[75vh] overflow-y-auto shadow-2xl">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider">Menu Lainnya</span>
+                    <button onclick="toggleMobileMoreMenu()" class="text-slate-400 hover:text-slate-600 p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <!-- KELOMPOK MENU ADMIN KHUSUS MOBILE (DITAMBAHKAN MENU DATA) -->
+                    <div id="mobile-admin-menu-section" class="col-span-2 grid grid-cols-2 gap-2">
+                        <a href="#/analytics" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                            Analytics
+                        </a>
+                        <a href="#/tamu" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                            Tamu
+                        </a>
+                        <a href="#/staf" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                            Staf
+                        </a>
+                        <a href="#/data" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                            Data
+                        </a>
+                        <a href="#/keuangan" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                            Keuangan
+                        </a>
+                        <a href="#/akuntansi" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                            Akuntansi
+                        </a>
+                        <a href="#/laporan" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                            Laporan
+                        </a>
+                        <a href="#/manajemen" data-link class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none col-span-2">
+                            Manajemen
+                        </a>
+                    </div>
+
+                    <!-- Tombol Gelap/Cerah (Selalu Tampil) -->
+                    <button onclick="toggleTheme()" class="flex items-center justify-center gap-2 p-3 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium rounded-none">
+                        <svg class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <svg class="w-4 h-4 block dark:hidden text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                        Tema Gelap/Cerah
+                    </button>
+                    <!-- Tombol Keluar (Selalu Tampil - Otomatis Menutup Pop-up saat Diklik) -->
+                    <button onclick="toggleMobileMoreMenu(); handleLogout();" class="flex items-center justify-center gap-2 p-3 bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-xs font-medium rounded-none">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        Keluar
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <footer class="hidden md:block bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-3 text-center text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">
             &copy; 2026 SISTEM AKUNTANSI. All rights reserved.
         </footer>
     </div>
 
-    <!-- Script Toggle Sidebar & Tema -->
+    <!-- Script Toggle Sidebar, Tema & Menu More -->
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
@@ -198,7 +329,6 @@
             
             if (sidebar) {
                 if (window.innerWidth < 768) {
-                    // Mode Mobile: Toggle Drawer Slide In/Out & Backdrop
                     const isOpen = !sidebar.classList.contains('-translate-x-full');
                     if (isOpen) {
                         sidebar.classList.add('-translate-x-full');
@@ -208,7 +338,6 @@
                         if (backdrop) backdrop.classList.remove('hidden');
                     }
                 } else {
-                    // Mode Desktop: Toggle Sembunyikan / Tampilkan Sidebar
                     if (sidebar.style.display === 'none') {
                         sidebar.style.display = 'flex';
                         sidebar.classList.remove('-translate-x-full');
@@ -219,7 +348,6 @@
             }
         }
 
-        // Fungsi Toggle Mode Terang / Gelap
         function toggleTheme() {
             const htmlEl = document.documentElement;
             if (htmlEl.classList.contains('dark')) {
@@ -231,13 +359,23 @@
             }
         }
 
-        // Otomatis tutup sidebar mobile saat link diklik
+        function toggleMobileMoreMenu() {
+            const popup = document.getElementById('mobile-more-popup');
+            if (popup) {
+                popup.classList.toggle('hidden');
+            }
+        }
+
         document.addEventListener('click', (e) => {
             if (e.target.matches('[data-link]') && window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebar');
                 const backdrop = document.getElementById('sidebar-backdrop');
                 if (sidebar) sidebar.classList.add('-translate-x-full');
                 if (backdrop) backdrop.classList.add('hidden');
+                
+                // Otomatis tutup popup more jika link di dalam more diklik
+                const popup = document.getElementById('mobile-more-popup');
+                if (popup) popup.classList.add('hidden');
             }
         });
     </script>

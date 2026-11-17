@@ -32,27 +32,37 @@ export async function initTamuHandler() {
         try {
             const querySnapshot = await getDocs(collection(db, "users"));
             
-            // Filter hanya role selain Administrator
+            // Filter HANYA role yang bernilai 'Tamu' (atau otomatis ubah 'Staf' menjadi 'Tamu')
             let usersList = [];
-            querySnapshot.forEach((docSnap) => {
+            
+            for (const docSnap of querySnapshot.docs) {
                 const data = docSnap.data();
-                const role = data.role || 'Staf';
-                if (role !== 'Administrator') {
-                    usersList.push({ id: docSnap.id, ...data });
+                let role = data.role || 'Tamu';
+
+                // Jika role sebelumnya adalah 'Staf' atau kosong, otomatis ubah/migrasikan ke 'Tamu' di database
+                if (role === 'Staf' || !data.role) {
+                    role = 'Tamu';
+                    const userRef = doc(db, "users", docSnap.id);
+                    await updateDoc(userRef, { role: 'Tamu' });
                 }
-            });
+
+                // Hanya masukkan ke daftar jika rolenya adalah 'Tamu'
+                if (role === 'Tamu') {
+                    usersList.push({ id: docSnap.id, ...data, role });
+                }
+            }
 
             if (usersList.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">Tidak ada pengguna selain Administrator.</div>`;
-                if (infoCountEl) infoCountEl.textContent = `Total: 0 pengguna (selain Administrator)`;
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">Tidak ada pengguna dengan role Tamu.</div>`;
+                if (infoCountEl) infoCountEl.textContent = `Total: 0 pengguna (role Tamu).`;
                 return;
             }
 
             if (infoCountEl) {
-                infoCountEl.textContent = `Total: ${usersList.length} pengguna terdaftar (selain Administrator).`;
+                infoCountEl.textContent = `Total: ${usersList.length} pengguna terdaftar dengan role Tamu.`;
             }
 
-            // --- 1. TAMPILAN CARD KHUSUS HP (Block / Grid di layar kecil) ---
+            // --- 1. TAMPILAN CARD KHUSUS HP ---
             let cardsHTML = `<div class="grid grid-cols-1 gap-3 sm:hidden">`;
             
             // --- 2. TAMPILAN TABEL UNTUK DESKTOP / TABLET ---
@@ -65,7 +75,8 @@ export async function initTamuHandler() {
                                     <th class="p-3.5 w-12 text-center">No</th>
                                     <th class="p-3.5">Pengguna</th>
                                     <th class="p-3.5">Email</th>
-                                    <th class="p-3.5 text-center">Aksi</th>
+                                    <th class="p-3.5">Role / Akses</th>
+                                    <th class="p-3.5 text-center">Aksi / Ubah Role</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs text-slate-700 dark:text-slate-300">
@@ -76,6 +87,7 @@ export async function initTamuHandler() {
                 const email = data.email || '-';
                 const uid = data.id;
                 const photoURL = data.photoURL;
+                const currentRole = data.role;
 
                 let avatarHTML = '';
                 if (photoURL) {
@@ -85,7 +97,7 @@ export async function initTamuHandler() {
                     avatarHTML = `<div class="w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">${initials}</div>`;
                 }
 
-                // Render Card (HP)
+                // Render Card (HP) dengan Pilihan Role (Tamu, Monitoring, Kantor, Administrator)
                 cardsHTML += `
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 shadow-xs rounded-none flex flex-col gap-3">
                         <div class="flex items-center gap-3">
@@ -93,20 +105,29 @@ export async function initTamuHandler() {
                             <div class="overflow-hidden">
                                 <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">${name}</h3>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${email}</p>
+                                <span class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">Role: ${currentRole}</span>
                             </div>
                         </div>
-                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                            <button onclick="window.promoteToAdmin('${uid}')" class="flex-1 py-2 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-semibold text-xs border border-indigo-200 dark:border-indigo-900 transition cursor-pointer rounded-none text-center">
-                                Jadikan Administrator
-                            </button>
-                            <button onclick="window.deleteUser('${uid}')" class="px-3 py-2 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-300 font-semibold text-xs border border-red-200 dark:border-red-900 transition cursor-pointer rounded-none text-center">
-                                Hapus
+                        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-1.5">
+                                <select id="role-select-card-${uid}" class="w-full p-2 text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none rounded-none">
+                                    <option value="Tamu" ${currentRole === 'Tamu' ? 'selected' : ''}>Tamu</option>
+                                    <option value="Monitoring" ${currentRole === 'Monitoring' ? 'selected' : ''}>Monitoring</option>
+                                    <option value="Kantor" ${currentRole === 'Kantor' ? 'selected' : ''}>Kantor</option>
+                                    <option value="Administrator" ${currentRole === 'Administrator' ? 'selected' : ''}>Administrator</option>
+                                </select>
+                                <button onclick="window.updateUserRole('${uid}', document.getElementById('role-select-card-${uid}').value)" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition cursor-pointer rounded-none">
+                                    Simpan
+                                </button>
+                            </div>
+                            <button onclick="window.deleteUser('${uid}')" class="w-full py-2 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-300 font-semibold text-xs border border-red-200 dark:border-red-900 transition cursor-pointer rounded-none text-center">
+                                Hapus Pengguna
                             </button>
                         </div>
                     </div>
                 `;
 
-                // Render Baris Tabel (Desktop)
+                // Render Baris Tabel (Desktop) dengan Pilihan Role Dropdown & Tombol Aksi
                 tableRowsHTML += `
                     <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
                         <td class="p-3.5 text-center text-slate-500 dark:text-slate-400 font-medium">${index + 1}</td>
@@ -115,10 +136,19 @@ export async function initTamuHandler() {
                             <span class="font-semibold text-slate-800 dark:text-slate-100">${name}</span>
                         </td>
                         <td class="p-3.5 text-slate-600 dark:text-slate-300">${email}</td>
+                        <td class="p-3.5">
+                            <span class="text-[11px] font-semibold px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">${currentRole}</span>
+                        </td>
                         <td class="p-3.5 text-center">
-                            <div class="inline-flex items-center gap-1.5">
-                                <button onclick="window.promoteToAdmin('${uid}')" class="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-semibold text-[11px] border border-indigo-200 dark:border-indigo-900 transition cursor-pointer rounded-none">
-                                    Jadikan Administrator
+                            <div class="inline-flex items-center gap-2">
+                                <select id="role-select-table-${uid}" class="p-1.5 text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none rounded-none">
+                                    <option value="Tamu" ${currentRole === 'Tamu' ? 'selected' : ''}>Tamu</option>
+                                    <option value="Monitoring" ${currentRole === 'Monitoring' ? 'selected' : ''}>Monitoring</option>
+                                    <option value="Kantor" ${currentRole === 'Kantor' ? 'selected' : ''}>Kantor</option>
+                                    <option value="Administrator" ${currentRole === 'Administrator' ? 'selected' : ''}>Administrator</option>
+                                </select>
+                                <button onclick="window.updateUserRole('${uid}', document.getElementById('role-select-table-${uid}').value)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] transition cursor-pointer rounded-none">
+                                    Simpan Role
                                 </button>
                                 <button onclick="window.deleteUser('${uid}')" class="px-3 py-1.5 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-600 dark:text-red-300 font-semibold text-[11px] border border-red-200 dark:border-red-900 transition cursor-pointer rounded-none">
                                     Hapus
@@ -140,13 +170,13 @@ export async function initTamuHandler() {
         }
     };
 
-    // Fungsi global untuk mengubah role user menjadi Administrator di Firestore
-    window.promoteToAdmin = async (uid) => {
-        if (!confirm("Apakah Anda yakin ingin menjadikan pengguna ini sebagai Administrator?")) return;
+    // Fungsi global untuk memperbarui role user di Firestore
+    window.updateUserRole = async (uid, newRole) => {
+        if (!confirm(`Apakah Anda yakin ingin mengubah role pengguna ini menjadi "${newRole}"?`)) return;
         try {
             const userDocRef = doc(db, "users", uid);
-            await updateDoc(userDocRef, { role: "Administrator" });
-            alert("Pengguna berhasil diubah menjadi Administrator!");
+            await updateDoc(userDocRef, { role: newRole });
+            alert(`Role pengguna berhasil diubah menjadi ${newRole}!`);
             loadUsers();
         } catch (err) {
             console.error("Gagal memperbarui role:", err);
@@ -156,7 +186,7 @@ export async function initTamuHandler() {
 
     // Fungsi global untuk menghapus data profil pengguna dari Firestore
     window.deleteUser = async (uid) => {
-        if (!confirm("Apakah Anda yakin ingin menghapus data pengguna ini dari database? Catatan: Jika akun terdaftar di Authentication Firebase, Anda juga perlu menghapusnya secara manual di Firebase Console.")) return;
+        if (!confirm("Apakah Anda yakin ingin menghapus data pengguna ini dari database?")) return;
         try {
             const userDocRef = doc(db, "users", uid);
             await deleteDoc(userDocRef);

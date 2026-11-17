@@ -1,4 +1,4 @@
-import { getDocs, collection, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getDocs, collection, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
 export function renderStaf() {
@@ -17,7 +17,7 @@ export function renderStaf() {
 
             <!-- CONTAINER UTAMA (Card untuk HP, Tabel untuk Desktop) -->
             <div id="staf-container">
-                <div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">Memuat data administrator...</div>
+                <div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">Memuat data staf...</div>
             </div>
         </div>
     `;
@@ -32,24 +32,26 @@ export async function initStafHandler() {
         try {
             const querySnapshot = await getDocs(collection(db, "users"));
             
-            // Filter khusus role Administrator
+            // Filter fleksibel untuk role admin, monitoring, dan kantor
             let stafList = [];
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
-                const role = data.role || 'Staf';
-                if (role === 'Administrator') {
+                const role = (data.role || '').trim().toLowerCase();
+                
+                // Mencocokkan berbagai variasi penulisan role pengelola
+                if (role === 'admin' || role === 'administrator' || role === 'monitoring' || role === 'kantor') {
                     stafList.push({ id: docSnap.id, ...data });
                 }
             });
 
             if (stafList.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">Tidak ada pengguna dengan role Administrator.</div>`;
-                if (infoCountEl) infoCountEl.textContent = `Total: 0 Administrator`;
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">Tidak ada pengguna dengan role Admin, Monitoring, atau Kantor.</div>`;
+                if (infoCountEl) infoCountEl.textContent = `Total: 0 Staf`;
                 return;
             }
 
             if (infoCountEl) {
-                infoCountEl.textContent = `Total: ${stafList.length} Administrator aktif.`;
+                infoCountEl.textContent = `Total: ${stafList.length} Staf / Administrator aktif.`;
             }
 
             // --- 1. TAMPILAN CARD KHUSUS HP ---
@@ -65,17 +67,19 @@ export async function initStafHandler() {
                                     <th class="p-3.5 w-12 text-center">No</th>
                                     <th class="p-3.5">Pengguna</th>
                                     <th class="p-3.5">Email</th>
-                                    <th class="p-3.5 text-center">Aksi</th>
+                                    <th class="p-3.5">Role / Akses</th>
+                                    <th class="p-3.5 text-center">Aksi / Ubah Role</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 dark:divide-slate-800 text-xs text-slate-700 dark:text-slate-300">
             `;
 
             stafList.forEach((data, index) => {
-                const name = data.nama || 'Tanpa Nama';
+                const name = data.nama || data.name || 'Tanpa Nama';
                 const email = data.email || '-';
                 const uid = data.id;
                 const photoURL = data.photoURL;
+                const currentRole = data.role || 'admin';
 
                 let avatarHTML = '';
                 if (photoURL) {
@@ -85,7 +89,7 @@ export async function initStafHandler() {
                     avatarHTML = `<div class="w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">${initials}</div>`;
                 }
 
-                // Render Card (HP)
+                // Render Card (HP) dengan Pilihan Role
                 cardsHTML += `
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 shadow-xs rounded-none flex flex-col gap-3">
                         <div class="flex items-center gap-3">
@@ -93,17 +97,29 @@ export async function initStafHandler() {
                             <div class="overflow-hidden">
                                 <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate">${name}</h3>
                                 <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${email}</p>
+                                <span class="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">Role: ${currentRole}</span>
                             </div>
                         </div>
-                        <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                            <button onclick="window.demoteToUser('${uid}')" class="w-full py-2 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 font-semibold text-xs border border-red-200 dark:border-red-900 transition cursor-pointer rounded-none text-center">
-                                Batalkan Administrator
+                        <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <div class="flex items-center gap-1.5">
+                                <select id="role-select-staf-card-${uid}" class="w-full p-2 text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none rounded-none">
+                                    <option value="admin" ${currentRole.toLowerCase() === 'admin' ? 'selected' : ''}>admin</option>
+                                    <option value="Monitoring" ${currentRole.toLowerCase() === 'monitoring' ? 'selected' : ''}>Monitoring</option>
+                                    <option value="Kantor" ${currentRole.toLowerCase() === 'kantor' ? 'selected' : ''}>Kantor</option>
+                                    <option value="Tamu" ${currentRole.toLowerCase() === 'tamu' ? 'selected' : ''}>Tamu</option>
+                                </select>
+                                <button onclick="window.updateStafRole('${uid}', document.getElementById('role-select-staf-card-${uid}').value)" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition cursor-pointer rounded-none">
+                                    Simpan
+                                </button>
+                            </div>
+                            <button onclick="window.deleteStafUser('${uid}')" class="w-full py-2 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 font-semibold text-xs border border-red-200 dark:border-red-900 transition cursor-pointer rounded-none text-center">
+                                Hapus Pengguna
                             </button>
                         </div>
                     </div>
                 `;
 
-                // Render Baris Tabel (Desktop)
+                // Render Baris Tabel (Desktop) dengan Dropdown Ubah Role & Hapus
                 tableRowsHTML += `
                     <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
                         <td class="p-3.5 text-center text-slate-500 dark:text-slate-400 font-medium">${index + 1}</td>
@@ -112,10 +128,24 @@ export async function initStafHandler() {
                             <span class="font-semibold text-slate-800 dark:text-slate-100">${name}</span>
                         </td>
                         <td class="p-3.5 text-slate-600 dark:text-slate-300">${email}</td>
+                        <td class="p-3.5">
+                            <span class="text-[11px] font-semibold px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">${currentRole}</span>
+                        </td>
                         <td class="p-3.5 text-center">
-                            <button onclick="window.demoteToUser('${uid}')" class="px-3 py-1.5 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 font-semibold text-[11px] border border-red-200 dark:border-red-900 transition cursor-pointer rounded-none">
-                                Batalkan Administrator
-                            </button>
+                            <div class="inline-flex items-center gap-2">
+                                <select id="role-select-staf-table-${uid}" class="p-1.5 text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none rounded-none">
+                                    <option value="admin" ${currentRole.toLowerCase() === 'admin' ? 'selected' : ''}>admin</option>
+                                    <option value="Monitoring" ${currentRole.toLowerCase() === 'monitoring' ? 'selected' : ''}>Monitoring</option>
+                                    <option value="Kantor" ${currentRole.toLowerCase() === 'kantor' ? 'selected' : ''}>Kantor</option>
+                                    <option value="Tamu" ${currentRole.toLowerCase() === 'tamu' ? 'selected' : ''}>Tamu</option>
+                                </select>
+                                <button onclick="window.updateStafRole('${uid}', document.getElementById('role-select-staf-table-${uid}').value)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-[11px] transition cursor-pointer rounded-none">
+                                    Simpan Role
+                                </button>
+                                <button onclick="window.deleteStafUser('${uid}')" class="px-3 py-1.5 bg-red-50 dark:bg-red-950/60 hover:bg-red-100 dark:hover:bg-red-900/60 text-red-700 dark:text-red-300 font-semibold text-[11px] border border-red-200 dark:border-red-900 transition cursor-pointer rounded-none">
+                                    Hapus
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -126,15 +156,29 @@ export async function initStafHandler() {
 
             container.innerHTML = cardsHTML + tableRowsHTML;
         } catch (error) {
-            console.error("Gagal memuat data administrator:", error);
+            console.error("Gagal memuat data staf:", error);
             container.innerHTML = `<div class="p-6 text-center text-red-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">Gagal memuat data dari database. Pastikan koneksi internet stabil.</div>`;
             if (infoCountEl) infoCountEl.textContent = `Gagal memuat data.`;
         }
     };
 
+    // Fungsi global untuk memperbarui role user
+    window.updateStafRole = async (uid, newRole) => {
+        if (!confirm(`Apakah Anda yakin ingin mengubah role pengguna ini menjadi "${newRole}"?`)) return;
+        try {
+            const userDocRef = doc(db, "users", uid);
+            await updateDoc(userDocRef, { role: newRole });
+            alert(`Role pengguna berhasil diubah menjadi ${newRole}!`);
+            loadStaf();
+        } catch (err) {
+            console.error("Gagal memperbarui role:", err);
+            alert("Gagal memperbarui role pengguna.");
+        }
+    };
+
     // Fungsi global untuk menghapus dokumen pengguna dari tabel users di Firestore
-    window.demoteToUser = async (uid) => {
-        if (!confirm("Apakah Anda yakin ingin membatalkan administrator dan menghapus pengguna ini dari database?")) return;
+    window.deleteStafUser = async (uid) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus pengguna ini dari database?")) return;
         try {
             const userDocRef = doc(db, "users", uid);
             await deleteDoc(userDocRef);

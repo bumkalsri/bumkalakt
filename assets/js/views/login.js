@@ -1,5 +1,5 @@
 import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getDoc, setDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { auth, db } from "../firebase-init.js";
 
 export function renderLogin() {
@@ -7,7 +7,7 @@ export function renderLogin() {
         <div class="relative w-full h-full flex items-center justify-center p-4 overflow-hidden">
             <!-- Wallpaper Full Layar -->
             <img src="assets/icons/wallpaper.jpeg" alt="Wallpaper Login" class="absolute inset-0 w-full h-full object-cover z-0">
-            
+
             <!-- Efek Overlay Gelap Tipis -->
             <div class="absolute inset-0 bg-black/40 z-0"></div>
 
@@ -18,7 +18,7 @@ export function renderLogin() {
                     <div class="inline-flex border border-slate-200 rounded-none p-3 bg-white/90 shadow-xs mb-2">
                         <img src="assets/icons/maga.png" alt="Maga Logo" class="h-10 object-contain">
                     </div>
-                    <h1 class="text-2xl font-bold text-slate-800">Login Maga Swalayan</h1>
+                    <h1 class="text-2xl font-bold text-slate-800">LOGIN</h1>
                     <p class="text-sm text-slate-600 font-medium">Silakan masuk menggunakan akun Google Anda.</p>
                 </div>
 
@@ -52,27 +52,59 @@ export function initLoginHandler() {
             if (errorBox) errorBox.classList.add('hidden');
 
             try {
+                // 🔥 BERSIHKAN TOTAL SESSION & LOCALSTORAGE SEBELUM LOGIN AKUN BARU
+                localStorage.clear();
+                sessionStorage.clear();
+
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
 
                 const userDocRef = doc(db, "users", user.uid);
                 const userDocSnap = await getDoc(userDocRef);
 
-                if (!userDocSnap.exists()) {
-                    let displayName = user.displayName || user.email.split('@')[0];
-                    displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+                let userData;
+                let currentPhoto = user.photoURL || "";
+                let currentName = user.displayName || user.email.split('@')[0];
 
-                    await setDoc(userDocRef, {
+                if (!userDocSnap.exists()) {
+                    currentName = currentName.charAt(0).toUpperCase() + currentName.slice(1);
+
+                    userData = {
                         uid: user.uid,
                         email: user.email,
-                        nama: displayName,
-                        photoURL: user.photoURL || "",
-                        role: "Staf",
+                        nama: currentName,
+                        photoURL: currentPhoto,
+                        role: "admin", 
                         createdAt: new Date().toISOString()
+                    };
+
+                    await setDoc(userDocRef, userData);
+                } else {
+                    userData = userDocSnap.data();
+                    
+                    // 🔥 UPDATE PHOTO & NAMA TERBARU DARI GOOGLE KE FIRESTORE
+                    await updateDoc(userDocRef, {
+                        photoURL: currentPhoto,
+                        nama: userData.nama || currentName
                     });
+                    userData.photoURL = currentPhoto;
                 }
 
+                // 📌 SIMPAN KE LOCALSTORAGE AGAR SELALU VALID & ANTI-KEDIP
+                localStorage.setItem('user_name', userData.nama || currentName);
+                localStorage.setItem('user_email', userData.email);
+                localStorage.setItem('user_role', userData.role || 'admin');
+                localStorage.setItem('user_avatar', userData.photoURL);
+                
+                // Buat inisial otomatis
+                const nameParts = (userData.nama || currentName).split(' ');
+                const initials = nameParts.length > 1 
+                    ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() 
+                    : nameParts[0].substring(0, 2).toUpperCase();
+                localStorage.setItem('user_initial', initials);
+
                 location.hash = '#/';
+                location.reload();
             } catch (error) {
                 console.error("Gagal Login Google:", error);
                 if (errorBox) {
