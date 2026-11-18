@@ -1,20 +1,121 @@
 // File: assets/js/views/manajemen-banner.js
+import { collection, addDoc, getDocs, updateDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { db } from "../firebase-init.js";
+
 export function renderManajemenBanner() {
     return `
-        <div class="space-y-6 pb-10 max-w-4xl mx-auto animate-fade-in">
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center text-center space-y-3">
-                <div class="w-12 h-12 rounded-none bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center border border-indigo-100 dark:border-indigo-900">
-                    <svg class="w-6 h-6 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
+        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+            <!-- Header, Tombol Kembali & Aksi Atas -->
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <div class="flex items-center gap-3">
+                    <a href="#/" class="p-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition rounded-none flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <div>
+                        <h2 class="text-base font-bold text-slate-800 dark:text-slate-100">Manajemen Banner</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kelola banner dan slider utama (Database Firestore). Menampilkan 5 data per halaman.</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-base font-bold text-slate-800 dark:text-slate-100">Manajemen Banner</h2>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Modul manajemen banner dan slider utama sedang dalam tahap pengembangan.</p>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <!-- Kolom Pencarian -->
+                    <div class="relative flex-1 md:w-64">
+                        <input type="text" id="search-banner" placeholder="Cari banner..." class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 px-3 py-2 pr-8 rounded-none focus:outline-none focus:border-indigo-600">
+                        <svg class="w-4 h-4 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <!-- Tombol Tambah Banner -->
+                    <button onclick="openAddBannerModal()" class="bg-[#0b2f64] hover:bg-[#082247] text-white text-xs font-semibold px-4 py-2 rounded-none transition flex items-center gap-1.5 flex-shrink-0 cursor-pointer">
+                        <span>Tambah Banner</span>
+                    </button>
                 </div>
-                <span class="inline-block bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-900 text-amber-700 dark:text-amber-300 text-[11px] font-semibold px-3 py-1 rounded-none">
-                    Segera Hadir
-                </span>
+            </div>
+
+            <!-- TAMPILAN TABEL (Desktop) -->
+            <div class="hidden md:block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">
+                                <th class="p-3 w-12 text-center">
+                                    <input type="checkbox" class="rounded-none border-slate-300">
+                                </th>
+                                <th class="p-3 w-36 font-semibold">Foto Banner</th>
+                                <th class="p-3 font-semibold">Nama / Judul Banner</th>
+                                <th class="p-3 w-28 font-semibold text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="banner-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
+                            <!-- Data dimuat dari Firestore -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAMPILAN CARD (Mobile) -->
+            <div id="banner-card-container" class="md:hidden space-y-3">
+                <!-- Data card dimuat dari Firestore -->
+            </div>
+
+            <!-- Navigasi Pagination (5 Data per Halaman) -->
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <span id="pagination-info" class="text-slate-500 dark:text-slate-400">Menampilkan 0 - 0 dari 0 data</span>
+                <div class="flex items-center gap-1">
+                    <button id="btn-prev-page" onclick="changePage(-1)" class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Previous
+                    </button>
+                    <span id="page-indicator" class="px-3 py-1.5 font-medium text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900">1</span>
+                    <button id="btn-next-page" onclick="changePage(1)" class="px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Next
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODAL TAMBAH BANNER BARU -->
+            <div id="add-banner-modal" class="hidden fixed inset-0 bg-slate-950/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden animate-fade-in">
+                    <!-- Header Modal -->
+                    <div class="bg-white dark:bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Tambah Banner Baru</h3>
+                        <button onclick="closeAddBannerModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Isi Modal Form -->
+                    <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                        <form id="form-tambah-banner" class="space-y-5">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Nama / Judul Banner</label>
+                                <input type="text" id="banner-title" placeholder="Misal: Promo Akhir Tahun" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200 px-3 py-2.5 rounded-none focus:outline-none focus:border-indigo-600">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Upload Gambar Banner</label>
+                                <div class="flex items-center">
+                                    <label class="w-full flex items-center justify-between bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-2 cursor-pointer hover:bg-slate-50 transition">
+                                        <span id="file-name-label" class="text-xs text-slate-400 truncate">Tidak ada yang dipilih</span>
+                                        <span class="bg-[#0b2f64] hover:bg-[#082247] text-white text-[11px] font-semibold px-4 py-1.5 rounded-none flex-shrink-0 ml-2">Pilih File</span>
+                                        <input type="file" id="banner-file-input" accept="image/*" class="hidden">
+                                    </label>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mt-1">Otomatis kompres dengan lebar maks. 500px.</p>
+                            </div>
+
+                            <button type="submit" id="btn-submit-banner" class="w-full bg-[#0b2f64] hover:bg-[#082247] text-white text-xs font-semibold py-3 rounded-none transition cursor-pointer shadow-sm">
+                                Simpan ke Database Firestore
+                            </button>
+                        </form>
+
+                        <!-- Kotak Pratinjau Canva -->
+                        <div class="flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700 p-6 h-56 bg-slate-50 dark:bg-slate-950/50 relative">
+                            <span id="preview-placeholder" class="text-xs text-slate-500 dark:text-slate-400 text-center font-normal">Pratinjau Banner Canva (2:1 / 1000x500mm)</span>
+                            <img id="banner-preview-img" src="" alt="Pratinjau" class="hidden h-full w-full object-cover border border-slate-200 dark:border-slate-700">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -22,4 +123,233 @@ export function renderManajemenBanner() {
 
 export function initManajemenBannerHandler() {
     console.log("Halaman Manajemen Banner dimuat.");
+
+    let bannerList = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
+    let searchQuery = "";
+    let compressedBase64Image = "";
+
+    window.openAddBannerModal = function() {
+        const modal = document.getElementById('add-banner-modal');
+        if (modal) modal.classList.remove('hidden');
+    };
+
+    window.closeAddBannerModal = function() {
+        const modal = document.getElementById('add-banner-modal');
+        if (modal) modal.classList.add('hidden');
+        const form = document.getElementById('form-tambah-banner');
+        if (form) form.reset();
+        document.getElementById('file-name-label').textContent = 'Tidak ada yang dipilih';
+        document.getElementById('banner-preview-img').classList.add('hidden');
+        document.getElementById('preview-placeholder').classList.remove('hidden');
+        compressedBase64Image = "";
+    };
+
+    // Kompres Gambar Otomatis Maks 500px
+    const fileInput = document.getElementById('banner-file-input');
+    const fileNameLabel = document.getElementById('file-name-label');
+    const previewImg = document.getElementById('banner-preview-img');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            fileNameLabel.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_WIDTH = 500;
+
+                    if (width > MAX_WIDTH) {
+                        height = Math.round((height * MAX_WIDTH) / width);
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    compressedBase64Image = canvas.toDataURL('image/jpeg', 0.8);
+
+                    previewImg.src = compressedBase64Image;
+                    previewImg.classList.remove('hidden');
+                    previewPlaceholder.classList.add('hidden');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Ambil Data dari Firestore
+    async function fetchBannersFromDB() {
+        try {
+            const q = query(collection(db, "banners"), orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
+            bannerList = [];
+            querySnapshot.forEach((docSnap) => {
+                bannerList.push({
+                    id: docSnap.id,
+                    ...docSnap.data()
+                });
+            });
+            window.renderTable();
+        } catch (error) {
+            console.error("Gagal mengambil data dari Firestore:", error);
+        }
+    }
+
+    // Render Tabel & Card dengan Pagination 5 Item
+    window.renderTable = function() {
+        const tbody = document.getElementById('banner-table-body');
+        const cardContainer = document.getElementById('banner-card-container');
+        const info = document.getElementById('pagination-info');
+        const pageIndicator = document.getElementById('page-indicator');
+        const btnPrev = document.getElementById('btn-prev-page');
+        const btnNext = document.getElementById('btn-next-page');
+
+        if (!tbody || !cardContainer) return;
+
+        const filteredList = bannerList.filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        const totalData = filteredList.length;
+        const totalPages = Math.ceil(totalData / itemsPerPage) || 1;
+
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIdx = (currentPage - 1) * itemsPerPage;
+        const endIdx = startIdx + itemsPerPage;
+        const paginatedData = filteredList.slice(startIdx, endIdx);
+
+        tbody.innerHTML = '';
+        cardContainer.innerHTML = '';
+
+        if (paginatedData.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400">Belum ada data banner di Firestore. Silakan klik "Tambah Banner".</td></tr>`;
+            cardContainer.innerHTML = `<div class="bg-white dark:bg-slate-900 p-6 text-center text-slate-400 text-xs border border-slate-200 dark:border-slate-800">Belum ada data banner di Firestore. Silakan klik "Tambah Banner".</div>`;
+        } else {
+            paginatedData.forEach((banner) => {
+                // Desktop (Tabel)
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3 text-center"><input type="checkbox" class="rounded-none border-slate-300"></td>
+                    <td class="p-3"><img src="${banner.image}" alt="Banner" class="w-28 h-14 object-cover border border-slate-200 dark:border-slate-700 rounded-none"></td>
+                    <td class="p-3 font-medium">${banner.title}</td>
+                    <td class="p-3 text-center">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${banner.active ? 'checked' : ''} onchange="toggleBannerStatus('${banner.id}', ${banner.active})" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-none peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:w-4 after:h-4 after:rounded-none transition-all peer-checked:bg-[#0b2f64]"></div>
+                        </label>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+
+                // Mobile (Card)
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 shadow-xs flex items-center justify-between gap-3 text-xs";
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <img src="${banner.image}" alt="Banner" class="w-20 h-12 object-cover border border-slate-200 dark:border-slate-700 rounded-none flex-shrink-0">
+                        <div class="truncate">
+                            <p class="font-semibold text-slate-800 dark:text-slate-100 truncate">${banner.title}</p>
+                            <span class="text-[10px] text-slate-400">Firestore DB</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 flex-shrink-0">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" ${banner.active ? 'checked' : ''} onchange="toggleBannerStatus('${banner.id}', ${banner.active})" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-none peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:w-4 after:h-4 after:rounded-none transition-all peer-checked:bg-[#0b2f64]"></div>
+                        </label>
+                    </div>
+                `;
+                cardContainer.appendChild(card);
+            });
+        }
+
+        if (info) info.textContent = `Menampilkan ${totalData > 0 ? startIdx + 1 : 0} - ${Math.min(endIdx, totalData)} dari ${totalData} data`;
+        if (pageIndicator) pageIndicator.textContent = `${currentPage}`;
+        if (btnPrev) btnPrev.disabled = currentPage === 1;
+        if (btnNext) btnNext.disabled = currentPage === totalPages || totalData === 0;
+    };
+
+    window.changePage = function(direction) {
+        currentPage += direction;
+        window.renderTable();
+    };
+
+    // Update Status di Firestore
+    window.toggleBannerStatus = async function(id, currentStatus) {
+        try {
+            const bannerRef = doc(db, "banners", id);
+            await updateDoc(bannerRef, {
+                active: !currentStatus
+            });
+            fetchBannersFromDB();
+        } catch (error) {
+            console.error("Gagal memperbarui status:", error);
+            alert("Gagal memperbarui status di database.");
+        }
+    };
+
+    // Handle Submit Form Simpan ke Firestore
+    const bannerForm = document.getElementById('form-tambah-banner');
+    if (bannerForm) {
+        bannerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('banner-title').value.trim();
+            const submitBtn = document.getElementById('btn-submit-banner');
+
+            if (!title || !compressedBase64Image) {
+                alert("Judul dan gambar banner wajib diisi!");
+                return;
+            }
+
+            try {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Menyimpan ke Firestore...";
+
+                await addDoc(collection(db, "banners"), {
+                    title: title,
+                    image: compressedBase64Image,
+                    active: true,
+                    createdAt: serverTimestamp()
+                });
+
+                alert("Banner berhasil disimpan ke database Firestore!");
+                window.closeAddBannerModal();
+                fetchBannersFromDB(); // Muat ulang data terbaru dari Firestore
+            } catch (error) {
+                console.error("Gagal menyimpan ke Firestore:", error);
+                alert("Terjadi kesalahan saat menyimpan ke database.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Simpan ke Database Firestore";
+            }
+        });
+    }
+
+    // Fitur Pencarian
+    const searchInput = document.getElementById('search-banner');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            searchQuery = e.target.value;
+            currentPage = 1;
+            window.renderTable();
+        });
+    }
+
+    // Ambil data pertama kali dari Firestore saat halaman dimuat
+    fetchBannersFromDB();
 }
