@@ -7,13 +7,13 @@ export function renderHome() {
         <div class="space-y-6 pb-10 relative animate-fade-in">
             
             <!-- Banner Slider & Sapaan User -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+            <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div class="space-y-1">
-                        <span class="inline-block bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900 text-[10px] font-semibold px-2.5 py-0.5 tracking-wide uppercase">SISTEM AKTIF</span>
-                        <h1 class="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100" id="welcome-user-title">Selamat Datang! 👋</h1>
+                        <span class="hidden md:inline-block bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900 text-[10px] font-semibold px-2.5 py-0.5 tracking-wide uppercase">SISTEM AKTIF</span>
+                        <h1 class="text-sm md:text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100" id="welcome-user-title">Selamat Datang! 👋</h1>
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs px-3 py-1.5 rounded-none flex items-center gap-2">
+                    <div class="hidden md:flex bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs px-3 py-1.5 rounded-none items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Sistem Akuntansi & Operasional Aktif
                     </div>
                 </div>
@@ -44,6 +44,17 @@ export function renderHome() {
                 <h2 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Company Profile</h2>
                 <div id="company-profile-content" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed space-y-2">
                     <p class="text-slate-400 italic">Memuat profil perusahaan...</p>
+                </div>
+            </div>
+
+            <!-- Bagian Daftar Unit Usaha -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Daftar Unit Usaha</h2>
+                </div>
+                <!-- Container Grid Unit Usaha (2 Kolom di HP, 4 Kolom di Desktop) -->
+                <div id="home-unit-container" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                    <div class="col-span-full py-6 text-center text-xs text-slate-400">Memuat daftar unit usaha...</div>
                 </div>
             </div>
 
@@ -82,6 +93,7 @@ export function renderHome() {
 export async function initHomeHandler() {
     const welcomeTitle = document.getElementById('welcome-user-title');
     const bannerContainer = document.getElementById('home-banner-container');
+    const unitContainer = document.getElementById('home-unit-container');
     const productContainer = document.getElementById('home-product-container');
     const unitFilterSelect = document.getElementById('home-filter-unit');
     const companyProfileContainer = document.getElementById('company-profile-content');
@@ -90,6 +102,7 @@ export async function initHomeHandler() {
 
     let allBanners = [];
     let allProducts = [];
+    let allUnits = [];
     let currentIndex = 0;
     let autoSlideInterval = null;
 
@@ -220,20 +233,70 @@ export async function initHomeHandler() {
         }
     }
 
-    // 6. Ambil data Unit Usaha untuk Filter Produk di Beranda
+    // 6. Ambil data Unit Usaha dari Firestore (untuk Filter & Tampilan Grid Unit)
     try {
         const unitSnap = await getDocs(collection(db, "unit_usaha"));
+        allUnits = [];
         if (unitFilterSelect) {
-            unitSnap.forEach(docSnap => {
-                const u = docSnap.data();
+            unitFilterSelect.innerHTML = `<option value="">Semua Unit</option>`;
+        }
+        unitSnap.forEach(docSnap => {
+            const u = docSnap.data();
+            allUnits.push({ id: docSnap.id, ...u });
+
+            if (unitFilterSelect) {
                 const opt = document.createElement('option');
                 opt.value = u.namaUnit;
                 opt.textContent = u.namaUnit;
                 unitFilterSelect.appendChild(opt);
-            });
-        }
+            }
+        });
+
+        renderUnitGrid();
     } catch (err) {
-        console.error("Gagal memuat unit usaha untuk filter beranda:", err);
+        console.error("Gagal memuat unit usaha:", err);
+        if (unitContainer) {
+            unitContainer.innerHTML = `<div class="col-span-full py-4 text-center text-xs text-red-500">Gagal memuat daftar unit usaha.</div>`;
+        }
+    }
+
+    // Render Grid Unit Usaha
+    function renderUnitGrid() {
+        if (!unitContainer) return;
+
+        if (allUnits.length === 0) {
+            unitContainer.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-700">Belum ada unit usaha terdaftar.</div>`;
+            return;
+        }
+
+        unitContainer.innerHTML = allUnits.map(unit => {
+            const imgHtml = unit.image 
+                ? `<div class="w-full aspect-[4/3] bg-slate-100 dark:bg-slate-900 relative overflow-hidden flex items-center justify-center cursor-pointer" onclick="openImageModal('${unit.image}')">
+                       <img src="${unit.image}" alt="${unit.namaUnit}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                   </div>`
+                : `<div class="w-full aspect-[4/3] bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-400 text-[11px]">Tanpa Foto</div>`;
+
+            const mapBtn = unit.mapUrl 
+                ? `<a href="${unit.mapUrl}" target="_blank" class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                       Buka Map
+                   </a>`
+                : '';
+
+            return `
+                <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none overflow-hidden shadow-xs flex flex-col group transition hover:border-indigo-500">
+                    ${imgHtml}
+                    <div class="p-3 flex flex-col justify-between flex-1 space-y-1">
+                        <div>
+                            <span class="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-bold bg-indigo-50 dark:bg-indigo-950 px-1.5 py-0.5 border border-indigo-100 dark:border-indigo-900">${unit.kodeUnit || '-'}</span>
+                            <h3 class="font-bold text-xs text-slate-800 dark:text-slate-100 mt-1 truncate">${unit.namaUnit}</h3>
+                            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">${unit.keterangan || '-'}</p>
+                        </div>
+                        <div>${mapBtn}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
     // 7. Ambil data Produk Aktif dari Firestore

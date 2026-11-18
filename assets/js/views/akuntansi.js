@@ -9,8 +9,8 @@ export function renderAkuntansi() {
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pilih menu di bawah ini untuk mengelola data akuntansi dan pencatatan keuangan.</p>
             </div>
 
-            <!-- Grid Menu Akuntansi (Responsif HP & Desktop) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+            <!-- Grid Menu Akuntansi (2 Kolom di HP, 4 Kolom di Desktop) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 
                 <!-- 1. COA -->
                 <div data-url="#/akuntansi-coa" class="akuntansi-card bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition flex flex-col items-center justify-center text-center space-y-3 group">
@@ -87,6 +87,32 @@ export function renderAkuntansi() {
                     <div>
                         <h2 class="text-xs font-bold text-slate-800 dark:text-slate-100">Hutang</h2>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Kelola data kewajiban hutang</p>
+                    </div>
+                </div>
+
+                <!-- 7. Tutup Bulan -->
+                <div data-url="#/akuntansi-tutup-bulan" class="akuntansi-card bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition flex flex-col items-center justify-center text-center space-y-3 group">
+                    <div class="w-12 h-12 rounded-none bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 flex items-center justify-center transition border border-slate-100 dark:border-slate-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-slate-800 dark:text-slate-100">Tutup Bulan</h2>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Proses penutupan siklus bulanan</p>
+                    </div>
+                </div>
+
+                <!-- 8. Tutup Tahun -->
+                <div data-url="#/akuntansi-tutup-tahun" class="akuntansi-card bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition flex flex-col items-center justify-center text-center space-y-3 group">
+                    <div class="w-12 h-12 rounded-none bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 flex items-center justify-center transition border border-slate-100 dark:border-slate-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-slate-800 dark:text-slate-100">Tutup Tahun</h2>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Proses penutupan siklus tahunan</p>
                     </div>
                 </div>
 

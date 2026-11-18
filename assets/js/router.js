@@ -26,26 +26,32 @@ import { renderManajemenGaleri, initManajemenGaleriHandler } from './views/manaj
 import { renderManajemenEvent, initManajemenEventHandler } from './views/manajemen-event.js';
 import { renderManajemenMonitoring, initManajemenMonitoringHandler } from './views/manajemen-monitoring.js';
 import { renderManajemenProduk, initManajemenProdukHandler } from './views/manajemen-produk.js';
+import { renderManajemenResetData, initManajemenResetDataHandler } from './views/manajemen-reset-data.js';
 
 // Impor sub-halaman Akuntansi
 import { renderCoa, initCoaHandler } from './views/coa.js';
 import { renderSaldoAwal, initSaldoAwalHandler } from './views/saldo-awal.js';
-import { renderEntriJurnal, initEntriJurnalHandler } from './views/entri-jurnal.js';
-import { renderModal, initModalHandler } from './views/modal.js';
+import { renderAkuntansiEntriJurnal, initAkuntansiEntriJurnalHandler } from './views/akuntansi-entri-jurnal.js';
+import { renderModal, initModalHandler } from './views/akuntansi-modal.js';
 import { renderPiutang, initPiutangHandler } from './views/piutang.js';
 import { renderHutang, initHutangHandler } from './views/hutang.js';
+import { renderAkuntansiTutupBulan, initAkuntansiTutupBulanHandler } from './views/akuntansi-tutup-bulan.js';
+import { renderAkuntansiTutupTahun, initAkuntansiTutupTahunHandler } from './views/akuntansi-tutup-tahun.js';
 
 // Impor sub-halaman Keuangan
-import { renderKasMasuk, initKasMasukHandler } from './views/kas-masuk.js';
-import { renderKasKeluar, initKasKeluarHandler } from './views/kas-keluar.js';
+import { renderKasMasuk, initKasMasukHandler } from './views/keuangan-kas-masuk.js';
+import { renderKasKeluar, initKasKeluarHandler } from './views/keuangan-kas-keluar.js';
+import { renderKeuanganLaporanKas, initKeuanganLaporanKasHandler } from './views/keuangan-laporan-kas.js';
 
-// Impor sub-halaman Laporan
-import { renderJurnal, initJurnalHandler } from './views/jurnal.js';
+// Impor sub-halaman Data & Laporan
+import { renderDataPaguAnggaran, initDataPaguAnggaranHandler } from './views/data-pagu-anggaran.js';
+import { renderLaporanPagu, initLaporanPaguHandler } from './views/laporan-pagu.js';
+import { renderLaporanJurnal, initLaporanJurnalHandler } from './views/laporan-jurnal.js';
 import { renderBukuBesar, initBukuBesarHandler } from './views/buku-besar.js';
-import { renderNeracaSaldo, initNeracaSaldoHandler } from './views/neraca-saldo.js';
-import { renderArusKas, initArusKasHandler } from './views/arus-kas.js';
-import { renderPerubahanModal, initPerubahanModalHandler } from './views/perubahan-modal.js';
-import { renderLabaRugi, initLabaRugiHandler } from './views/laba-rugi.js';
+import { renderLaporanNeracaSaldo, initLaporanNeracaSaldoHandler } from './views/laporan-neraca-saldo.js';
+import { renderLaporanArusKas, initLaporanArusKasHandler } from './views/laporan-arus-kas.js';
+import { renderLaporanPerubahanModal, initLaporanPerubahanModalHandler } from './views/laporan-perubahan-modal.js';
+import { renderLaporanLabaRugi, initLaporanLabaRugiHandler } from './views/laporan-laba-rugi.js';
 
 const routes = {
     '/': renderHome,
@@ -58,6 +64,7 @@ const routes = {
     '/data': renderData,
     '/data-kontak': renderKontak,
     '/data-aset': renderAset,
+    '/data-pagu-anggaran': renderDataPaguAnggaran,
     '/keuangan': renderKeuangan,
     '/akuntansi': renderAkuntansi,
     '/laporan': renderLaporan,
@@ -69,20 +76,25 @@ const routes = {
     '/manajemen-event': renderManajemenEvent,
     '/manajemen-monitoring': renderManajemenMonitoring,
     '/manajemen-produk': renderManajemenProduk,
+    '/manajemen-reset-data': renderManajemenResetData,
     '/akuntansi-coa': renderCoa,
     '/akuntansi-saldo-awal': renderSaldoAwal,
-    '/akuntansi-entri-jurnal': renderEntriJurnal,
+    '/akuntansi-entri-jurnal': renderAkuntansiEntriJurnal,
     '/akuntansi-modal': renderModal,
     '/akuntansi-piutang': renderPiutang,
     '/akuntansi-hutang': renderHutang,
+    '/akuntansi-tutup-bulan': renderAkuntansiTutupBulan,
+    '/akuntansi-tutup-tahun': renderAkuntansiTutupTahun,
     '/keuangan-kas-masuk': renderKasMasuk,
     '/keuangan-kas-keluar': renderKasKeluar,
-    '/laporan-jurnal': renderJurnal,
+    '/keuangan-laporan-kas': renderKeuanganLaporanKas,
+    '/laporan-pagu': renderLaporanPagu,
+    '/laporan-jurnal': renderLaporanJurnal,
     '/laporan-buku-besar': renderBukuBesar,
-    '/laporan-neraca-saldo': renderNeracaSaldo,
-    '/laporan-arus-kas': renderArusKas,
-    '/laporan-perubahan-modal': renderPerubahanModal,
-    '/laporan-laba-rugi': renderLabaRugi,
+    '/laporan-neraca-saldo': renderLaporanNeracaSaldo,
+    '/laporan-arus-kas': renderLaporanArusKas,
+    '/laporan-perubahan-modal': renderLaporanPerubahanModal,
+    '/laporan-laba-rugi': renderLaporanLabaRugi,
     '/login': renderLogin
 };
 
@@ -99,7 +111,6 @@ window.handleLogout = () => {
 export function router() {
     let path = location.hash.slice(1).toLowerCase() || '/';
     
-    // Normalisasi jika hash bernilai ekstensi file (misal: #manajemen.js)
     if (path === '/manajemen.js') {
         path = '/manajemen';
         location.hash = '#/manajemen';
@@ -147,6 +158,7 @@ export function router() {
         else if (path === '/data') initDataHandler();
         else if (path === '/data-kontak') initKontakHandler();
         else if (path === '/data-aset') initAsetHandler();
+        else if (path === '/data-pagu-anggaran') initDataPaguAnggaranHandler();
         else if (path === '/keuangan') initKeuanganHandler();
         else if (path === '/akuntansi') initAkuntansiHandler();
         else if (path === '/laporan') initLaporanHandler();
@@ -161,20 +173,25 @@ export function router() {
         else if (path === '/manajemen-event') initManajemenEventHandler();
         else if (path === '/manajemen-monitoring') initManajemenMonitoringHandler();
         else if (path === '/manajemen-produk') initManajemenProdukHandler();
+        else if (path === '/manajemen-reset-data') initManajemenResetDataHandler();
         else if (path === '/akuntansi-coa') initCoaHandler();
         else if (path === '/akuntansi-saldo-awal') initSaldoAwalHandler();
-        else if (path === '/akuntansi-entri-jurnal') initEntriJurnalHandler();
+        else if (path === '/akuntansi-entri-jurnal') initAkuntansiEntriJurnalHandler();
         else if (path === '/akuntansi-modal') initModalHandler();
         else if (path === '/akuntansi-piutang') initPiutangHandler();
         else if (path === '/akuntansi-hutang') initHutangHandler();
+        else if (path === '/akuntansi-tutup-bulan') initAkuntansiTutupBulanHandler();
+        else if (path === '/akuntansi-tutup-tahun') initAkuntansiTutupTahunHandler();
         else if (path === '/keuangan-kas-masuk') initKasMasukHandler();
         else if (path === '/keuangan-kas-keluar') initKasKeluarHandler();
-        else if (path === '/laporan-jurnal') initJurnalHandler();
+        else if (path === '/keuangan-laporan-kas') initKeuanganLaporanKasHandler();
+        else if (path === '/laporan-pagu') initLaporanPaguHandler();
+        else if (path === '/laporan-jurnal') initLaporanJurnalHandler();
         else if (path === '/laporan-buku-besar') initBukuBesarHandler();
-        else if (path === '/laporan-neraca-saldo') initNeracaSaldoHandler();
-        else if (path === '/laporan-arus-kas') initArusKasHandler();
-        else if (path === '/laporan-perubahan-modal') initPerubahanModalHandler();
-        else if (path === '/laporan-laba-rugi') initLabaRugiHandler();
+        else if (path === '/laporan-neraca-saldo') initLaporanNeracaSaldoHandler();
+        else if (path === '/laporan-arus-kas') initLaporanArusKasHandler();
+        else if (path === '/laporan-perubahan-modal') initLaporanPerubahanModalHandler();
+        else if (path === '/laporan-laba-rugi') initLaporanLabaRugiHandler();
         else if (path === '/monitoring') initMonitoringHandler();
     }
 

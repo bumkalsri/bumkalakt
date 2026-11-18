@@ -2,15 +2,15 @@
 
 export function renderKeuangan() {
     return `
-        <div class="space-y-6 pb-10">
+        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman -->
             <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm">
                 <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Modul Keuangan</h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pilih menu di bawah ini untuk mengelola transaksi kas masuk dan kas keluar.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pilih menu di bawah ini untuk mengelola transaksi kas masuk, kas keluar, serta laporan keuangan harian.</p>
             </div>
 
-            <!-- Grid Menu Keuangan (Responsif HP & Desktop) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            <!-- Grid Menu Keuangan (2 Kolom di HP, 4 Kolom di Desktop) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 
                 <!-- 1. Penerimaan Kas -->
                 <div data-url="#/keuangan-kas-masuk" class="keuangan-card bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition flex flex-col items-center justify-center text-center space-y-3 group">
@@ -35,6 +35,19 @@ export function renderKeuangan() {
                     <div>
                         <h2 class="text-xs font-bold text-slate-800 dark:text-slate-100">Pengeluaran Kas</h2>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Kelola transaksi kas keluar</p>
+                    </div>
+                </div>
+
+                <!-- 3. Laporan Kas Masuk & Kas Keluar -->
+                <div data-url="#/keuangan-laporan-kas" class="keuangan-card bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition flex flex-col items-center justify-center text-center space-y-3 group">
+                    <div class="w-12 h-12 rounded-none bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 flex items-center justify-center transition border border-slate-100 dark:border-slate-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-slate-800 dark:text-slate-100">Laporan Kas Masuk/Keluar</h2>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Rekapitulasi & cetak mutasi kas</p>
                     </div>
                 </div>
 

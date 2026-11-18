@@ -4,7 +4,17 @@ import { db } from "../firebase-init.js";
 
 export function renderManajemenProduk() {
     return `
-        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in relative">
+            <!-- Toast Notifikasi Smooth -->
+            <div id="toast-notif" class="fixed top-5 right-5 z-50 transform translate-y-[-20px] opacity-0 transition-all duration-300 pointer-events-none">
+                <div class="flex items-center gap-3 bg-slate-900 dark:bg-slate-800 text-white px-4 py-3 shadow-xl border border-slate-700 text-xs">
+                    <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span id="toast-message" class="font-medium">Produk berhasil disimpan!</span>
+                </div>
+            </div>
+
             <!-- Header, Tombol Kembali & Aksi Atas -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-xs">
                 <div class="flex items-center gap-3">
@@ -87,8 +97,8 @@ export function renderManajemenProduk() {
             </div>
 
             <!-- MODAL TAMBAH PRODUK BARU -->
-            <div id="add-product-modal" class="hidden fixed inset-0 bg-slate-950/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden animate-fade-in">
+            <div id="add-product-modal" class="hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="add-modal-box">
                     <!-- Header Modal -->
                     <div class="bg-white dark:bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
                         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Tambah Produk Baru</h3>
@@ -154,8 +164,8 @@ export function renderManajemenProduk() {
             </div>
 
             <!-- MODAL EDIT PRODUK -->
-            <div id="edit-product-modal" class="hidden fixed inset-0 bg-slate-950/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden animate-fade-in">
+            <div id="edit-product-modal" class="hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="edit-modal-box">
                     <!-- Header Modal -->
                     <div class="bg-white dark:bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
                         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Edit Produk</h3>
@@ -219,6 +229,23 @@ export function renderManajemenProduk() {
                     </div>
                 </div>
             </div>
+
+            <!-- MODAL KONFIRMASI HAPUS SMOOTH -->
+            <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-sm rounded-none shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0 p-6 space-y-4 text-center" id="delete-modal-box">
+                    <div class="w-12 h-12 bg-rose-50 dark:bg-rose-950/60 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Hapus Produk?</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Apakah Anda yakin ingin menghapus produk ini dari database? Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                    <div class="flex items-center justify-center gap-3 pt-2">
+                        <button onclick="closeDeleteModal()" class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 text-xs font-semibold transition cursor-pointer">Batal</button>
+                        <button id="btn-confirm-delete" class="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition cursor-pointer">Ya, Hapus</button>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -234,23 +261,56 @@ export function initManajemenProdukHandler() {
     let selectedUnitFilter = "";
     let compressedBase64Image = "";
     let editCompressedBase64Image = "";
+    let productIdToDelete = null;
 
+    // Toast Notifikasi Smooth
+    function showToast(message) {
+        const toastNotif = document.getElementById('toast-notif');
+        const msgEl = document.getElementById('toast-message');
+        if (!toastNotif || !msgEl) return;
+
+        msgEl.textContent = message;
+        toastNotif.classList.remove('translate-y-[-20px]', 'opacity-0');
+        toastNotif.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+            toastNotif.classList.remove('translate-y-0', 'opacity-100');
+            toastNotif.classList.add('translate-y-[-20px]', 'opacity-0');
+        }, 3000);
+    }
+
+    // Modal Add Smooth
     window.openAddProductModal = function() {
         const modal = document.getElementById('add-product-modal');
-        if (modal) modal.classList.remove('hidden');
+        const box = document.getElementById('add-modal-box');
+        if (modal && box) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
     };
 
     window.closeAddProductModal = function() {
         const modal = document.getElementById('add-product-modal');
-        if (modal) modal.classList.add('hidden');
-        const form = document.getElementById('form-tambah-produk');
-        if (form) form.reset();
-        document.getElementById('file-name-label').textContent = 'Tidak ada yang dipilih';
-        document.getElementById('product-preview-img').classList.add('hidden');
-        document.getElementById('preview-placeholder').classList.remove('hidden');
-        compressedBase64Image = "";
+        const box = document.getElementById('add-modal-box');
+        if (modal && box) {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                const form = document.getElementById('form-tambah-produk');
+                if (form) form.reset();
+                document.getElementById('file-name-label').textContent = 'Tidak ada yang dipilih';
+                document.getElementById('product-preview-img').classList.add('hidden');
+                document.getElementById('preview-placeholder').classList.remove('hidden');
+                compressedBase64Image = "";
+            }, 300);
+        }
     };
 
+    // Modal Edit Smooth
     window.openEditProductModal = function(id) {
         const product = productList.find(p => p.id === id);
         if (!product) return;
@@ -277,16 +337,73 @@ export function initManajemenProdukHandler() {
         }
 
         const modal = document.getElementById('edit-product-modal');
-        if (modal) modal.classList.remove('hidden');
+        const box = document.getElementById('edit-modal-box');
+        if (modal && box) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
     };
 
     window.closeEditProductModal = function() {
         const modal = document.getElementById('edit-product-modal');
-        if (modal) modal.classList.add('hidden');
-        const form = document.getElementById('form-edit-produk');
-        if (form) form.reset();
-        editCompressedBase64Image = "";
+        const box = document.getElementById('edit-modal-box');
+        if (modal && box) {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                const form = document.getElementById('form-edit-produk');
+                if (form) form.reset();
+                editCompressedBase64Image = "";
+            }, 300);
+        }
     };
+
+    // Modal Konfirmasi Hapus Smooth
+    window.deleteProduct = function(id) {
+        productIdToDelete = id;
+        const modal = document.getElementById('delete-confirm-modal');
+        const box = document.getElementById('delete-modal-box');
+        if (modal && box) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+    };
+
+    window.closeDeleteModal = function() {
+        const modal = document.getElementById('delete-confirm-modal');
+        const box = document.getElementById('delete-modal-box');
+        if (modal && box) {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                productIdToDelete = null;
+            }, 300);
+        }
+    };
+
+    const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+    if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener('click', async function() {
+            if (!productIdToDelete) return;
+            try {
+                await deleteDoc(doc(db, "products", productIdToDelete));
+                window.closeDeleteModal();
+                showToast("Produk berhasil dihapus dari database!");
+                await fetchProductsFromDB();
+            } catch (error) {
+                console.error("Gagal menghapus produk:", error);
+                showToast("Terjadi kesalahan saat menghapus produk.");
+            }
+        });
+    }
 
     // Format Input Harga Menjadi Ribuan Otomatis (Titik)
     function setupPriceFormatting(inputId) {
@@ -592,23 +709,11 @@ export function initManajemenProdukHandler() {
             await updateDoc(productRef, {
                 active: !currentStatus
             });
-            fetchProductsFromDB();
+            await fetchProductsFromDB();
+            showToast("Status produk berhasil diperbarui!");
         } catch (error) {
             console.error("Gagal memperbarui status produk:", error);
-            alert("Gagal memperbarui status di database.");
-        }
-    };
-
-    // Hapus Produk dari Firestore
-    window.deleteProduct = async function(id) {
-        if (!confirm("Apakah Anda yakin ingin menghapus produk ini dari database?")) return;
-        try {
-            await deleteDoc(doc(db, "products", id));
-            alert("Produk berhasil dihapus.");
-            fetchProductsFromDB();
-        } catch (error) {
-            console.error("Gagal menghapus produk:", error);
-            alert("Terjadi kesalahan saat menghapus produk.");
+            showToast("Gagal memperbarui status di database.");
         }
     };
 
@@ -625,7 +730,7 @@ export function initManajemenProdukHandler() {
             const submitBtn = document.getElementById('btn-submit-product');
 
             if (!name || !unit || !price || !compressedBase64Image) {
-                alert("Nama produk, unit, harga, dan gambar wajib diisi!");
+                showToast("Nama produk, unit, harga, dan gambar wajib diisi!");
                 return;
             }
 
@@ -644,12 +749,12 @@ export function initManajemenProdukHandler() {
                     createdAt: serverTimestamp()
                 });
 
-                alert("Produk berhasil disimpan ke database Firestore!");
                 window.closeAddProductModal();
-                fetchProductsFromDB();
+                showToast("Produk berhasil disimpan ke database Firestore!");
+                await fetchProductsFromDB();
             } catch (error) {
                 console.error("Gagal menyimpan produk ke Firestore:", error);
-                alert("Terjadi kesalahan saat menyimpan ke database.");
+                showToast("Terjadi kesalahan saat menyimpan ke database.");
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Simpan Produk";
@@ -671,7 +776,7 @@ export function initManajemenProdukHandler() {
             const updateBtn = document.getElementById('btn-update-product');
 
             if (!name || !unit || !price) {
-                alert("Nama produk, unit, dan harga wajib diisi!");
+                showToast("Nama produk, unit, dan harga wajib diisi!");
                 return;
             }
 
@@ -689,12 +794,12 @@ export function initManajemenProdukHandler() {
                     image: editCompressedBase64Image
                 });
 
-                alert("Produk berhasil diperbarui!");
                 window.closeEditProductModal();
-                fetchProductsFromDB();
+                showToast("Produk berhasil diperbarui!");
+                await fetchProductsFromDB();
             } catch (error) {
                 console.error("Gagal memperbarui produk:", error);
-                alert("Terjadi kesalahan saat memperbarui produk.");
+                showToast("Terjadi kesalahan saat memperbarui produk.");
             } finally {
                 updateBtn.disabled = false;
                 updateBtn.textContent = "Perbarui Perubahan";

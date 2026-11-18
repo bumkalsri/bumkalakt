@@ -83,7 +83,7 @@ export function renderManajemenPengaturan() {
                                 <input type="text" id="setting-bendahara" class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Nama Bendahara">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Penasehat</label>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-700 mb-1">Penasehat</label>
                                 <input type="text" id="setting-penasehat" class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Nama Penasehat">
                             </div>
                             <div class="md:col-span-2">
@@ -134,20 +134,36 @@ export function renderManajemenPengaturan() {
                     <h2 id="form-unit-title" class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-4">Tambah Unit Usaha Baru</h2>
                     <form id="form-tambah-unit" class="space-y-4">
                         <input type="hidden" id="edit-unit-id" value="">
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                            <div class="sm:col-span-1">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
                                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Kode Unit</label>
                                 <input type="text" id="input-kode-unit" required class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Misal: U01">
                             </div>
-                            <div class="sm:col-span-1">
+                            <div>
                                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Unit Usaha</label>
                                 <input type="text" id="input-nama-unit" required class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Misal: Unit Agrowisata">
                             </div>
-                            <div class="sm:col-span-2">
+                            <div>
                                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Keterangan / Lokasi</label>
                                 <input type="text" id="input-keterangan-unit" class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Misal: Jl. Raya Pundong No. 1">
                             </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">URL Alamat Map</label>
+                                <input type="url" id="input-map-url" class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="https://maps.google.com/...">
+                            </div>
                         </div>
+
+                        <!-- Upload Foto Unit dengan Kompresi Otomatis Maks 500px -->
+                        <div class="space-y-1.5 pt-2">
+                            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Foto Unit Usaha (Kompresi Otomatis Maks 500px)</label>
+                            <input type="file" id="input-unit-image-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                            <input type="hidden" id="input-unit-image-base64" value="">
+                            <div id="unit-image-preview-container" class="mt-2 hidden">
+                                <p class="text-[11px] text-slate-400 mb-1">Pratinjau Foto:</p>
+                                <img id="unit-image-preview" src="" alt="Pratinjau" class="h-24 w-auto object-cover border border-slate-200 dark:border-slate-700">
+                            </div>
+                        </div>
+
                         <div class="flex items-center gap-2 pt-1">
                             <input type="checkbox" id="input-is-default" class="rounded-none border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4">
                             <label for="input-is-default" class="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">Jadikan sebagai Unit Default</label>
@@ -182,6 +198,7 @@ export function renderManajemenPengaturan() {
                             <thead>
                                 <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">
                                     <th class="p-3 w-12 text-center">No</th>
+                                    <th class="p-3 w-16 text-center font-semibold">Foto</th>
                                     <th class="p-3 w-28 font-semibold cursor-pointer hover:text-indigo-600 select-none" onclick="toggleSortUnit()" title="Klik untuk mengurutkan berdasarkan Kode Unit">
                                         <div class="flex items-center gap-1.5">
                                             <span>Kode Unit</span>
@@ -192,12 +209,13 @@ export function renderManajemenPengaturan() {
                                     </th>
                                     <th class="p-3 font-semibold">Nama Unit Usaha</th>
                                     <th class="p-3 font-semibold">Keterangan / Lokasi</th>
-                                    <th class="p-3 w-32 font-semibold text-center">Status</th>
+                                    <th class="p-3 font-semibold">Map</th>
+                                    <th class="p-3 w-28 font-semibold text-center">Status</th>
                                     <th class="p-3 w-40 font-semibold text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="unit-table-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-200">
-                                <tr><td colspan="6" class="p-4 text-center text-slate-400">Memuat daftar unit...</td></tr>
+                                <tr><td colspan="8" class="p-4 text-center text-slate-400">Memuat daftar unit...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -235,8 +253,56 @@ export async function initManajemenPengaturanHandler() {
     const unitTableBody = document.getElementById('unit-table-body');
     const unitCardContainer = document.getElementById('unit-card-container');
 
+    const inputFile = document.getElementById('input-unit-image-file');
+    const inputBase64 = document.getElementById('input-unit-image-base64');
+    const imgPreview = document.getElementById('unit-image-preview');
+    const previewContainer = document.getElementById('unit-image-preview-container');
+
     let globalUnitsList = [];
     let sortDirection = 'asc';
+
+    // Handler Kompresi Gambar Otomatis Maks 500px
+    if (inputFile) {
+        inputFile.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    const maxDim = 500;
+
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height = Math.round((height * maxDim) / width);
+                            width = maxDim;
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width = Math.round((width * maxDim) / height);
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
+                    if (inputBase64) inputBase64.value = compressedBase64;
+                    if (imgPreview) imgPreview.src = compressedBase64;
+                    if (previewContainer) previewContainer.classList.remove('hidden');
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
     window.switchTab = function(tabName) {
         const tabBtnPengaturan = document.getElementById('tab-btn-pengaturan');
@@ -383,7 +449,7 @@ export async function initManajemenPengaturanHandler() {
             renderUnitTableAndCards();
         } catch (err) {
             console.error("Gagal memuat daftar unit:", err);
-            unitTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-500">Gagal memuat data unit.</td></tr>`;
+            unitTableBody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-red-500">Gagal memuat data unit.</td></tr>`;
             unitCardContainer.innerHTML = `<div class="p-4 text-center text-red-500 text-xs">Gagal memuat data unit.</div>`;
         }
     }
@@ -395,7 +461,7 @@ export async function initManajemenPengaturanHandler() {
         unitCardContainer.innerHTML = '';
 
         if (globalUnitsList.length === 0) {
-            unitTableBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400">Belum ada unit usaha terdaftar.</td></tr>`;
+            unitTableBody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">Belum ada unit usaha terdaftar.</td></tr>`;
             unitCardContainer.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">Belum ada unit usaha terdaftar.</div>`;
             return;
         }
@@ -414,25 +480,35 @@ export async function initManajemenPengaturanHandler() {
         sortedUnits.forEach((unit) => {
             const isDefault = unit.isDefault === true;
             const statusBadge = isDefault 
-                ? `<span class="inline-block bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-none uppercase">Default</span>`
-                : `<span class="inline-block bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-semibold px-2.5 py-0.5 rounded-none uppercase">Tidak</span>`;
+                ? `<span class="inline-block bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-none uppercase">Default</span>`
+                : `<span class="inline-block bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px] font-semibold px-2 py-0.5 rounded-none uppercase">Tidak</span>`;
 
             const defaultActionBtn = !isDefault
                 ? `<button onclick="setAsDefaultUnit('${unit.id}')" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-[11px] font-semibold border border-indigo-200 transition cursor-pointer">Set Default</button>`
                 : `<span class="text-[11px] text-slate-400 italic">Aktif Default</span>`;
+
+            const imageHtml = unit.image 
+                ? `<img src="${unit.image}" alt="Foto Unit" class="w-10 h-10 object-cover border border-slate-200 dark:border-slate-700">`
+                : `<span class="text-[10px] text-slate-400 italic">Tanpa Foto</span>`;
+
+            const mapHtml = unit.mapUrl 
+                ? `<a href="${unit.mapUrl}" target="_blank" class="text-indigo-600 dark:text-indigo-400 underline text-[11px]">Buka Map</a>`
+                : `<span class="text-slate-400 text-[11px]">-</span>`;
 
             // 1. Desktop Table Row
             const tr = document.createElement('tr');
             tr.className = "hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition";
             tr.innerHTML = `
                 <td class="p-3 text-center">${index}</td>
+                <td class="p-3 text-center">${imageHtml}</td>
                 <td class="p-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">${unit.kodeUnit || '-'}</td>
                 <td class="p-3 font-semibold text-slate-800 dark:text-slate-100">${unit.namaUnit}</td>
                 <td class="p-3 text-slate-600 dark:text-slate-300">${unit.keterangan || '-'}</td>
+                <td class="p-3">${mapHtml}</td>
                 <td class="p-3 text-center">${statusBadge}</td>
                 <td class="p-3 text-center flex items-center justify-center gap-1.5 flex-wrap">
                     ${defaultActionBtn}
-                    <button onclick="editUnit('${unit.id}', '${unit.kodeUnit || ''}', '${unit.namaUnit || ''}', '${unit.keterangan || ''}', ${isDefault})" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 text-[11px] font-semibold border border-amber-200 transition cursor-pointer">
+                    <button onclick="editUnit('${unit.id}', '${unit.kodeUnit || ''}', '${unit.namaUnit || ''}', '${unit.keterangan || ''}', '${unit.mapUrl || ''}', '${unit.image || ''}', ${isDefault})" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 text-[11px] font-semibold border border-amber-200 transition cursor-pointer">
                         Edit
                     </button>
                     <button onclick="deleteUnit('${unit.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 text-[11px] font-semibold border border-rose-200 transition cursor-pointer">
@@ -453,13 +529,17 @@ export async function initManajemenPengaturanHandler() {
                     </div>
                     <div>${statusBadge}</div>
                 </div>
-                <div>
-                    <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">${unit.namaUnit}</p>
-                    <p class="text-slate-500 dark:text-slate-400 mt-0.5"><strong class="font-medium text-slate-700 dark:text-slate-300">Lokasi:</strong> ${unit.keterangan || '-'}</p>
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0">${imageHtml}</div>
+                    <div class="space-y-1 flex-1">
+                        <p class="font-bold text-slate-800 dark:text-slate-100 text-sm">${unit.namaUnit}</p>
+                        <p class="text-slate-500 dark:text-slate-400"><strong class="font-medium text-slate-700 dark:text-slate-300">Lokasi:</strong> ${unit.keterangan || '-'}</p>
+                        <p class="text-slate-500 dark:text-slate-400"><strong class="font-medium text-slate-700 dark:text-slate-300">Map:</strong> ${mapHtml}</p>
+                    </div>
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                     ${defaultActionBtn}
-                    <button onclick="editUnit('${unit.id}', '${unit.kodeUnit || ''}', '${unit.namaUnit || ''}', '${unit.keterangan || ''}', ${isDefault})" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 font-semibold border border-amber-200 transition cursor-pointer">
+                    <button onclick="editUnit('${unit.id}', '${unit.kodeUnit || ''}', '${unit.namaUnit || ''}', '${unit.keterangan || ''}', '${unit.mapUrl || ''}', '${unit.image || ''}', ${isDefault})" class="px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 font-semibold border border-amber-200 transition cursor-pointer">
                         Edit
                     </button>
                     <button onclick="deleteUnit('${unit.id}')" class="px-3 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold border border-rose-200 transition cursor-pointer">
@@ -489,6 +569,8 @@ export async function initManajemenPengaturanHandler() {
             const kodeUnit = document.getElementById('input-kode-unit').value.trim();
             const namaUnit = document.getElementById('input-nama-unit').value.trim();
             const keterangan = document.getElementById('input-keterangan-unit').value.trim();
+            const mapUrl = document.getElementById('input-map-url').value.trim();
+            const imageBase64 = document.getElementById('input-unit-image-base64').value;
             const isDefault = document.getElementById('input-is-default').checked;
             const btnSimpanUnit = document.getElementById('btn-simpan-unit');
 
@@ -509,28 +591,32 @@ export async function initManajemenPengaturanHandler() {
                     }
                 }
 
+                const unitPayload = {
+                    kodeUnit: kodeUnit,
+                    namaUnit: namaUnit,
+                    keterangan: keterangan,
+                    mapUrl: mapUrl,
+                    isDefault: isDefault,
+                    updatedAt: serverTimestamp()
+                };
+
+                if (imageBase64) {
+                    unitPayload.image = imageBase64;
+                }
+
                 if (editId) {
-                    await updateDoc(doc(db, "unit_usaha", editId), {
-                        kodeUnit: kodeUnit,
-                        namaUnit: namaUnit,
-                        keterangan: keterangan,
-                        isDefault: isDefault,
-                        updatedAt: serverTimestamp()
-                    });
+                    await updateDoc(doc(db, "unit_usaha", editId), unitPayload);
                     showToast("Unit usaha berhasil diperbarui!");
                 } else {
-                    await addDoc(collection(db, "unit_usaha"), {
-                        kodeUnit: kodeUnit,
-                        namaUnit: namaUnit,
-                        keterangan: keterangan,
-                        isDefault: isDefault,
-                        createdAt: serverTimestamp()
-                    });
+                    unitPayload.createdAt = serverTimestamp();
+                    await addDoc(collection(db, "unit_usaha"), unitPayload);
                     showToast("Unit usaha berhasil ditambahkan!");
                 }
 
                 cancelEditUnit();
-                fetchUnitList();
+                
+                // Menunggu proses pengambilan data terbaru dari Firestore selesai sebelum merender ulang tabel/card
+                await fetchUnitList();
             } catch (err) {
                 console.error("Gagal menyimpan unit:", err);
                 showToast("Terjadi kesalahan saat menyimpan unit.");
@@ -543,12 +629,22 @@ export async function initManajemenPengaturanHandler() {
         });
     }
 
-    window.editUnit = function(id, kode, nama, keterangan, isDefault) {
+    window.editUnit = function(id, kode, nama, keterangan, mapUrl, imageUrl, isDefault) {
         document.getElementById('edit-unit-id').value = id;
         document.getElementById('input-kode-unit').value = kode;
         document.getElementById('input-nama-unit').value = nama;
         document.getElementById('input-keterangan-unit').value = keterangan === '-' ? '' : keterangan;
+        document.getElementById('input-map-url').value = mapUrl === 'undefined' ? '' : mapUrl;
         document.getElementById('input-is-default').checked = isDefault;
+
+        if (imageUrl && imageUrl !== 'undefined') {
+            document.getElementById('input-unit-image-base64').value = imageUrl;
+            document.getElementById('unit-image-preview').src = imageUrl;
+            document.getElementById('unit-image-preview-container').classList.remove('hidden');
+        } else {
+            document.getElementById('input-unit-image-base64').value = "";
+            document.getElementById('unit-image-preview-container').classList.add('hidden');
+        }
 
         document.getElementById('form-unit-title').textContent = "Edit Unit Usaha";
         document.getElementById('btn-submit-text').textContent = "Perbarui Unit";
@@ -560,6 +656,8 @@ export async function initManajemenPengaturanHandler() {
     window.cancelEditUnit = function() {
         document.getElementById('edit-unit-id').value = "";
         formUnit.reset();
+        document.getElementById('input-unit-image-base64').value = "";
+        document.getElementById('unit-image-preview-container').classList.add('hidden');
         document.getElementById('form-unit-title').textContent = "Tambah Unit Usaha Baru";
         document.getElementById('btn-submit-text').textContent = "Tambah Unit";
         document.getElementById('btn-cancel-edit').classList.add('hidden');
@@ -575,7 +673,7 @@ export async function initManajemenPengaturanHandler() {
                 });
             }
             showToast("Unit default berhasil diperbarui!");
-            fetchUnitList();
+            await fetchUnitList();
         } catch (err) {
             console.error("Gagal mengubah unit default:", err);
             showToast("Gagal memperbarui status default.");
@@ -587,7 +685,7 @@ export async function initManajemenPengaturanHandler() {
         try {
             await deleteDoc(doc(db, "unit_usaha", id));
             showToast("Unit usaha berhasil dihapus!");
-            fetchUnitList();
+            await fetchUnitList();
         } catch (err) {
             console.error("Gagal menghapus unit:", err);
             showToast("Gagal menghapus unit dari database.");

@@ -4,11 +4,21 @@ import { db } from "../firebase-init.js";
 
 export function renderManajemenBanner() {
     return `
-        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in relative">
+            <!-- Toast Notifikasi Smooth (Hidden secara default) -->
+            <div id="toast-notif" class="fixed top-5 right-5 z-50 transform translate-y-[-20px] opacity-0 transition-all duration-300 pointer-events-none">
+                <div class="flex items-center gap-3 bg-slate-900 dark:bg-slate-800 text-white px-4 py-3 shadow-xl border border-slate-700 text-xs">
+                    <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span id="toast-message" class="font-medium">Banner berhasil disimpan!</span>
+                </div>
+            </div>
+
             <!-- Header, Tombol Kembali & Aksi Atas -->
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-xs">
                 <div class="flex items-center gap-3">
-                    <a href="#/manajemen.js" class="p-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition rounded-none flex items-center justify-center">
+                    <a href="#/manajemen" class="p-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition rounded-none flex items-center justify-center">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
@@ -75,8 +85,8 @@ export function renderManajemenBanner() {
             </div>
 
             <!-- MODAL TAMBAH BANNER BARU -->
-            <div id="add-banner-modal" class="hidden fixed inset-0 bg-slate-950/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden animate-fade-in">
+            <div id="add-banner-modal" class="hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="add-modal-box">
                     <!-- Header Modal -->
                     <div class="bg-white dark:bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
                         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Tambah Banner Baru</h3>
@@ -112,7 +122,7 @@ export function renderManajemenBanner() {
 
                         <!-- Kotak Pratinjau -->
                         <div class="flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700 p-6 h-56 bg-slate-50 dark:bg-slate-950/50 relative">
-                            <span id="preview-placeholder" class="text-xs text-slate-500 dark:text-slate-400 text-center font-normal">Pratinjau Banner Canva (2:1 / 1000x500mm)</span>
+                            <span id="preview-placeholder" class="text-xs text-slate-500 dark:text-slate-400 text-center font-normal">Pratinjau Banner (Maks. Lebar 500px)</span>
                             <img id="banner-preview-img" src="" alt="Pratinjau" class="hidden h-full w-full object-cover border border-slate-200 dark:border-slate-700">
                         </div>
                     </div>
@@ -120,8 +130,8 @@ export function renderManajemenBanner() {
             </div>
 
             <!-- MODAL EDIT BANNER -->
-            <div id="edit-banner-modal" class="hidden fixed inset-0 bg-slate-950/50 z-50 flex items-center justify-center p-4">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden animate-fade-in">
+            <div id="edit-banner-modal" class="hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-4xl rounded-none shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0" id="edit-modal-box">
                     <!-- Header Modal -->
                     <div class="bg-white dark:bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
                         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Edit Banner</h3>
@@ -163,6 +173,23 @@ export function renderManajemenBanner() {
                     </div>
                 </div>
             </div>
+
+            <!-- MODAL KONFIRMASI HAPUS SMOOTH -->
+            <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-sm rounded-none shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0 p-6 space-y-4 text-center" id="delete-modal-box">
+                    <div class="w-12 h-12 bg-rose-50 dark:bg-rose-950/60 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Hapus Banner?</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Apakah Anda yakin ingin menghapus banner ini dari database? Tindakan ini tidak dapat dibatalkan.</p>
+                    </div>
+                    <div class="flex items-center justify-center gap-3 pt-2">
+                        <button onclick="closeDeleteModal()" class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 text-xs font-semibold transition cursor-pointer">Batal</button>
+                        <button id="btn-confirm-delete" class="flex-1 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition cursor-pointer">Ya, Hapus</button>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -176,23 +203,56 @@ export function initManajemenBannerHandler() {
     let searchQuery = "";
     let compressedBase64Image = "";
     let editCompressedBase64Image = "";
+    let bannerIdToDelete = null;
 
+    // Toast Notifikasi Smooth
+    function showToast(message) {
+        const toastNotif = document.getElementById('toast-notif');
+        const msgEl = document.getElementById('toast-message');
+        if (!toastNotif || !msgEl) return;
+
+        msgEl.textContent = message;
+        toastNotif.classList.remove('translate-y-[-20px]', 'opacity-0');
+        toastNotif.classList.add('translate-y-0', 'opacity-100');
+
+        setTimeout(() => {
+            toastNotif.classList.remove('translate-y-0', 'opacity-100');
+            toastNotif.classList.add('translate-y-[-20px]', 'opacity-0');
+        }, 3000);
+    }
+
+    // Modal Add Smooth
     window.openAddBannerModal = function() {
         const modal = document.getElementById('add-banner-modal');
-        if (modal) modal.classList.remove('hidden');
+        const box = document.getElementById('add-modal-box');
+        if (modal && box) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
     };
 
     window.closeAddBannerModal = function() {
         const modal = document.getElementById('add-banner-modal');
-        if (modal) modal.classList.add('hidden');
-        const form = document.getElementById('form-tambah-banner');
-        if (form) form.reset();
-        document.getElementById('file-name-label').textContent = 'Tidak ada yang dipilih';
-        document.getElementById('banner-preview-img').classList.add('hidden');
-        document.getElementById('preview-placeholder').classList.remove('hidden');
-        compressedBase64Image = "";
+        const box = document.getElementById('add-modal-box');
+        if (modal && box) {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                const form = document.getElementById('form-tambah-banner');
+                if (form) form.reset();
+                document.getElementById('file-name-label').textContent = 'Tidak ada yang dipilih';
+                document.getElementById('banner-preview-img').classList.add('hidden');
+                document.getElementById('preview-placeholder').classList.remove('hidden');
+                compressedBase64Image = "";
+            }, 300);
+        }
     };
 
+    // Modal Edit Smooth
     window.openEditBannerModal = function(id) {
         const banner = bannerList.find(b => b.id === id);
         if (!banner) return;
@@ -204,16 +264,73 @@ export function initManajemenBannerHandler() {
         editCompressedBase64Image = banner.image;
 
         const modal = document.getElementById('edit-banner-modal');
-        if (modal) modal.classList.remove('hidden');
+        const box = document.getElementById('edit-modal-box');
+        if (modal && box) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
     };
 
     window.closeEditBannerModal = function() {
         const modal = document.getElementById('edit-banner-modal');
-        if (modal) modal.classList.add('hidden');
-        const form = document.getElementById('form-edit-banner');
-        if (form) form.reset();
-        editCompressedBase64Image = "";
+        const box = document.getElementById('edit-modal-box');
+        if (modal && box) {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                const form = document.getElementById('form-edit-banner');
+                if (form) form.reset();
+                editCompressedBase64Image = "";
+            }, 300);
+        }
     };
+
+    // Modal Konfirmasi Hapus Smooth
+    window.deleteBanner = function(id) {
+        bannerIdToDelete = id;
+        const modal = document.getElementById('delete-confirm-modal');
+        const box = document.getElementById('delete-modal-box');
+        if (modal && box) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+    };
+
+    window.closeDeleteModal = function() {
+        const modal = document.getElementById('delete-confirm-modal');
+        const box = document.getElementById('delete-modal-box');
+        if (modal && box) {
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                bannerIdToDelete = null;
+            }, 300);
+        }
+    };
+
+    const btnConfirmDelete = document.getElementById('btn-confirm-delete');
+    if (btnConfirmDelete) {
+        btnConfirmDelete.addEventListener('click', async function() {
+            if (!bannerIdToDelete) return;
+            try {
+                await deleteDoc(doc(db, "banners", bannerIdToDelete));
+                window.closeDeleteModal();
+                showToast("Banner berhasil dihapus dari database!");
+                fetchBannersFromDB();
+            } catch (error) {
+                console.error("Gagal menghapus banner:", error);
+                showToast("Terjadi kesalahan saat menghapus banner.");
+            }
+        });
+    }
 
     // Kompres Gambar Tambah Banner (Maks 500px)
     const fileInput = document.getElementById('banner-file-input');
@@ -419,20 +536,7 @@ export function initManajemenBannerHandler() {
             fetchBannersFromDB();
         } catch (error) {
             console.error("Gagal memperbarui status:", error);
-            alert("Gagal memperbarui status di database.");
-        }
-    };
-
-    // Hapus Banner dari Firestore
-    window.deleteBanner = async function(id) {
-        if (!confirm("Apakah Anda yakin ingin menghapus banner ini dari database?")) return;
-        try {
-            await deleteDoc(doc(db, "banners", id));
-            alert("Banner berhasil dihapus.");
-            fetchBannersFromDB();
-        } catch (error) {
-            console.error("Gagal menghapus banner:", error);
-            alert("Terjadi kesalahan saat menghapus banner.");
+            showToast("Gagal memperbarui status di database.");
         }
     };
 
@@ -445,7 +549,7 @@ export function initManajemenBannerHandler() {
             const submitBtn = document.getElementById('btn-submit-banner');
 
             if (!title || !compressedBase64Image) {
-                alert("Judul dan gambar banner wajib diisi!");
+                showToast("Judul dan gambar banner wajib diisi!");
                 return;
             }
 
@@ -460,12 +564,12 @@ export function initManajemenBannerHandler() {
                     createdAt: serverTimestamp()
                 });
 
-                alert("Banner berhasil disimpan ke database Firestore!");
                 window.closeAddBannerModal();
+                showToast("Banner berhasil disimpan ke database Firestore!");
                 fetchBannersFromDB();
             } catch (error) {
                 console.error("Gagal menyimpan ke Firestore:", error);
-                alert("Terjadi kesalahan saat menyimpan ke database.");
+                showToast("Terjadi kesalahan saat menyimpan ke database.");
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Simpan ke Database Firestore";
@@ -483,7 +587,7 @@ export function initManajemenBannerHandler() {
             const updateBtn = document.getElementById('btn-update-banner');
 
             if (!title) {
-                alert("Judul banner wajib diisi!");
+                showToast("Judul banner wajib diisi!");
                 return;
             }
 
@@ -497,12 +601,12 @@ export function initManajemenBannerHandler() {
                     image: editCompressedBase64Image
                 });
 
-                alert("Banner berhasil diperbarui!");
                 window.closeEditBannerModal();
+                showToast("Banner berhasil diperbarui!");
                 fetchBannersFromDB();
             } catch (error) {
                 console.error("Gagal memperbarui banner:", error);
-                alert("Terjadi kesalahan saat memperbarui banner.");
+                showToast("Terjadi kesalahan saat memperbarui banner.");
             } finally {
                 updateBtn.disabled = false;
                 updateBtn.textContent = "Perbarui Perubahan";

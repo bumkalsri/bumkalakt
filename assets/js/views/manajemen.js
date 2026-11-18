@@ -9,8 +9,8 @@ export function renderManajemen() {
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Pilih menu di bawah ini untuk membuka halaman pengelolaan.</p>
             </div>
 
-            <!-- Grid Menu Manajemen -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- Grid Menu Manajemen (2 Kolom di HP, 4 Kolom di Desktop) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 
                 <!-- 1. Manajemen Pengaturan -->
                 <div data-url="#/manajemen-pengaturan" class="management-card bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition flex flex-col items-center justify-center text-center space-y-3 group">
@@ -100,6 +100,19 @@ export function renderManajemen() {
                     <div>
                         <h2 class="text-xs font-bold text-slate-800 dark:text-slate-100">Manajemen Monitoring</h2>
                         <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Pengaturan dan rekap data monitoring</p>
+                    </div>
+                </div>
+
+                <!-- 8. Reset Data -->
+                <div data-url="#/manajemen-reset-data" class="management-card bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500 dark:hover:border-indigo-500 cursor-pointer transition flex flex-col items-center justify-center text-center space-y-3 group">
+                    <div class="w-12 h-12 rounded-none bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-indigo-50 group-hover:text-indigo-600 flex items-center justify-center transition border border-slate-100 dark:border-slate-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-slate-800 dark:text-slate-100">Reset Data</h2>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Reset dan pembersihan database sistem</p>
                     </div>
                 </div>
 
