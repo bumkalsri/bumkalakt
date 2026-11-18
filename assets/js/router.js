@@ -1,3 +1,4 @@
+// File: assets/js/router.js
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getDoc, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { auth, db } from "./firebase-init.js";
@@ -97,8 +98,15 @@ window.handleLogout = () => {
 
 export function router() {
     let path = location.hash.slice(1).toLowerCase() || '/';
-    const appContainer = document.getElementById('app');
+    
+    // Normalisasi jika hash bernilai ekstensi file (misal: #manajemen.js)
+    if (path === '/manajemen.js') {
+        path = '/manajemen';
+        location.hash = '#/manajemen';
+        return;
+    }
 
+    const appContainer = document.getElementById('app');
     const sidebar = document.getElementById('sidebar');
     const headerEl = document.querySelector('header');
     const bottomNav = document.getElementById('bottom-nav');
@@ -121,13 +129,13 @@ export function router() {
     } else {
         if (sidebar) sidebar.style.display = ''; 
         if (headerEl) headerEl.classList.remove('hidden');
-        if (bottomNav) bottomNav.classList.remove('hidden'); // Memastikan bottom-nav selalu muncul di HP
+        if (bottomNav) bottomNav.classList.remove('hidden');
         if (appContainer) {
             appContainer.className = "flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 pb-20 md:pb-6";
         }
     }
 
-    // --- RENDER VIEW KE CONTAINER UTAMA ---
+    // --- RENDER VIEW KE CONTAINER UTAMA & INISIALISASI HANDLER ---
     if (appContainer) {
         const renderFunction = routes[path] || renderHome;
         appContainer.innerHTML = renderFunction();
