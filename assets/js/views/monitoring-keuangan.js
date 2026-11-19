@@ -28,31 +28,31 @@ function isKasOrBankAccount(coa) {
 
 export function renderMonitoringKeuangan() {
     return `
-        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+        <div class="space-y-4 sm:space-y-6 pb-10 max-w-7xl mx-auto overflow-x-hidden animate-fade-in">
             <!-- Header Halaman & Tombol Aksi -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3.5 min-w-0">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
+                <div class="flex items-start sm:items-center gap-3 min-w-0">
                     <a href="#/monitoring" data-link title="Kembali ke Menu Monitoring"
-                        class="w-10 h-10 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center rounded-none transition flex-shrink-0">
+                        class="w-9 h-9 sm:w-10 sm:h-10 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center rounded-none transition flex-shrink-0 mt-0.5 sm:mt-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div class="min-w-0">
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Monitoring Laporan Keuangan</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Rekapitulasi kas masuk, kas keluar, dan mutasi saldo kas per unit usaha BUMKal.</p>
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Monitoring Laporan Keuangan</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed break-words">Rekapitulasi kas masuk, kas keluar, dan mutasi saldo kas per unit usaha BUMKal.</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    <button id="btn-cetak-monitoring-keuangan" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Cetak / Print Laporan
+                <div class="flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
+                    <button id="btn-cetak-monitoring-keuangan" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2 sm:py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Cetak / Print Laporan</span>
                     </button>
                 </div>
             </div>
 
             <!-- Filter Bar -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 md:grid-cols-4 gap-4 text-xs items-end">
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs items-end">
                 <div>
                     <label for="filter-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER UNIT USAHA</label>
                     <select id="filter-unit" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-emerald-600">
@@ -72,34 +72,34 @@ export function renderMonitoringKeuangan() {
                     <input type="date" id="filter-tgl-sampai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-emerald-600">
                 </div>
                 <div>
-                    <button id="btn-tampilkan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan Laporan</button>
+                    <button id="btn-tampilkan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 sm:py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan Laporan</button>
                 </div>
             </div>
 
             <!-- Ringkasan Kas & Bank -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Saldo Awal Kas &amp; Bank</p>
-                    <p id="mk-saldo-awal" class="text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1">Rp 0</p>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Saldo Awal Kas &amp; Bank</p>
+                    <p id="mk-saldo-awal" class="text-xs sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1 break-words">Rp 0</p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Total Kas Masuk</p>
-                    <p id="mk-kas-masuk" class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">Rp 0</p>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Total Kas Masuk</p>
+                    <p id="mk-kas-masuk" class="text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 break-words">Rp 0</p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Total Kas Keluar</p>
-                    <p id="mk-kas-keluar" class="text-base font-extrabold text-rose-600 dark:text-rose-400 mt-1">Rp 0</p>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Total Kas Keluar</p>
+                    <p id="mk-kas-keluar" class="text-xs sm:text-base font-extrabold text-rose-600 dark:text-rose-400 mt-1 break-words">Rp 0</p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Saldo Akhir Kas &amp; Bank</p>
-                    <p id="mk-saldo-akhir" class="text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">Rp 0</p>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Saldo Akhir Kas &amp; Bank</p>
+                    <p id="mk-saldo-akhir" class="text-xs sm:text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-1 break-words">Rp 0</p>
                 </div>
             </div>
 
             <!-- Rekapitulasi Akun Kas & Bank (Level 4) -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
-                    <span>REKAPITULASI MUTASI AKUN KAS &amp; BANK (LEVEL 4)</span>
+                <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+                    <span class="break-words">REKAPITULASI MUTASI AKUN KAS &amp; BANK (LEVEL 4)</span>
                     <span id="mk-periode-label" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Semua Unit • Seluruh Periode</span>
                 </div>
 
@@ -139,8 +139,8 @@ export function renderMonitoringKeuangan() {
 
             <!-- Rincian Transaksi Kas Masuk & Kas Keluar -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
-                    <span>RINCIAN TRANSAKSI KAS MASUK &amp; KAS KELUAR</span>
+                <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+                    <span class="break-words">RINCIAN TRANSAKSI KAS MASUK &amp; KAS KELUAR</span>
                     <span id="mk-tx-count" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">0 transaksi</span>
                 </div>
 
@@ -237,7 +237,9 @@ export function initMonitoringKeuanganHandler() {
         } catch (err) {
             console.error("Gagal memuat data monitoring keuangan:", err);
             if (rekapBody) rekapBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+            if (rekapCard) rekapCard.innerHTML = `<div class="p-6 text-center text-rose-500">Gagal memuat data dari database.</div>`;
             if (txBody) txBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+            if (txCard) txCard.innerHTML = `<div class="p-6 text-center text-rose-500">Gagal memuat data dari database.</div>`;
         }
     }
 
@@ -369,20 +371,29 @@ export function initMonitoringKeuanganHandler() {
                     `;
 
                     htmlCard += `
-                        <div class="p-4 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                        <div class="p-3.5 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                             <div class="flex justify-between items-start gap-2">
-                                <div>
-                                    <span class="font-bold text-indigo-600 dark:text-indigo-400">${acc.kodeAkun}</span>
-                                    <div class="font-semibold text-slate-800 dark:text-slate-200">${acc.namaAkun}</div>
+                                <div class="min-w-0">
+                                    <span class="font-bold text-indigo-600 dark:text-indigo-400 text-[11px]">${acc.kodeAkun}</span>
+                                    <div class="font-semibold text-slate-800 dark:text-slate-200 break-words">${acc.namaAkun}</div>
                                 </div>
-                                <div class="text-right font-bold text-slate-900 dark:text-slate-100">
+                                <div class="text-right font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
                                     Rp ${acc.saldoAkhir.toLocaleString('id-ID')}
                                 </div>
                             </div>
-                            <div class="grid grid-cols-3 gap-2 pt-1 text-[11px] text-slate-600 dark:text-slate-400">
-                                <div>Awal: <span class="font-semibold">Rp ${acc.saldoAwal.toLocaleString('id-ID')}</span></div>
-                                <div class="text-emerald-600 dark:text-emerald-400">Masuk: <span class="font-semibold">Rp ${acc.kasMasuk.toLocaleString('id-ID')}</span></div>
-                                <div class="text-rose-600 dark:text-rose-400">Keluar: <span class="font-semibold">Rp ${acc.kasKeluar.toLocaleString('id-ID')}</span></div>
+                            <div class="grid grid-cols-1 gap-1 pt-1.5 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+                                <div class="flex justify-between gap-2 text-slate-600 dark:text-slate-400">
+                                    <span>Saldo Awal</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200">Rp ${acc.saldoAwal.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div class="flex justify-between gap-2 text-emerald-600 dark:text-emerald-400">
+                                    <span>Kas Masuk</span>
+                                    <span class="font-semibold">Rp ${acc.kasMasuk.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div class="flex justify-between gap-2 text-rose-600 dark:text-rose-400">
+                                    <span>Kas Keluar</span>
+                                    <span class="font-semibold">Rp ${acc.kasKeluar.toLocaleString('id-ID')}</span>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -417,13 +428,13 @@ export function initMonitoringKeuanganHandler() {
                     `;
 
                     htmlTxCard += `
-                        <div class="p-4 space-y-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                            <div class="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400">
+                        <div class="p-3.5 space-y-1.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                            <div class="flex justify-between items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                                 <span>${tx.tglTransaksi}</span>
-                                <span class="font-semibold">${tx.unitUsaha}</span>
+                                <span class="font-semibold text-right break-words">${tx.unitUsaha}</span>
                             </div>
-                            <div class="font-medium text-slate-800 dark:text-slate-200">${tx.uraian}</div>
-                            <div class="flex justify-between items-center text-xs pt-1">
+                            <div class="font-medium text-slate-800 dark:text-slate-200 break-words">${tx.uraian}</div>
+                            <div class="flex flex-wrap justify-between items-center gap-2 text-xs pt-1">
                                 <span class="text-emerald-600 dark:text-emerald-400 font-semibold">${tx.kasMasuk > 0 ? `+ Rp ${tx.kasMasuk.toLocaleString('id-ID')}` : ''}</span>
                                 <span class="text-rose-600 dark:text-rose-400 font-semibold">${tx.kasKeluar > 0 ? `- Rp ${tx.kasKeluar.toLocaleString('id-ID')}` : ''}</span>
                             </div>

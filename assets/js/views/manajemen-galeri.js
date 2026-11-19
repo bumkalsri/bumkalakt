@@ -1,5 +1,5 @@
 // File: assets/js/views/manajemen-galeri.js
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
 export function renderManajemenGaleri() {
@@ -49,6 +49,14 @@ export function renderManajemenGaleri() {
                         </svg>
                     </div>
 
+                    <!-- Tombol Hapus Terpilih (Muncul Otomatis Saat Ada Ceklis) -->
+                    <button type="button" id="btn-bulk-delete-galeri" onclick="openBulkDeleteModal()" class="hidden bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3.5 py-2 rounded-none transition items-center gap-1.5 flex-shrink-0 cursor-pointer shadow-xs">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        <span id="bulk-delete-label">Hapus Terpilih (0)</span>
+                    </button>
+
                     <!-- Tombol Tambah Galeri -->
                     <button onclick="openAddGaleriModal()" class="bg-[#0b2f64] hover:bg-[#082247] text-white text-xs font-semibold px-4 py-2 rounded-none transition flex items-center gap-1.5 flex-shrink-0 cursor-pointer">
                         <span>Tambah Galeri</span>
@@ -63,7 +71,7 @@ export function renderManajemenGaleri() {
                         <thead>
                             <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300">
                                 <th class="p-3 w-12 text-center">
-                                    <input type="checkbox" class="rounded-none border-slate-300">
+                                    <input type="checkbox" id="select-all-galeri" onchange="toggleSelectAllGaleri(this.checked)" title="Pilih semua pada halaman ini" class="rounded-none border-slate-300 cursor-pointer">
                                 </th>
                                 <th class="p-3 w-36 font-semibold">Foto Dokumentasi</th>
                                 <th class="p-3 font-semibold">Judul / Keterangan</th>
@@ -212,15 +220,15 @@ export function renderManajemenGaleri() {
                 </div>
             </div>
 
-            <!-- MODAL KONFIRMASI HAPUS SMOOTH -->
+            <!-- MODAL KONFIRMASI HAPUS SMOOTH (SATUAN & BERSAMA) -->
             <div id="delete-confirm-modal" class="hidden fixed inset-0 bg-slate-950/60 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-sm rounded-none shadow-2xl overflow-hidden transform transition-all duration-300 scale-95 opacity-0 p-6 space-y-4 text-center" id="delete-modal-box">
                     <div class="w-12 h-12 bg-rose-50 dark:bg-rose-950/60 text-rose-600 rounded-full flex items-center justify-center mx-auto">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Hapus Foto Galeri?</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Apakah Anda yakin ingin menghapus foto galeri ini dari database? Tindakan ini tidak dapat dibatalkan.</p>
+                        <h3 id="delete-modal-title" class="text-sm font-bold text-slate-800 dark:text-slate-100">Hapus Foto Galeri?</h3>
+                        <p id="delete-modal-desc" class="text-xs text-slate-500 dark:text-slate-400 mt-1">Apakah Anda yakin ingin menghapus foto galeri ini dari database? Tindakan ini tidak dapat dibatalkan.</p>
                     </div>
                     <div class="flex items-center justify-center gap-3 pt-2">
                         <button onclick="closeDeleteModal()" class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 text-xs font-semibold transition cursor-pointer">Batal</button>
@@ -243,6 +251,8 @@ export function initManajemenGaleriHandler() {
     let compressedBase64Image = "";
     let editCompressedBase64Image = "";
     let galeriIdToDelete = null;
+    let isBulkDeleteMode = false;
+    let selectedIds = new Set();
 
     // Toast Notifikasi Smooth
     function showToast(message) {
@@ -259,6 +269,70 @@ export function initManajemenGaleriHandler() {
             toastNotif.classList.add('translate-y-[-20px]', 'opacity-0');
         }, 3000);
     }
+
+    // Sinkronisasi Tombol Hapus Bersama & Checkbox Pilih Semua
+    function updateBulkDeleteUI(pageItemIds = []) {
+        const bulkBtn = document.getElementById('btn-bulk-delete-galeri');
+        const bulkLabel = document.getElementById('bulk-delete-label');
+        const selectAllCheckbox = document.getElementById('select-all-galeri');
+
+        const count = selectedIds.size;
+        if (bulkBtn && bulkLabel) {
+            if (count > 0) {
+                bulkBtn.classList.remove('hidden');
+                bulkBtn.classList.add('flex');
+                bulkLabel.textContent = `Hapus Terpilih (${count})`;
+            } else {
+                bulkBtn.classList.add('hidden');
+                bulkBtn.classList.remove('flex');
+            }
+        }
+
+        if (selectAllCheckbox) {
+            if (pageItemIds.length === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                const checkedOnPage = pageItemIds.filter(id => selectedIds.has(id)).length;
+                selectAllCheckbox.checked = checkedOnPage === pageItemIds.length;
+                selectAllCheckbox.indeterminate = checkedOnPage > 0 && checkedOnPage < pageItemIds.length;
+            }
+        }
+    }
+
+    window.toggleSelectGaleri = function(id, checked) {
+        if (!id) return;
+        if (checked) {
+            selectedIds.add(id);
+        } else {
+            selectedIds.delete(id);
+        }
+        window.renderTable();
+    };
+
+    window.toggleSelectAllGaleri = function(checked) {
+        const filteredList = galeriList.filter(item => {
+            const matchTitle = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchKategori = selectedKategoriFilter === "" || item.kategori === selectedKategoriFilter;
+            return matchTitle && matchKategori;
+        });
+
+        const totalData = filteredList.length;
+        const totalPages = Math.ceil(totalData / itemsPerPage) || 1;
+        const safePage = Math.min(Math.max(currentPage, 1), totalPages);
+        const startIdx = (safePage - 1) * itemsPerPage;
+        const paginatedData = filteredList.slice(startIdx, startIdx + itemsPerPage);
+
+        paginatedData.forEach(item => {
+            if (checked) {
+                selectedIds.add(item.id);
+            } else {
+                selectedIds.delete(item.id);
+            }
+        });
+
+        window.renderTable();
+    };
 
     // Modal Add Smooth
     window.openAddGaleriModal = function() {
@@ -329,9 +403,39 @@ export function initManajemenGaleriHandler() {
         }
     };
 
-    // Modal Konfirmasi Hapus Smooth
+    // Modal Konfirmasi Hapus Satuan Smooth
     window.deleteGaleri = function(id) {
+        isBulkDeleteMode = false;
         galeriIdToDelete = id;
+
+        const titleEl = document.getElementById('delete-modal-title');
+        const descEl = document.getElementById('delete-modal-desc');
+        if (titleEl) titleEl.textContent = "Hapus Foto Galeri?";
+        if (descEl) descEl.textContent = "Apakah Anda yakin ingin menghapus foto galeri ini dari database? Tindakan ini tidak dapat dibatalkan.";
+
+        const modal = document.getElementById('delete-confirm-modal');
+        const box = document.getElementById('delete-modal-box');
+        if (modal && box) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+    };
+
+    // Modal Konfirmasi Hapus Bersama Smooth
+    window.openBulkDeleteModal = function() {
+        if (selectedIds.size === 0) return;
+        isBulkDeleteMode = true;
+        galeriIdToDelete = null;
+
+        const count = selectedIds.size;
+        const titleEl = document.getElementById('delete-modal-title');
+        const descEl = document.getElementById('delete-modal-desc');
+        if (titleEl) titleEl.textContent = `Hapus ${count} Foto Galeri Terpilih?`;
+        if (descEl) descEl.textContent = `Apakah Anda yakin ingin menghapus ${count} foto galeri yang diceklis secara bersamaan dari database? Tindakan ini tidak dapat dibatalkan.`;
+
         const modal = document.getElementById('delete-confirm-modal');
         const box = document.getElementById('delete-modal-box');
         if (modal && box) {
@@ -352,6 +456,7 @@ export function initManajemenGaleriHandler() {
             setTimeout(() => {
                 modal.classList.add('hidden');
                 galeriIdToDelete = null;
+                isBulkDeleteMode = false;
             }, 300);
         }
     };
@@ -359,15 +464,39 @@ export function initManajemenGaleriHandler() {
     const btnConfirmDelete = document.getElementById('btn-confirm-delete');
     if (btnConfirmDelete) {
         btnConfirmDelete.addEventListener('click', async function() {
-            if (!galeriIdToDelete) return;
+            const origText = btnConfirmDelete.textContent;
+            btnConfirmDelete.disabled = true;
+            btnConfirmDelete.textContent = "Menghapus...";
+
             try {
-                await deleteDoc(doc(db, "galeri", galeriIdToDelete));
-                window.closeDeleteModal();
-                showToast("Foto galeri berhasil dihapus!");
+                if (isBulkDeleteMode) {
+                    const idsToDelete = Array.from(selectedIds);
+                    if (idsToDelete.length === 0) return;
+
+                    const batch = writeBatch(db);
+                    idsToDelete.forEach(id => {
+                        batch.delete(doc(db, "galeri", id));
+                    });
+                    await batch.commit();
+
+                    idsToDelete.forEach(id => selectedIds.delete(id));
+                    window.closeDeleteModal();
+                    showToast(`${idsToDelete.length} foto galeri berhasil dihapus!`);
+                } else {
+                    if (!galeriIdToDelete) return;
+                    await deleteDoc(doc(db, "galeri", galeriIdToDelete));
+                    selectedIds.delete(galeriIdToDelete);
+                    window.closeDeleteModal();
+                    showToast("Foto galeri berhasil dihapus!");
+                }
+
                 await fetchGaleriFromDB();
             } catch (error) {
                 console.error("Gagal menghapus galeri:", error);
                 showToast("Terjadi kesalahan saat menghapus foto galeri.");
+            } finally {
+                btnConfirmDelete.disabled = false;
+                btnConfirmDelete.textContent = origText;
             }
         });
     }
@@ -464,12 +593,20 @@ export function initManajemenGaleriHandler() {
             const q = query(collection(db, "galeri"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
             galeriList = [];
+            const validIds = new Set();
             querySnapshot.forEach((docSnap) => {
                 galeriList.push({
                     id: docSnap.id,
                     ...docSnap.data()
                 });
+                validIds.add(docSnap.id);
             });
+
+            // Bersihkan ID yang sudah tidak ada di database
+            Array.from(selectedIds).forEach(id => {
+                if (!validIds.has(id)) selectedIds.delete(id);
+            });
+
             window.renderTable();
         } catch (error) {
             console.error("Gagal mengambil data galeri dari Firestore:", error);
@@ -492,7 +629,7 @@ export function initManajemenGaleriHandler() {
             const matchKategori = selectedKategoriFilter === "" || item.kategori === selectedKategoriFilter;
             return matchTitle && matchKategori;
         });
-        
+
         const totalData = filteredList.length;
         const totalPages = Math.ceil(totalData / itemsPerPage) || 1;
 
@@ -511,11 +648,15 @@ export function initManajemenGaleriHandler() {
             cardContainer.innerHTML = `<div class="bg-white dark:bg-slate-900 p-6 text-center text-slate-400 text-xs border border-slate-200 dark:border-slate-800">Belum ada foto galeri di Firestore. Silakan klik "Tambah Galeri".</div>`;
         } else {
             paginatedData.forEach((item) => {
+                const isChecked = selectedIds.has(item.id);
+
                 // Desktop (Tabel)
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition";
+                tr.className = `hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition ${isChecked ? 'bg-rose-50/40 dark:bg-rose-950/20' : ''}`;
                 tr.innerHTML = `
-                    <td class="p-3 text-center"><input type="checkbox" class="rounded-none border-slate-300"></td>
+                    <td class="p-3 text-center">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectGaleri('${item.id}', this.checked)" class="rounded-none border-slate-300 cursor-pointer">
+                    </td>
                     <td class="p-3"><img src="${item.image}" alt="Galeri" class="w-28 h-14 object-cover border border-slate-200 dark:border-slate-700 rounded-none"></td>
                     <td class="p-3 font-semibold text-slate-800 dark:text-slate-100">${item.title}</td>
                     <td class="p-3">
@@ -538,10 +679,11 @@ export function initManajemenGaleriHandler() {
 
                 // Mobile (Card)
                 const card = document.createElement('div');
-                card.className = "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 shadow-xs space-y-3 text-xs";
+                card.className = `bg-white dark:bg-slate-900 border ${isChecked ? 'border-rose-300 dark:border-rose-800 bg-rose-50/20 dark:bg-rose-950/10' : 'border-slate-200 dark:border-slate-800'} p-3 shadow-xs space-y-3 text-xs`;
                 card.innerHTML = `
                     <div class="flex items-center justify-between gap-3">
-                        <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="flex items-center gap-2.5 overflow-hidden">
+                            <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleSelectGaleri('${item.id}', this.checked)" class="rounded-none border-slate-300 cursor-pointer flex-shrink-0">
                             <img src="${item.image}" alt="Galeri" class="w-20 h-12 object-cover border border-slate-200 dark:border-slate-700 rounded-none flex-shrink-0">
                             <div class="truncate">
                                 <p class="font-semibold text-slate-800 dark:text-slate-100 truncate">${item.title}</p>
@@ -561,6 +703,8 @@ export function initManajemenGaleriHandler() {
                 cardContainer.appendChild(card);
             });
         }
+
+        updateBulkDeleteUI(paginatedData.map(d => d.id));
 
         if (info) info.textContent = `Menampilkan ${totalData > 0 ? startIdx + 1 : 0} - ${Math.min(endIdx, totalData)} dari ${totalData} data`;
         if (pageIndicator) pageIndicator.textContent = `${currentPage}`;

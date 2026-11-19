@@ -77,35 +77,35 @@ function classifyAccount(coa) {
 
 export function renderMonitoringCalk() {
     return `
-        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+        <div class="space-y-4 sm:space-y-6 pb-10 max-w-7xl mx-auto overflow-x-hidden animate-fade-in">
             <!-- Header Halaman & Tombol Aksi -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3.5 min-w-0">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
+                <div class="flex items-start sm:items-center gap-3 min-w-0">
                     <a href="#/monitoring" data-link title="Kembali ke Menu Monitoring"
-                        class="w-10 h-10 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center rounded-none transition flex-shrink-0">
+                        class="w-9 h-9 sm:w-10 sm:h-10 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center rounded-none transition flex-shrink-0 mt-0.5 sm:mt-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div class="min-w-0">
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Monitoring CALK (Catatan Atas Laporan Keuangan)</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Penjelasan rinci pos-pos keuangan, kebijakan akuntansi, dan informasi pengawasan BUMKal.</p>
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Monitoring CALK (Catatan Atas Laporan Keuangan)</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed break-words">Penjelasan rinci pos-pos keuangan, kebijakan akuntansi, dan informasi pengawasan BUMKal.</p>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                    <button id="btn-simpan-calk" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                        Simpan Catatan
+                <div class="grid grid-cols-2 sm:flex flex-wrap items-center gap-2 w-full sm:w-auto flex-shrink-0">
+                    <button id="btn-simpan-calk" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3.5 py-2 sm:py-2.5 rounded-none transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                        <span>Simpan Catatan</span>
                     </button>
-                    <button id="btn-cetak-calk" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Cetak / Print CALK
+                    <button id="btn-cetak-calk" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 sm:py-2.5 rounded-none transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Cetak / Print CALK</span>
                     </button>
                 </div>
             </div>
 
             <!-- Filter Bar -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 md:grid-cols-4 gap-4 text-xs items-end">
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs items-end">
                 <div>
                     <label for="filter-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER UNIT USAHA</label>
                     <select id="filter-unit" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
@@ -125,43 +125,43 @@ export function renderMonitoringCalk() {
                     <input type="date" id="filter-tgl-sampai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                 </div>
                 <div>
-                    <button id="btn-tampilkan" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan CALK</button>
+                    <button id="btn-tampilkan" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 sm:py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan CALK</button>
                 </div>
             </div>
 
             <!-- Ringkasan Utama -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Total Aset</p>
-                    <p id="calk-total-aset" class="text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">Rp 0</p>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Total Aset</p>
+                    <p id="calk-total-aset" class="text-xs sm:text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-1 break-words">Rp 0</p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Total Kewajiban &amp; Ekuitas</p>
-                    <p id="calk-total-pasiva" class="text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1">Rp 0</p>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Total Kewajiban &amp; Ekuitas</p>
+                    <p id="calk-total-pasiva" class="text-xs sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1 break-words">Rp 0</p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Total Pendapatan</p>
-                    <p id="calk-total-pendapatan" class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">Rp 0</p>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Total Pendapatan</p>
+                    <p id="calk-total-pendapatan" class="text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 break-words">Rp 0</p>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase">Laba / Rugi Bersih</p>
-                    <p id="calk-laba-rugi" class="text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1">Rp 0</p>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
+                    <p class="text-slate-500 dark:text-slate-400 font-semibold uppercase text-[10px] tracking-wide">Laba / Rugi Bersih</p>
+                    <p id="calk-laba-rugi" class="text-xs sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1 break-words">Rp 0</p>
                 </div>
             </div>
 
             <!-- Bagian 1 & 2: Profil & Kebijakan Akuntansi -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-xs">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none p-5 space-y-3">
-                    <h2 class="font-bold text-slate-800 dark:text-slate-100 uppercase border-b border-slate-100 dark:border-slate-800 pb-2">
-                        1. Informasi Umum Entitas &amp; Unit Usaha
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 text-xs">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none p-4 sm:p-5 space-y-3 min-w-0">
+                    <h2 class="font-bold text-slate-800 dark:text-slate-100 uppercase border-b border-slate-100 dark:border-slate-800 pb-2 leading-snug break-words">
+1. Informasi Umum Entitas &amp; Unit Usaha
                     </h2>
                     <label for="calk-profil-entitas" class="block font-semibold text-slate-600 dark:text-slate-400">Uraian Profil &amp; Cakupan Unit</label>
                     <textarea id="calk-profil-entitas" rows="5" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 p-3 rounded-none focus:outline-none focus:border-indigo-600 leading-relaxed"></textarea>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none p-5 space-y-3">
-                    <h2 class="font-bold text-slate-800 dark:text-slate-100 uppercase border-b border-slate-100 dark:border-slate-800 pb-2">
-                        2. Ikhtisar Kebijakan Akuntansi Penting
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none p-4 sm:p-5 space-y-3 min-w-0">
+                    <h2 class="font-bold text-slate-800 dark:text-slate-100 uppercase border-b border-slate-100 dark:border-slate-800 pb-2 leading-snug break-words">
+2. Ikhtisar Kebijakan Akuntansi Penting
                     </h2>
                     <label for="calk-kebijakan-akuntansi" class="block font-semibold text-slate-600 dark:text-slate-400">Dasar Pencatatan, Pengakuan Saldo &amp; Penyusutan</label>
                     <textarea id="calk-kebijakan-akuntansi" rows="5" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 p-3 rounded-none focus:outline-none focus:border-indigo-600 leading-relaxed"></textarea>
@@ -170,8 +170,8 @@ export function renderMonitoringCalk() {
 
             <!-- Bagian 3: Rincian Pos-Pos Laporan Keuangan -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
-                    <span>3. RINCIAN POS-POS LAPORAN KEUANGAN (PER AKUN DETAIL)</span>
+                <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+                    <span class="break-words">3. RINCIAN POS-POS LAPORAN KEUANGAN (PER AKUN DETAIL)</span>
                     <span id="calk-status-msg" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Memuat data...</span>
                 </div>
                 <div id="calk-rincian-container" class="divide-y divide-slate-200 dark:divide-slate-800 text-xs">
@@ -180,9 +180,9 @@ export function renderMonitoringCalk() {
             </div>
 
             <!-- Bagian 4: Penjelasan Tambahan & Kejadian Penting -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none p-5 space-y-3 text-xs">
-                <h2 class="font-bold text-slate-800 dark:text-slate-100 uppercase border-b border-slate-100 dark:border-slate-800 pb-2">
-                    4. Catatan Tambahan, Kendala Lapangan &amp; Rencana Tindak Lanjut
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none p-4 sm:p-5 space-y-3 text-xs min-w-0">
+                <h2 class="font-bold text-slate-800 dark:text-slate-100 uppercase border-b border-slate-100 dark:border-slate-800 pb-2 leading-snug break-words">
+4. Catatan Tambahan, Kendala Lapangan &amp; Rencana Tindak Lanjut
                 </h2>
                 <textarea id="calk-catatan-tambahan" rows="4" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 p-3 rounded-none focus:outline-none focus:border-indigo-600 leading-relaxed"></textarea>
             </div>
@@ -443,7 +443,7 @@ export function initMonitoringCalkHandler() {
 
         if (labaRugiEl) {
             labaRugiEl.textContent = `${labaRugiBersih < 0 ? '(-) ' : ''}Rp ${Math.abs(labaRugiBersih).toLocaleString('id-ID')}`;
-            labaRugiEl.className = `text-base font-extrabold mt-1 ${
+            labaRugiEl.className = `text-xs sm:text-base font-extrabold mt-1 break-words ${
                 labaRugiBersih > 0
                     ? 'text-emerald-600 dark:text-emerald-400'
                     : labaRugiBersih < 0
@@ -468,7 +468,7 @@ export function initMonitoringCalkHandler() {
                 : `Rp ${sec.subtotal.toLocaleString('id-ID')}`;
 
             html += `
-                <div class="p-4 bg-slate-50/70 dark:bg-slate-950/60 font-bold text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                <div class="p-3.5 sm:p-4 bg-slate-50/70 dark:bg-slate-950/60 font-bold text-slate-800 dark:text-slate-200 flex flex-wrap justify-between items-center gap-2">
                     <span>${sec.title} (${items.length} akun)</span>
                     <span class="text-indigo-600 dark:text-indigo-400">${subFormatted}</span>
                 </div>
@@ -477,8 +477,9 @@ export function initMonitoringCalkHandler() {
             if (items.length === 0) {
                 html += `<div class="p-4 text-center text-slate-400">Tidak ada akun detail pada kelompok ini.</div>`;
             } else {
+                // Tampilan Tabel (Desktop & Cetak)
                 html += `
-                    <div class="overflow-x-auto">
+                    <div class="hidden md:block print:block overflow-x-auto">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead>
                                 <tr class="border-b border-slate-100 dark:border-slate-800 text-slate-500">
@@ -513,6 +514,40 @@ export function initMonitoringCalkHandler() {
                         </table>
                     </div>
                 `;
+
+                // Tampilan Card (Versi HP)
+                html += `<div class="block md:hidden print:hidden divide-y divide-slate-100 dark:divide-slate-800">`;
+                items.forEach(acc => {
+                    const saldoFmt = acc.saldoAkhir < 0
+                        ? `(-) Rp ${Math.abs(acc.saldoAkhir).toLocaleString('id-ID')}`
+                        : `Rp ${acc.saldoAkhir.toLocaleString('id-ID')}`;
+
+                    html += `
+                        <div class="p-3.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition space-y-2">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <span class="font-bold text-indigo-600 dark:text-indigo-400 text-[11px] block">${acc.kodeAkun}</span>
+                                    <p class="font-semibold text-slate-800 dark:text-slate-200 text-xs leading-snug break-words">${acc.namaAkun}</p>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <span class="text-[10px] text-slate-400 block uppercase">Saldo Akhir</span>
+                                    <span class="font-bold text-slate-900 dark:text-slate-100 text-xs">${saldoFmt}</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/60 px-2.5 py-2 text-[11px]">
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">Total Debet</span>
+                                    <span class="font-semibold text-slate-700 dark:text-slate-300">Rp ${acc.totalDebet.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-slate-400 block text-[10px]">Total Kredit</span>
+                                    <span class="font-semibold text-slate-700 dark:text-slate-300">Rp ${acc.totalKredit.toLocaleString('id-ID')}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
             }
         });
 

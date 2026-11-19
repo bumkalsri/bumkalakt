@@ -108,39 +108,39 @@ function getStatusBadge(pct) {
 
 export function renderMonitoringLaporanPagu() {
     return `
-        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+        <div class="space-y-4 sm:space-y-6 pb-10 max-w-7xl mx-auto overflow-x-hidden animate-fade-in">
             <!-- Header Halaman & Tombol Aksi -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div class="flex items-center gap-3.5 min-w-0">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
+                <div class="flex items-start sm:items-center gap-3 min-w-0">
                     <a href="#/monitoring" data-link title="Kembali ke Menu Monitoring"
-                        class="w-10 h-10 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0">
+                        class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0 mt-0.5 sm:mt-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div class="min-w-0">
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Monitoring & Laporan Pagu Anggaran</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Pemantauan pagu multi-tahun/tahunan, realisasi penyerapan, dan sisa anggaran per unit usaha.</p>
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Monitoring &amp; Laporan Pagu Anggaran</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed break-words">Pemantauan pagu multi-tahun/tahunan, realisasi penyerapan, dan sisa anggaran per unit usaha.</p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 w-full sm:w-auto">
+                <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
                     <button type="button" id="btn-refresh-monitoring-pagu"
-                        class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold px-3.5 py-2.5 rounded-none border border-slate-200 dark:border-slate-700 transition cursor-pointer">
+                        class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold px-3 py-2 sm:py-2.5 rounded-none border border-slate-200 dark:border-slate-700 transition cursor-pointer text-center">
                         Muat Ulang
                     </button>
                     <button type="button" id="btn-cetak-monitoring-pagu"
-                        class="flex-1 sm:flex-initial bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 sm:py-2.5 rounded-none transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm">
+                        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                         </svg>
-                        Cetak / Print
+                        <span>Cetak / Print</span>
                     </button>
                 </div>
             </div>
 
             <!-- Filter Bar -->
-            <div class="bg-white dark:bg-slate-900 p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs items-end">
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs items-end">
                 <div>
                     <label for="mon-pagu-filter-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER UNIT USAHA</label>
                     <select id="mon-pagu-filter-unit"
@@ -180,30 +180,30 @@ export function renderMonitoringLaporanPagu() {
                 </div>
             </div>
 
-            <!-- Kartu Ringkasan KPI (4 Kolom) -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                <div class="bg-white dark:bg-slate-900 p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <p class="font-bold text-slate-500 uppercase text-[10px]">Total Pagu Anggaran</p>
-                    <h2 id="kpi-total-pagu" class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1">Rp 0</h2>
+            <!-- Kartu Ringkasan KPI (2 Kolom HP, 4 Kolom Desktop) -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-xs">
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm min-w-0">
+                    <p class="font-bold text-slate-500 uppercase text-[10px] tracking-wide">Total Pagu Anggaran</p>
+                    <h2 id="kpi-total-pagu" class="text-xs sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1 break-words">Rp 0</h2>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <p class="font-bold text-slate-500 uppercase text-[10px]">Total Realisasi</p>
-                    <h2 id="kpi-total-realisasi" class="text-sm sm:text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-1">Rp 0</h2>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm min-w-0">
+                    <p class="font-bold text-slate-500 uppercase text-[10px] tracking-wide">Total Realisasi</p>
+                    <h2 id="kpi-total-realisasi" class="text-xs sm:text-base font-extrabold text-indigo-600 dark:text-indigo-400 mt-1 break-words">Rp 0</h2>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <p class="font-bold text-slate-500 uppercase text-[10px]">Sisa Pagu Tersedia</p>
-                    <h2 id="kpi-sisa-pagu" class="text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">Rp 0</h2>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm min-w-0">
+                    <p class="font-bold text-slate-500 uppercase text-[10px] tracking-wide">Sisa Pagu Tersedia</p>
+                    <h2 id="kpi-sisa-pagu" class="text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 break-words">Rp 0</h2>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <p class="font-bold text-slate-500 uppercase text-[10px]">Rata-Rata Serapan</p>
-                    <h2 id="kpi-persen-serapan" class="text-sm sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1">0.0%</h2>
+                <div class="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm min-w-0">
+                    <p class="font-bold text-slate-500 uppercase text-[10px] tracking-wide">Rata-Rata Serapan</p>
+                    <h2 id="kpi-persen-serapan" class="text-xs sm:text-base font-extrabold text-slate-800 dark:text-slate-100 mt-1 break-words">0.0%</h2>
                 </div>
             </div>
 
             <!-- Tabel & Card Monitoring Pagu Anggaran -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50/50 dark:bg-slate-950/50">
-                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200">Rincian Monitoring Pagu & Realisasi per Unit</h3>
+                <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 bg-slate-50/50 dark:bg-slate-950/50">
+                    <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200">Rincian Monitoring Pagu &amp; Realisasi per Unit</h3>
                     <span id="mon-pagu-count-label" class="text-[11px] text-slate-500 font-medium">Menampilkan 0 Data</span>
                 </div>
 
@@ -350,8 +350,8 @@ export function initMonitoringLaporanPaguHandler() {
         if (kpiSisaPagu) {
             kpiSisaPagu.textContent = formatRupiah(totalSisa);
             kpiSisaPagu.className = totalSisa < 0
-                ? "text-sm sm:text-base font-extrabold text-rose-600 dark:text-rose-400 mt-1"
-                : "text-sm sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1";
+                ? "text-xs sm:text-base font-extrabold text-rose-600 dark:text-rose-400 mt-1 break-words"
+                : "text-xs sm:text-base font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 break-words";
         }
         if (kpiPersenSerapan) kpiPersenSerapan.textContent = `${avgPct.toFixed(1)}%`;
         if (countLabel) countLabel.textContent = `Menampilkan ${filtered.length} Data`;
@@ -398,29 +398,29 @@ export function initMonitoringLaporanPaguHandler() {
             `;
 
             htmlCard += `
-                <div class="p-4 space-y-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="font-bold text-slate-800 dark:text-slate-100">${r.unitUsaha}</span>
-                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-none ${r.badge.cls}">${r.badge.label}</span>
+                <div class="p-3.5 space-y-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="font-bold text-slate-800 dark:text-slate-100 break-words">${r.unitUsaha}</span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-none flex-shrink-0 ${r.badge.cls}">${r.badge.label}</span>
                     </div>
-                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                    <div class="flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                         <span>Periode: <strong class="text-slate-700 dark:text-slate-200">${r.periodeLabel}</strong></span>
                         <span>Serapan: <strong class="text-slate-800 dark:text-slate-100">${r.pct.toFixed(1)}%</strong></span>
                     </div>
                     <div class="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-none overflow-hidden">
                         <div class="h-full ${r.badge.barCls}" style="width: ${clampedBar}%;"></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-950 p-2 border border-slate-200 dark:border-slate-800 text-[11px]">
-                        <div>
-                            <span class="text-slate-400 block text-[10px]">Pagu</span>
+                    <div class="grid grid-cols-1 gap-1.5 bg-slate-50 dark:bg-slate-950 p-2.5 border border-slate-200 dark:border-slate-800 text-[11px]">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-slate-500">Pagu Anggaran</span>
                             <span class="font-bold text-slate-800 dark:text-slate-100">${formatRupiah(r.jumlahPagu)}</span>
                         </div>
-                        <div>
-                            <span class="text-slate-400 block text-[10px]">Realisasi</span>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-slate-500">Realisasi</span>
                             <span class="font-bold text-indigo-600 dark:text-indigo-400">${formatRupiah(r.realisasi)}</span>
                         </div>
-                        <div class="text-right">
-                            <span class="text-slate-400 block text-[10px]">Sisa</span>
+                        <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-200/70 dark:border-slate-800">
+                            <span class="text-slate-500">Sisa Pagu</span>
                             <span class="${sisaClass}">${formatRupiah(r.sisaPagu)}</span>
                         </div>
                     </div>
@@ -434,10 +434,10 @@ export function initMonitoringLaporanPaguHandler() {
 
     async function loadAllData() {
         if (tableBody) {
-            tableBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">Memuat data pagu & jurnal...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">Memuat data pagu &amp; jurnal...</td></tr>`;
         }
         if (cardBody) {
-            cardBody.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">Memuat data pagu & jurnal...</div>`;
+            cardBody.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">Memuat data pagu &amp; jurnal...</div>`;
         }
 
         try {
