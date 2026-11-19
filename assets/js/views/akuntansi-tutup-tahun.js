@@ -17,6 +17,15 @@ const NAMA_BULAN = {
     "12": "Desember"
 };
 
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 function getNextPeriodKey(periodKey) {
     const match = String(periodKey || "").match(/^(\d{4})-(\d{2})$/);
     if (!match) return "2025-01";
@@ -61,28 +70,28 @@ function classifyAccount(coa) {
 
 export function renderAkuntansiTutupTahun() {
     return `
-        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+        <div class="space-y-4 sm:space-y-6 pb-10 max-w-7xl mx-auto overflow-x-hidden animate-fade-in">
             <!-- Header Halaman -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-3 min-w-0">
                     <a href="#/akuntansi" data-link title="Kembali ke Akuntansi" class="w-9 h-9 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div>
-                        <h1 class="text-base font-bold text-amber-500 dark:text-amber-400 flex items-center gap-2">
+                    <div class="min-w-0">
+                        <h1 class="text-sm sm:text-base font-bold text-amber-500 dark:text-amber-400 flex items-center gap-2 break-words">
                             <span>Tutup Buku Akhir Tahun</span>
                         </h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Proses penutupan akhir tahun untuk rekapan laba rugi dan pemindahan saldo ke tahun berikutnya.</p>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 break-words">Proses penutupan akhir tahun untuk rekapan laba rugi dan pemindahan saldo ke tahun berikutnya.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Grid Utama: Kiri (Informasi Periode) | Kanan (Langkah Persiapan & Catatan) -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 text-xs items-stretch">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 text-xs items-stretch">
                 <!-- Kolom Kiri: Informasi Periode -->
-                <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none space-y-5">
+                <div class="lg:col-span-7 bg-white dark:bg-slate-900 p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none space-y-5 min-w-0">
                     <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                         <span class="w-4 h-4 rounded-full bg-sky-500 text-white text-[10px] font-extrabold inline-flex items-center justify-center flex-shrink-0">i</span>
                         <h2 class="text-sm font-bold text-slate-800 dark:text-slate-100">Informasi Periode</h2>
@@ -91,7 +100,7 @@ export function renderAkuntansiTutupTahun() {
                     <!-- Banner Status Periode -->
                     <div id="banner-status-periode" class="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/70 rounded-none p-4 flex items-start gap-3">
                         <span id="icon-status-periode" class="text-amber-500 text-base leading-none mt-0.5 flex-shrink-0">&#9888;</span>
-                        <div class="space-y-1">
+                        <div class="space-y-1 min-w-0">
                             <div id="judul-status-periode" class="font-bold text-rose-800 dark:text-rose-200">Akses Ditutup!</div>
                             <p id="deskripsi-status-periode" class="text-rose-700/90 dark:text-rose-300/90 leading-relaxed">
                                 Periode aktif sistem saat ini adalah <strong id="teks-periode-aktif">2025-01</strong>. Tutup Buku Akhir Tahun hanya dapat dijalankan jika periode aktif berada di bulan <strong>Desember</strong>.
@@ -103,20 +112,20 @@ export function renderAkuntansiTutupTahun() {
                     <div class="space-y-1.5">
                         <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">Status Periode Sistem Saat Ini:</label>
                         <div class="bg-slate-50/70 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-none px-4 py-3 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-2.5 text-slate-700 dark:text-slate-200 font-semibold">
+                            <div class="flex items-center gap-2.5 text-slate-700 dark:text-slate-200 font-semibold min-w-0">
                                 <svg class="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                 </svg>
-                                <span>Periode Aktif:</span>
+                                <span class="truncate">Periode Aktif:</span>
                             </div>
-                            <span id="badge-periode-aktif" class="bg-blue-600 text-white font-bold px-3 py-1 rounded-none text-xs">2025-01</span>
+                            <span id="badge-periode-aktif" class="bg-blue-600 text-white font-bold px-3 py-1 rounded-none text-xs flex-shrink-0">2025-01</span>
                         </div>
                     </div>
 
                     <!-- Tombol Pratinjau Struktur Neraca Akhir Tahun -->
                     <button type="button" id="btn-pratinjau-neraca"
                         class="w-full bg-white dark:bg-slate-950 hover:bg-sky-50/50 dark:hover:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-400 dark:border-sky-700 font-semibold py-2.5 px-4 rounded-none transition cursor-pointer flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                         <span>Pratinjau Struktur Neraca Akhir Tahun</span>
@@ -125,7 +134,7 @@ export function renderAkuntansiTutupTahun() {
                     <!-- Tombol Utama Tutup Buku Akhir Tahun (Aktif saat bulan Desember) -->
                     <button type="button" id="btn-eksekusi-tutup-tahun" disabled
                         class="w-full bg-slate-400 text-white font-bold py-3 px-4 rounded-none transition flex items-center justify-center gap-2 cursor-not-allowed">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
                         </svg>
                         <span id="label-tombol-tutup-tahun">Belum Bulan Desember (Terkunci)</span>
@@ -140,19 +149,19 @@ export function renderAkuntansiTutupTahun() {
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px]">
                             <div class="bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800">
                                 <span class="text-slate-500 block">Total Aset</span>
-                                <span id="pratinjau-aset" class="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block">Rp 0</span>
+                                <span id="pratinjau-aset" class="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">Rp 0</span>
                             </div>
                             <div class="bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800">
                                 <span class="text-slate-500 block">Kewajiban</span>
-                                <span id="pratinjau-kewajiban" class="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block">Rp 0</span>
+                                <span id="pratinjau-kewajiban" class="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">Rp 0</span>
                             </div>
                             <div class="bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800">
                                 <span class="text-slate-500 block">Ekuitas</span>
-                                <span id="pratinjau-ekuitas" class="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block">Rp 0</span>
+                                <span id="pratinjau-ekuitas" class="font-bold text-slate-800 dark:text-slate-100 mt-0.5 block truncate">Rp 0</span>
                             </div>
                             <div class="bg-white dark:bg-slate-900 p-2.5 border border-slate-200 dark:border-slate-800">
                                 <span class="text-slate-500 block">Laba/Rugi Bersih</span>
-                                <span id="pratinjau-labarugi" class="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">Rp 0</span>
+                                <span id="pratinjau-labarugi" class="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block truncate">Rp 0</span>
                             </div>
                         </div>
                         <div id="pratinjau-detail-akun" class="max-h-48 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 text-[11px]"></div>
@@ -161,7 +170,7 @@ export function renderAkuntansiTutupTahun() {
                     <!-- Blok Batalkan / Buka Kembali Tahun Tertentu -->
                     <div class="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2">
                         <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100">
-                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-3.5 h-3.5 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
                             <span>Batalkan / Buka Kembali Tahun Tertentu:</span>
@@ -175,13 +184,13 @@ export function renderAkuntansiTutupTahun() {
                             </button>
                         </div>
                         <p class="text-[11px] text-slate-400 leading-relaxed">
-                            Data saldo awal dari tahun yang diinput ke atas akan dibersihkan secara massal dan periode disesuaikan.
+                            Membuka tahun tertentu akan ikut membuka tahun tertutup setelahnya (ke atas) serta membersihkan saldo awal carry-over tahun-tahun terkait.
                         </p>
                     </div>
                 </div>
 
                 <!-- Kolom Kanan: Langkah Persiapan & Catatan -->
-                <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none flex flex-col justify-between space-y-6">
+                <div class="lg:col-span-5 bg-white dark:bg-slate-900 p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none flex flex-col justify-between space-y-6 min-w-0">
                     <div class="space-y-4">
                         <div class="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
                             <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,11 +218,13 @@ export function renderAkuntansiTutupTahun() {
 
             <!-- Riwayat Tutup Tahun -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                <div class="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-wrap justify-between items-center gap-2">
                     <span>RIWAYAT TAHUN BUKU DITUTUP</span>
                     <span id="total-riwayat-tutup-tahun" class="text-slate-500 font-normal">Total: 0 Tahun</span>
                 </div>
-                <div class="overflow-x-auto">
+
+                <!-- Tampilan Desktop (Tabel) -->
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
@@ -230,6 +241,37 @@ export function renderAkuntansiTutupTahun() {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Tampilan HP (Card) -->
+                <div id="card-tutup-tahun-mobile" class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                    <div class="p-6 text-center text-slate-400">Memuat riwayat tutup tahun...</div>
+                </div>
+            </div>
+
+            <!-- Modal Konfirmasi Smooth -->
+            <div id="modal-konfirmasi-tutup-tahun" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-[1px] z-50 flex items-center justify-center p-4 transition-opacity duration-200">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 shadow-2xl rounded-none space-y-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 flex items-center justify-center bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-300 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <h3 id="modal-konfirmasi-tahun-title" class="font-bold text-slate-800 dark:text-slate-100 text-sm">Konfirmasi Tindakan</h3>
+                            <p id="modal-konfirmasi-tahun-desc" class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">Apakah Anda yakin?</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                        <button type="button" id="btn-konfirmasi-tahun-batal"
+                            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-none transition cursor-pointer">
+                            Batal
+                        </button>
+                        <button type="button" id="btn-konfirmasi-tahun-ya"
+                            class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-none transition cursor-pointer">
+                            Ya, Lanjutkan
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- Toast Notifikasi -->
@@ -244,8 +286,14 @@ export function renderAkuntansiTutupTahun() {
 }
 
 let tutupTahunToastTimer = null;
+let tutupTahunCleanup = null;
 
 export function initAkuntansiTutupTahunHandler() {
+    if (typeof tutupTahunCleanup === "function") {
+        tutupTahunCleanup();
+        tutupTahunCleanup = null;
+    }
+
     const bannerStatusEl = document.getElementById('banner-status-periode');
     const iconStatusEl = document.getElementById('icon-status-periode');
     const judulStatusEl = document.getElementById('judul-status-periode');
@@ -263,13 +311,21 @@ export function initAkuntansiTutupTahunHandler() {
     const btnEksekusiBatal = document.getElementById('btn-eksekusi-batal-tahun');
 
     const tableBody = document.getElementById('table-tutup-tahun-body');
+    const mobileCardContainer = document.getElementById('card-tutup-tahun-mobile');
     const totalRiwayatEl = document.getElementById('total-riwayat-tutup-tahun');
+
+    const confirmModal = document.getElementById('modal-konfirmasi-tutup-tahun');
+    const confirmTitleEl = document.getElementById('modal-konfirmasi-tahun-title');
+    const confirmDescEl = document.getElementById('modal-konfirmasi-tahun-desc');
+    const btnConfirmBatal = document.getElementById('btn-konfirmasi-tahun-batal');
+    const btnConfirmYa = document.getElementById('btn-konfirmasi-tahun-ya');
 
     let coaList = [];
     let saldoAwalList = [];
     let jurnalList = [];
     let closedYears = [];
     let activePeriodKey = "2025-01";
+    let pendingConfirmResolver = null;
 
     function formatRupiah(num) {
         const val = Number(num || 0);
@@ -301,6 +357,59 @@ export function initAkuntansiTutupTahunHandler() {
             toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
         }, 3000);
     }
+
+    function closeConfirmModal(result = false) {
+        if (confirmModal) confirmModal.classList.add('hidden');
+        if (typeof pendingConfirmResolver === "function") {
+            const resolve = pendingConfirmResolver;
+            pendingConfirmResolver = null;
+            resolve(result);
+        }
+    }
+
+    function askSmoothConfirm({ title, message, confirmText = "Ya, Lanjutkan", variant = "rose" }) {
+        if (!confirmModal || !btnConfirmYa || !btnConfirmBatal) {
+            return Promise.resolve(true);
+        }
+
+        if (pendingConfirmResolver) {
+            closeConfirmModal(false);
+        }
+
+        if (confirmTitleEl) confirmTitleEl.textContent = title || "Konfirmasi Tindakan";
+        if (confirmDescEl) confirmDescEl.textContent = message || "Apakah Anda yakin?";
+        btnConfirmYa.textContent = confirmText;
+
+        if (variant === "indigo") {
+            btnConfirmYa.className = "px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-none transition cursor-pointer";
+        } else {
+            btnConfirmYa.className = "px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-none transition cursor-pointer";
+        }
+
+        confirmModal.classList.remove('hidden');
+        btnConfirmYa.focus();
+
+        return new Promise((resolve) => {
+            pendingConfirmResolver = resolve;
+        });
+    }
+
+    const onConfirmYaClick = () => closeConfirmModal(true);
+    const onConfirmBatalClick = () => closeConfirmModal(false);
+    const onConfirmBackdropClick = (e) => {
+        if (confirmModal && e.target === confirmModal) closeConfirmModal(false);
+    };
+    const onKeyDown = (e) => {
+        if (e.key === "Escape" && confirmModal && !confirmModal.classList.contains('hidden')) {
+            e.preventDefault();
+            closeConfirmModal(false);
+        }
+    };
+
+    if (btnConfirmYa) btnConfirmYa.addEventListener('click', onConfirmYaClick);
+    if (btnConfirmBatal) btnConfirmBatal.addEventListener('click', onConfirmBatalClick);
+    if (confirmModal) confirmModal.addEventListener('click', onConfirmBackdropClick);
+    document.addEventListener('keydown', onKeyDown);
 
     function hitungStrukturTahun(tahun) {
         const akunMap = {};
@@ -415,7 +524,7 @@ export function initAkuntansiTutupTahunHandler() {
                 judulStatusEl.className = "font-bold text-emerald-800 dark:text-emerald-200";
                 judulStatusEl.textContent = "Akses Terbuka (Periode Desember)";
                 deskripsiStatusEl.className = "text-emerald-700/90 dark:text-emerald-300/90 leading-relaxed";
-                deskripsiStatusEl.innerHTML = `Periode aktif sistem saat ini adalah <strong>${activePeriodKey}</strong> (${NAMA_BULAN[bulanAktif]} ${tahunAktif}). Tutup Buku Akhir Tahun dapat dijalankan.`;
+                deskripsiStatusEl.innerHTML = `Periode aktif sistem saat ini adalah <strong>${escapeHtml(activePeriodKey)}</strong> (${escapeHtml(NAMA_BULAN[bulanAktif])} ${escapeHtml(tahunAktif)}). Tutup Buku Akhir Tahun dapat dijalankan.`;
 
                 btnEksekusiTutup.disabled = false;
                 btnEksekusiTutup.className = "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm";
@@ -427,7 +536,7 @@ export function initAkuntansiTutupTahunHandler() {
                 judulStatusEl.className = "font-bold text-rose-800 dark:text-rose-200";
                 judulStatusEl.textContent = "Akses Ditutup!";
                 deskripsiStatusEl.className = "text-rose-700/90 dark:text-rose-300/90 leading-relaxed";
-                deskripsiStatusEl.innerHTML = `Periode aktif sistem saat ini adalah <strong>${activePeriodKey}</strong>. Tutup Buku Akhir Tahun hanya dapat dijalankan jika periode aktif berada di bulan <strong>Desember</strong>.`;
+                deskripsiStatusEl.innerHTML = `Periode aktif sistem saat ini adalah <strong>${escapeHtml(activePeriodKey)}</strong>. Tutup Buku Akhir Tahun hanya dapat dijalankan jika periode aktif berada di bulan <strong>Desember</strong>.`;
 
                 btnEksekusiTutup.disabled = true;
                 btnEksekusiTutup.className = "w-full bg-slate-400 text-white font-bold py-3 px-4 rounded-none transition flex items-center justify-center gap-2 cursor-not-allowed";
@@ -455,8 +564,8 @@ export function initAkuntansiTutupTahunHandler() {
         if (labarugiEl) {
             labarugiEl.textContent = formatRupiah(struktur.labaRugi);
             labarugiEl.className = struktur.labaRugi < 0
-                ? "font-bold text-rose-600 dark:text-rose-400 mt-0.5 block"
-                : "font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block";
+                ? "font-bold text-rose-600 dark:text-rose-400 mt-0.5 block truncate"
+                : "font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block truncate";
         }
 
         if (detailEl) {
@@ -466,8 +575,8 @@ export function initAkuntansiTutupTahunHandler() {
             } else {
                 detailEl.innerHTML = neracaAkun.map(a => `
                     <div class="px-3 py-2 flex justify-between items-center gap-2">
-                        <span class="text-slate-700 dark:text-slate-300"><strong class="text-indigo-600 dark:text-indigo-400">${a.kodeAkun}</strong> - ${a.namaAkun}</span>
-                        <span class="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">${formatRupiah(a.saldoAkhir)}</span>
+                        <span class="text-slate-700 dark:text-slate-300 truncate"><strong class="text-indigo-600 dark:text-indigo-400">${escapeHtml(a.kodeAkun)}</strong> - ${escapeHtml(a.namaAkun)}</span>
+                        <span class="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">${escapeHtml(formatRupiah(a.saldoAkhir))}</span>
                     </div>
                 `).join("");
             }
@@ -479,33 +588,75 @@ export function initAkuntansiTutupTahunHandler() {
     }
 
     function renderRiwayat() {
-        if (!tableBody) return;
         if (totalRiwayatEl) totalRiwayatEl.textContent = `Total: ${closedYears.length} Tahun`;
 
         if (closedYears.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada tahun buku yang ditutup.</td></tr>`;
+            if (tableBody) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada tahun buku yang ditutup.</td></tr>`;
+            }
+            if (mobileCardContainer) {
+                mobileCardContainer.innerHTML = `<div class="p-6 text-center text-slate-400">Belum ada tahun buku yang ditutup.</div>`;
+            }
             return;
         }
 
-        let html = "";
+        let tableHtml = "";
+        let cardHtml = "";
+
         closedYears.forEach(item => {
+            const yr = String(item.tahun || item.id || "").trim();
+            const safeYr = escapeHtml(yr);
+            const pendapatanFmt = escapeHtml(formatRupiah(item.pendapatan));
+            const bebanFmt = escapeHtml(formatRupiah(item.beban));
             const lr = Number(item.labaRugi || 0);
-            html += `
+            const lrFmt = escapeHtml(formatRupiah(lr));
+            const lrClass = lr < 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-700 dark:text-emerald-400";
+            const statusText = escapeHtml(item.status || "Ditutup");
+
+            tableHtml += `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td class="py-3 px-4 font-bold text-slate-800 dark:text-slate-200">Tahun Buku ${item.tahun}</td>
-                    <td class="py-3 px-4 text-right font-semibold">${formatRupiah(item.pendapatan)}</td>
-                    <td class="py-3 px-4 text-right font-semibold">${formatRupiah(item.beban)}</td>
-                    <td class="py-3 px-4 text-right font-bold ${lr < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}">${formatRupiah(lr)}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800 dark:text-slate-200">Tahun Buku ${safeYr}</td>
+                    <td class="py-3 px-4 text-right font-semibold">${pendapatanFmt}</td>
+                    <td class="py-3 px-4 text-right font-semibold">${bebanFmt}</td>
+                    <td class="py-3 px-4 text-right font-bold ${lrClass}">${lrFmt}</td>
                     <td class="py-3 px-4 text-center">
-                        <span class="px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">${item.status || 'Ditutup'}</span>
+                        <span class="px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">${statusText}</span>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <button type="button" data-buka-tahun="${item.tahun}" class="btn-buka-tahun px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-semibold cursor-pointer">Buka Kembali</button>
+                        <button type="button" data-buka-tahun="${safeYr}" class="btn-buka-tahun px-2.5 py-1 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition text-[11px] font-semibold cursor-pointer rounded-none">Buka Kembali</button>
                     </td>
                 </tr>
             `;
+
+            cardHtml += `
+                <div class="p-4 space-y-2.5 bg-white dark:bg-slate-900">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <div class="font-bold text-slate-800 dark:text-slate-100 text-xs">Tahun Buku ${safeYr}</div>
+                            <span class="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">${statusText}</span>
+                        </div>
+                        <button type="button" data-buka-tahun="${safeYr}" class="btn-buka-tahun px-2.5 py-1 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100 transition text-[11px] font-semibold cursor-pointer rounded-none flex-shrink-0">Buka Kembali</button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">Pendapatan</span>
+                            <span class="font-semibold text-slate-700 dark:text-slate-200">${pendapatanFmt}</span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">Beban</span>
+                            <span class="font-semibold text-slate-700 dark:text-slate-200">${bebanFmt}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[10px] text-slate-400 block">Laba/Rugi</span>
+                            <span class="font-bold ${lrClass}">${lrFmt}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
-        tableBody.innerHTML = html;
+
+        if (tableBody) tableBody.innerHTML = tableHtml;
+        if (mobileCardContainer) mobileCardContainer.innerHTML = cardHtml;
 
         document.querySelectorAll('.btn-buka-tahun').forEach(btn => {
             btn.onclick = async () => {
@@ -515,6 +666,17 @@ export function initAkuntansiTutupTahunHandler() {
         });
     }
 
+    function getCascadeYearsToReopen(targetYear) {
+        const years = new Set([targetYear]);
+        closedYears.forEach(item => {
+            const yr = String(item.tahun || item.id || "").trim();
+            if (/^\d{4}$/.test(yr) && yr >= targetYear) {
+                years.add(yr);
+            }
+        });
+        return Array.from(years).sort();
+    }
+
     async function batalkanTahun(tahunInput) {
         const cleanYear = String(tahunInput || "").trim();
         if (!/^\d{4}$/.test(cleanYear)) {
@@ -522,14 +684,27 @@ export function initAkuntansiTutupTahunHandler() {
             return;
         }
 
-        if (!confirm(`Batalkan / buka kembali tutup buku tahun ${cleanYear} dan bersihkan saldo awal carry-over tahun berikutnya?`)) {
-            return;
-        }
+        const yearsToReopen = getCascadeYearsToReopen(cleanYear);
+        const extraYears = yearsToReopen.filter(y => y !== cleanYear);
+        const carryOverYears = new Set(yearsToReopen.map(y => String(parseInt(y, 10) + 1)));
+
+        const confirmMessage = extraYears.length > 0
+            ? `Batalkan / buka kembali tutup buku tahun ${cleanYear} beserta tahun tertutup setelahnya (${extraYears.join(", ")}) dan bersihkan saldo awal carry-over tahun-tahun terkait?`
+            : `Batalkan / buka kembali tutup buku tahun ${cleanYear} dan bersihkan saldo awal carry-over tahun berikutnya?`;
+
+        const confirmed = await askSmoothConfirm({
+            title: "Batalkan Tutup Buku Tahun",
+            message: confirmMessage,
+            confirmText: "Ya, Buka Tahun",
+            variant: "rose"
+        });
+        if (!confirmed) return;
 
         try {
-            await deleteDoc(doc(db, "tutup_tahun", cleanYear));
+            for (const yr of yearsToReopen) {
+                await deleteDoc(doc(db, "tutup_tahun", yr));
+            }
 
-            const nextYear = String(parseInt(cleanYear, 10) + 1);
             const snapSaldo = await getDocs(collection(db, "saldo_awal"));
             const batch = writeBatch(db);
             let deletedCount = 0;
@@ -540,11 +715,13 @@ export function initAkuntansiTutupTahunHandler() {
                 const docPeriode = String(data.periode || "");
                 const docTanggal = String(data.tanggal || "");
 
-                if (
-                    docTahun === nextYear ||
-                    docPeriode.startsWith(`${nextYear}-`) ||
-                    docTanggal.startsWith(`${nextYear}-`)
-                ) {
+                const matchesCarryOver = Array.from(carryOverYears).some(ny =>
+                    docTahun === ny ||
+                    docPeriode.startsWith(`${ny}-`) ||
+                    docTanggal.startsWith(`${ny}-`)
+                );
+
+                if (matchesCarryOver) {
                     batch.delete(doc(db, "saldo_awal", docSnap.id));
                     deletedCount += 1;
                 }
@@ -554,7 +731,12 @@ export function initAkuntansiTutupTahunHandler() {
                 await batch.commit();
             }
 
-            showToast(`Tutup buku tahun ${cleanYear} dibatalkan (${deletedCount} saldo awal carry-over dibersihkan).`);
+            if (extraYears.length > 0) {
+                showToast(`Tutup buku tahun ${cleanYear} beserta ${extraYears.join(", ")} dibatalkan (${deletedCount} saldo awal carry-over dibersihkan).`);
+            } else {
+                showToast(`Tutup buku tahun ${cleanYear} dibatalkan (${deletedCount} saldo awal carry-over dibersihkan).`);
+            }
+
             await loadDataTutupTahun();
         } catch (err) {
             console.error("Gagal membatalkan tutup tahun:", err);
@@ -572,9 +754,13 @@ export function initAkuntansiTutupTahunHandler() {
             return;
         }
 
-        if (!confirm(`Jalankan Tutup Buku Akhir Tahun ${tahun} dan pindahkan saldo akhir neraca & laba/rugi ke saldo_awal per 31 Desember ${tahun}?`)) {
-            return;
-        }
+        const confirmed = await askSmoothConfirm({
+            title: "Konfirmasi Tutup Buku Akhir Tahun",
+            message: `Jalankan Tutup Buku Akhir Tahun ${tahun} dan pindahkan saldo akhir neraca & laba/rugi ke saldo_awal per 31 Desember ${tahun}?`,
+            confirmText: "Ya, Tutup Tahun",
+            variant: "indigo"
+        });
+        if (!confirmed) return;
 
         const struktur = hitungStrukturTahun(tahun);
         const nextYear = String(parseInt(tahun, 10) + 1);
@@ -651,10 +837,19 @@ export function initAkuntansiTutupTahunHandler() {
             const qBulan = query(collection(db, "tutup_bulan"), orderBy("periodKey", "desc"));
             const snapBulan = await getDocs(qBulan);
             const closedMonths = [];
-            snapBulan.forEach(docSnap => closedMonths.push({ id: docSnap.id, ...docSnap.data() }));
+            snapBulan.forEach(docSnap => {
+                const d = docSnap.data();
+                if (String(d.status || "Ditutup").toLowerCase() === "ditutup") {
+                    const key = String(d.periodKey || docSnap.id || "").trim();
+                    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(key)) {
+                        closedMonths.push(key);
+                    }
+                }
+            });
 
+            closedMonths.sort();
             if (closedMonths.length > 0) {
-                const latestClosedKey = closedMonths[0].periodKey || closedMonths[0].id;
+                const latestClosedKey = closedMonths[closedMonths.length - 1];
                 activePeriodKey = getNextPeriodKey(latestClosedKey);
             } else {
                 activePeriodKey = "2025-01";
@@ -670,6 +865,7 @@ export function initAkuntansiTutupTahunHandler() {
         } catch (err) {
             console.error("Gagal memuat data tutup tahun:", err);
             if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+            if (mobileCardContainer) mobileCardContainer.innerHTML = `<div class="p-6 text-center text-rose-500">Gagal memuat data dari database.</div>`;
         }
     }
 
@@ -709,5 +905,22 @@ export function initAkuntansiTutupTahunHandler() {
         };
     }
 
+    const cleanup = () => {
+        if (pendingConfirmResolver) {
+            closeConfirmModal(false);
+        }
+        if (btnConfirmYa) btnConfirmYa.removeEventListener('click', onConfirmYaClick);
+        if (btnConfirmBatal) btnConfirmBatal.removeEventListener('click', onConfirmBatalClick);
+        if (confirmModal) confirmModal.removeEventListener('click', onConfirmBackdropClick);
+        document.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('hashchange', cleanup);
+        tutupTahunCleanup = null;
+    };
+
+    window.addEventListener('hashchange', cleanup);
+    tutupTahunCleanup = cleanup;
+
     loadDataTutupTahun();
+
+    return cleanup;
 }
