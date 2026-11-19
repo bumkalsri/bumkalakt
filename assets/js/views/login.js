@@ -17,7 +17,7 @@ export function renderLogin() {
                 <!-- Logo & Judul -->
                 <div class="space-y-2">
                     <div class="inline-flex border border-slate-200 rounded-none p-3 bg-white/90 shadow-xs mb-2">
-                        <img src="assets/icons/maga.png" alt="Maga Logo" class="h-10 object-contain">
+                        <img src="assets/icons/logo.png" alt="Maga Logo" class="h-10 object-contain">
                     </div>
                     <h1 class="text-2xl font-bold text-slate-800">LOGIN</h1>
                     <p class="text-sm text-slate-600 font-medium">Silakan masuk menggunakan akun Google Anda.</p>

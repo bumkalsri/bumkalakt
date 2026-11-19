@@ -10,10 +10,10 @@ export function renderHome() {
             <div class="bg-white dark:bg-slate-900 p-4 md:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div class="space-y-1">
-                        <span class="hidden md:inline-block bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900 text-[10px] font-semibold px-2.5 py-0.5 tracking-wide uppercase">SISTEM AKTIF</span>
+                        <span class="hidden bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900 text-[10px] font-semibold px-2.5 py-0.5 tracking-wide uppercase">SISTEM AKTIF</span>
                         <h1 class="text-sm md:text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100" id="welcome-user-title">Selamat Datang! 👋</h1>
                     </div>
-                    <div class="hidden md:flex bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs px-3 py-1.5 rounded-none items-center gap-2">
+                    <div class="hidden bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs px-3 py-1.5 rounded-none items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Sistem Akuntansi & Operasional Aktif
                     </div>
                 </div>

@@ -1,24 +1,37 @@
 import { initRouter } from './router.js';
 
-// 1. Definisikan fungsi global untuk toggle sidebar
-window.toggleSidebar = function() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-        if (sidebar.classList.contains('hidden')) {
-            sidebar.classList.remove('hidden');
-            sidebar.classList.add('flex');
+// 1. Pastikan fungsi global toggleSidebar tersedia (tanpa menimpa versi di index.html)
+if (typeof window.toggleSidebar !== 'function') {
+    window.toggleSidebar = function() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (!sidebar) return;
+
+        if (window.innerWidth < 768) {
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                if (backdrop) backdrop.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                if (backdrop) backdrop.classList.remove('hidden');
+            }
         } else {
-            sidebar.classList.remove('flex');
-            sidebar.classList.add('hidden');
+            if (sidebar.style.display === 'none') {
+                sidebar.style.display = 'flex';
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.style.display = 'none';
+            }
         }
-    }
-};
+    };
+}
 
 // 1.5. Inisialisasi Mode Gelap & Cerah Berdasarkan LocalStorage
 function initAppTheme() {
-    const htmlEl = document.documentElement; 
+    const htmlEl = document.documentElement;
     const savedTheme = localStorage.getItem('app_theme');
-    
+
     if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         htmlEl.classList.add('dark');
     } else {
@@ -26,6 +39,39 @@ function initAppTheme() {
     }
 }
 initAppTheme();
+
+// 1.6. Sinkronisasi Posisi Running Text (bottom-0 saat di halaman login, bottom-16 saat di menu utama HP)
+window.syncRunningTextPosition = function(forceLoginState = null) {
+    const runningContainer = document.getElementById('global-running-text-container');
+    const appContainer = document.getElementById('app');
+    if (!runningContainer) return;
+
+    let isLoginPage = false;
+
+    if (typeof forceLoginState === 'boolean') {
+        isLoginPage = forceLoginState;
+    } else {
+        const hash = (window.location.hash || '').toLowerCase();
+        const hasLoginEl = appContainer ? Boolean(appContainer.querySelector('[data-login-page], #btn-google')) : false;
+        isLoginPage = hash.includes('login') || hasLoginEl;
+    }
+
+    if (isLoginPage) {
+        runningContainer.classList.remove('bottom-16');
+        runningContainer.classList.add('bottom-0');
+        if (appContainer) {
+            appContainer.classList.remove('pb-28');
+            appContainer.classList.add('pb-12');
+        }
+    } else {
+        runningContainer.classList.remove('bottom-0');
+        runningContainer.classList.add('bottom-16');
+        if (appContainer) {
+            appContainer.classList.remove('pb-12');
+            appContainer.classList.add('pb-28');
+        }
+    }
+};
 
 // 2. Fungsi Helper Mutlak untuk Memulihkan Profil / User UI dari LocalStorage secara Instan
 window.restoreUserProfile = function() {
@@ -51,20 +97,32 @@ window.restoreUserProfile = function() {
         if (elMobEmail) elMobEmail.textContent = savedEmail;
     }
     if (savedRole) {
-        document.querySelectorAll('#user-role').forEach(el => el.textContent = savedRole);
+        document.querySelectorAll('#user-role').forEach(el => {
+            el.textContent = savedRole;
+        });
     }
     if (savedInitial) {
         if (elInit) elInit.textContent = savedInitial;
     }
-    if (savedAvatar && savedAvatar !== "null" && savedAvatar !== "") {
+    if (savedAvatar && savedAvatar !== 'null' && savedAvatar !== '') {
         if (elMobAvatar && elMobAvatar.src !== savedAvatar) {
             elMobAvatar.src = savedAvatar;
         }
     }
 };
 
-// Eksekusi pemulihan profil segera saat skrip dimuat
+// Eksekusi pemulihan profil & sinkronisasi posisi segera saat skrip dimuat
 window.restoreUserProfile();
+window.syncRunningTextPosition();
+
+window.addEventListener('hashchange', () => {
+    window.syncRunningTextPosition();
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    window.restoreUserProfile();
+    window.syncRunningTextPosition();
+});
 
 // 3. Jalankan Router SPA
 initRouter();

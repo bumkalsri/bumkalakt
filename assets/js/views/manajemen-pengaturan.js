@@ -65,6 +65,29 @@ export function renderManajemenPengaturan() {
                             <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nomor Telepon / Kontak</label>
                             <input type="text" id="setting-telepon" class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Contoh: 081234567890">
                         </div>
+
+                        <!-- Upload Icon (Maks 192px, Kompres Otomatis 1:1) & Upload Wallpaper -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Icon Aplikasi (Maks 192px, Kompres Otomatis 1:1)</label>
+                                <input type="file" id="input-icon-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                                <input type="hidden" id="input-icon-base64" value="">
+                                <div id="icon-preview-container" class="mt-2 hidden">
+                                    <p class="text-[11px] text-slate-400 mb-1">Pratinjau Icon (1:1 • 192px):</p>
+                                    <img id="icon-preview-img" src="" alt="Pratinjau Icon" class="w-20 h-20 object-cover border border-slate-200 dark:border-slate-700 rounded-none bg-white dark:bg-slate-800">
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Wallpaper / Banner Latar (Kompres Otomatis)</label>
+                                <input type="file" id="input-wallpaper-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                                <input type="hidden" id="input-wallpaper-base64" value="">
+                                <div id="wallpaper-preview-container" class="mt-2 hidden">
+                                    <p class="text-[11px] text-slate-400 mb-1">Pratinjau Wallpaper:</p>
+                                    <img id="wallpaper-preview-img" src="" alt="Pratinjau Wallpaper" class="h-20 w-full max-w-xs object-cover border border-slate-200 dark:border-slate-700 rounded-none bg-white dark:bg-slate-800">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="space-y-4">
@@ -83,7 +106,7 @@ export function renderManajemenPengaturan() {
                                 <input type="text" id="setting-bendahara" class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Nama Bendahara">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-700 mb-1">Penasehat</label>
+                                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Penasehat</label>
                                 <input type="text" id="setting-penasehat" class="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-indigo-600" placeholder="Nama Penasehat">
                             </div>
                             <div class="md:col-span-2">
@@ -230,6 +253,73 @@ export function renderManajemenPengaturan() {
     `;
 }
 
+function compressSquareIcon(file, size = 192, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Crop tengah 1:1 agar tidak gepeng
+                const minSide = Math.min(img.width, img.height);
+                const sx = Math.floor((img.width - minSide) / 2);
+                const sy = Math.floor((img.height - minSide) / 2);
+
+                ctx.clearRect(0, 0, size, size);
+                ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+                const usePng = file.type === 'image/png';
+                resolve(canvas.toDataURL(usePng ? 'image/png' : 'image/jpeg', quality));
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function compressMaxDimension(file, maxDim = 1280, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onerror = reject;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxDim) {
+                        height = Math.round((height * maxDim) / width);
+                        width = maxDim;
+                    }
+                } else {
+                    if (height > maxDim) {
+                        width = Math.round((width * maxDim) / height);
+                        height = maxDim;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
 export async function initManajemenPengaturanHandler() {
     const inputNama = document.getElementById('setting-nama');
     const inputAlamat = document.getElementById('setting-alamat');
@@ -239,6 +329,16 @@ export async function initManajemenPengaturanHandler() {
     const inputBendahara = document.getElementById('setting-bendahara');
     const inputPenasehat = document.getElementById('setting-penasehat');
     const inputLurah = document.getElementById('setting-lurah');
+
+    const inputIconFile = document.getElementById('input-icon-file');
+    const inputIconBase64 = document.getElementById('input-icon-base64');
+    const iconPreviewContainer = document.getElementById('icon-preview-container');
+    const iconPreviewImg = document.getElementById('icon-preview-img');
+
+    const inputWallpaperFile = document.getElementById('input-wallpaper-file');
+    const inputWallpaperBase64 = document.getElementById('input-wallpaper-base64');
+    const wallpaperPreviewContainer = document.getElementById('wallpaper-preview-container');
+    const wallpaperPreviewImg = document.getElementById('wallpaper-preview-img');
     
     const inputCompanyDesc = document.getElementById('setting-company-desc');
     const inputCompanyEmail = document.getElementById('setting-company-email');
@@ -248,6 +348,7 @@ export async function initManajemenPengaturanHandler() {
     const formProfile = document.getElementById('form-company-profile');
     const formUnit = document.getElementById('form-tambah-unit');
     const btnSimpan = document.getElementById('btn-simpan-pengaturan');
+    const btnSimpanDefaultHtml = btnSimpan ? btnSimpan.innerHTML : "";
     const btnSimpanProfile = document.getElementById('btn-simpan-profile');
     const toastNotif = document.getElementById('toast-notif');
     const unitTableBody = document.getElementById('unit-table-body');
@@ -261,46 +362,57 @@ export async function initManajemenPengaturanHandler() {
     let globalUnitsList = [];
     let sortDirection = 'asc';
 
-    // Handler Kompresi Gambar Otomatis Maks 500px
-    if (inputFile) {
-        inputFile.addEventListener('change', function(e) {
+    // Handler Upload Icon Maks 192px (1:1)
+    if (inputIconFile) {
+        inputIconFile.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-                    const maxDim = 500;
+            try {
+                const compressedIcon = await compressSquareIcon(file, 192, 0.85);
+                if (inputIconBase64) inputIconBase64.value = compressedIcon;
+                if (iconPreviewImg) iconPreviewImg.src = compressedIcon;
+                if (iconPreviewContainer) iconPreviewContainer.classList.remove('hidden');
+            } catch (err) {
+                console.error("Gagal memproses icon:", err);
+                showToast("Gagal memproses gambar icon.");
+            }
+        });
+    }
 
-                    if (width > height) {
-                        if (width > maxDim) {
-                            height = Math.round((height * maxDim) / width);
-                            width = maxDim;
-                        }
-                    } else {
-                        if (height > maxDim) {
-                            width = Math.round((width * maxDim) / height);
-                            height = maxDim;
-                        }
-                    }
+    // Handler Upload Wallpaper
+    if (inputWallpaperFile) {
+        inputWallpaperFile.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
 
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
+            try {
+                const compressedWallpaper = await compressMaxDimension(file, 1280, 0.82);
+                if (inputWallpaperBase64) inputWallpaperBase64.value = compressedWallpaper;
+                if (wallpaperPreviewImg) wallpaperPreviewImg.src = compressedWallpaper;
+                if (wallpaperPreviewContainer) wallpaperPreviewContainer.classList.remove('hidden');
+            } catch (err) {
+                console.error("Gagal memproses wallpaper:", err);
+                showToast("Gagal memproses gambar wallpaper.");
+            }
+        });
+    }
 
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-                    if (inputBase64) inputBase64.value = compressedBase64;
-                    if (imgPreview) imgPreview.src = compressedBase64;
-                    if (previewContainer) previewContainer.classList.remove('hidden');
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+    // Handler Kompresi Gambar Unit Otomatis Maks 500px
+    if (inputFile) {
+        inputFile.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const compressedBase64 = await compressMaxDimension(file, 500, 0.85);
+                if (inputBase64) inputBase64.value = compressedBase64;
+                if (imgPreview) imgPreview.src = compressedBase64;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+            } catch (err) {
+                console.error("Gagal memproses foto unit:", err);
+                showToast("Gagal memproses foto unit.");
+            }
         });
     }
 
@@ -361,6 +473,20 @@ export async function initManajemenPengaturanHandler() {
             if (inputBendahara) inputBendahara.value = data.bendahara || "";
             if (inputPenasehat) inputPenasehat.value = data.penasehat || "";
             if (inputLurah) inputLurah.value = data.lurah || "";
+
+            const savedIcon = data.iconUrl || data.logo || "";
+            if (savedIcon) {
+                if (inputIconBase64) inputIconBase64.value = savedIcon;
+                if (iconPreviewImg) iconPreviewImg.src = savedIcon;
+                if (iconPreviewContainer) iconPreviewContainer.classList.remove('hidden');
+            }
+
+            const savedWallpaper = data.wallpaperUrl || data.wallpaper || "";
+            if (savedWallpaper) {
+                if (inputWallpaperBase64) inputWallpaperBase64.value = savedWallpaper;
+                if (wallpaperPreviewImg) wallpaperPreviewImg.src = savedWallpaper;
+                if (wallpaperPreviewContainer) wallpaperPreviewContainer.classList.remove('hidden');
+            }
             
             if (inputCompanyDesc) inputCompanyDesc.value = data.companyDesc || "";
             if (inputCompanyEmail) inputCompanyEmail.value = data.companyEmail || "";
@@ -378,6 +504,9 @@ export async function initManajemenPengaturanHandler() {
                 btnSimpan.disabled = true;
             }
 
+            const iconVal = inputIconBase64 ? inputIconBase64.value : "";
+            const wallpaperVal = inputWallpaperBase64 ? inputWallpaperBase64.value : "";
+
             const payload = {
                 nama: inputNama ? inputNama.value.trim() : "",
                 alamat: inputAlamat ? inputAlamat.value.trim() : "",
@@ -387,19 +516,26 @@ export async function initManajemenPengaturanHandler() {
                 bendahara: inputBendahara ? inputBendahara.value.trim() : "",
                 penasehat: inputPenasehat ? inputPenasehat.value.trim() : "",
                 lurah: inputLurah ? inputLurah.value.trim() : "",
+                iconUrl: iconVal,
+                wallpaperUrl: wallpaperVal,
                 updatedAt: new Date().toISOString()
             };
 
             try {
                 const docRef = doc(db, "pengaturan", "profil_perusahaan");
                 await setDoc(docRef, payload, { merge: true });
-                showToast("Pengaturan perusahaan dan pengurus berhasil disimpan!");
+
+                if (typeof window.reloadCompanyProfile === 'function') {
+                    await window.reloadCompanyProfile();
+                }
+
+                showToast("Pengaturan perusahaan, icon, wallpaper & pengurus berhasil disimpan!");
             } catch (err) {
                 console.error("Gagal menyimpan pengaturan:", err);
                 showToast("Terjadi kesalahan saat menyimpan data.");
             } finally {
                 if (btnSimpan) {
-                    btnSimpan.textContent = "Simpan Perubahan";
+                    btnSimpan.innerHTML = btnSimpanDefaultHtml;
                     btnSimpan.disabled = false;
                 }
             }
@@ -424,6 +560,9 @@ export async function initManajemenPengaturanHandler() {
             try {
                 const docRef = doc(db, "pengaturan", "profil_perusahaan");
                 await setDoc(docRef, profilePayload, { merge: true });
+                if (typeof window.reloadCompanyProfile === 'function') {
+                    await window.reloadCompanyProfile();
+                }
                 showToast("Company Profile berhasil disimpan!");
             } catch (err) {
                 console.error("Gagal menyimpan Company Profile:", err);

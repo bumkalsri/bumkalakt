@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYBuk - Sistem BUMKal</title>
+    <title>This Application - Akuntansi-Keuangan</title>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#312e81">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <link id="apple-touch-icon-link" rel="apple-touch-icon" href="assets/icons/icon-192.png">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -38,6 +38,27 @@
         html.hide-admin-menu #admin-menu-section,
         html.hide-admin-menu #mobile-admin-menu-section {
             display: none !important;
+        }
+
+        /* Animasi Running Text dinamis tanpa jeda kosong panjang */
+        @keyframes marquee-smooth {
+            0% {
+                transform: translateX(var(--marquee-start, 100%));
+            }
+            100% {
+                transform: translateX(var(--marquee-end, -100%));
+            }
+        }
+
+        .marquee-track {
+            display: inline-block;
+            white-space: nowrap;
+            will-change: transform;
+            animation: marquee-smooth var(--marquee-duration, 24s) linear infinite;
+        }
+
+        .marquee-track:hover {
+            animation-play-state: paused;
         }
     </style>
     <script>
@@ -99,13 +120,13 @@
     <!-- SIDEBAR KIRI -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-transform duration-300 transform -translate-x-full md:translate-x-0 md:static shadow-xl md:shadow-none">
         <div>
-            <!-- Logo Header Sidebar (SYBuk - Sistem BUMKal) -->
-            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <div class="flex items-center gap-2.5 overflow-hidden">
-                    <img id="sidebar-logo-img" src="assets/icons/icon-192.png" alt="Logo" class="h-7 object-contain flex-shrink-0">
+            <!-- Logo Header Sidebar -->
+            <div class="px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <img id="sidebar-logo-img" src="assets/icons/Logo.png" alt="Logo This Application" class="h-14 w-14 object-contain flex-shrink-0">
                     <div class="flex flex-col truncate">
-                        <span class="font-extrabold text-slate-800 dark:text-slate-100 text-sm leading-tight truncate" id="sidebar-company-title">SYBuk</span>
-                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate" id="sidebar-company-subtitle">Sistem BUMKal</span>
+                        <span class="font-extrabold text-slate-800 dark:text-slate-100 text-sm leading-tight truncate" id="sidebar-company-title">This Application</span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate" id="sidebar-company-subtitle">Akuntansi-Keuangan</span>
                     </div>
                 </div>
                 <button onclick="toggleSidebar()" class="md:hidden text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1">
@@ -188,16 +209,16 @@
                 </button>
             </div>
             <div class="py-2 px-3 text-center text-[10px] text-slate-400 dark:text-slate-500 border-t border-slate-100 dark:border-slate-800/80">
-                &copy; 2026 SISTEM AKUNTANSI. All rights reserved.
+                &copy; 2026 This Application. All rights reserved.
             </div>
         </div>
     </aside>
 
     <!-- KONTEN UTAMA -->
-    <div class="flex-1 flex flex-col h-screen overflow-hidden w-full bg-slate-50 dark:bg-slate-950">
+    <div class="flex-1 flex flex-col h-screen overflow-hidden w-full bg-slate-50 dark:bg-slate-950 relative">
         
         <!-- Header Atas -->
-        <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-4 md:px-6 z-10 flex-shrink-0">
+        <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 min-h-[4.5rem] py-2 flex items-center justify-between px-4 md:px-6 z-10 flex-shrink-0">
             <div class="flex items-center gap-3">
                 <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="hidden md:flex items-center justify-center p-2 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none cursor-pointer" title="Sembunyikan/Tampilkan Sidebar">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,24 +227,21 @@
                 </button>
 
                 <div class="flex items-center md:hidden">
-                    <span class="border border-slate-200 dark:border-slate-800 rounded-none px-2.5 py-1 flex items-center shadow-xs bg-white dark:bg-slate-900">
-                        <img id="mobile-logo-img" src="assets/icons/icon-192.png" alt="Logo" class="h-5 object-contain">
+                    <span class="border border-transparent rounded-none px-1.5 py-1 flex items-center shadow-none bg-transparent">
+                        <img id="mobile-logo-img" src="assets/icons/Logo.png" alt="Logo" class="h-7 w-7 object-contain">
                     </span>
                 </div>
 
-                <div class="flex items-center gap-3">
-                    <img id="header-logo-img" src="assets/icons/icon-192.png" alt="Logo Perusahaan" class="h-9 w-9 object-cover rounded-none border border-slate-200 dark:border-slate-800 hidden md:block flex-shrink-0">
+                <div class="flex items-center gap-3.5">
+                    <img id="header-logo-img" src="assets/icons/icon-192.png" alt="Logo Perusahaan" class="h-12 w-12 object-cover rounded-none border border-transparent hidden md:block flex-shrink-0">
                     
                     <div class="flex flex-col justify-center truncate">
-                        <h2 class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-100 truncate" id="header-company-name">BUMKal Srihardono - Accounting</h2>
+                        <h2 class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-100 truncate" id="header-company-name">BUMKal Srihardono</h2>
                         
-                        <div class="hidden md:flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                            <span id="header-company-address">Alamat: Memuat...</span>
-                            <span>&bull;</span>
-                            <span id="header-company-phone">Telp: Memuat...</span>
+                        <div class="flex flex-col text-[10px] text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5">
+                            <span id="header-company-address" class="truncate">Alamat: Memuat...</span>
+                            <span id="header-company-phone" class="truncate">Telp: Memuat...</span>
                         </div>
-
-                        <p class="text-[10px] md:hidden text-slate-500 dark:text-slate-400 truncate" id="header-company-info">Pengelolaan keuangan dan pencatatan akuntansi</p>
                     </div>
                 </div>
             </div>
@@ -253,48 +271,45 @@
             </div>
         </header>
 
-        <!-- Area Render View Dinamis (padding bawah ditambah agar tidak tertutup running text & bottom nav mobile) -->
-        <main id="app" class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-slate-950 pb-28 md:pb-6">
+        <!-- Area Render View Dinamis -->
+        <main id="app" class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-slate-950 pb-28 md:pb-12">
         </main>
 
-        <!-- RUNNING TEXT & BOTTOM NAVIGATION (MOBILE) -->
-        <div class="md:hidden fixed bottom-0 left-0 right-0 z-30 flex flex-col shadow-lg">
-            <!-- Bar Running Text Mobile di Atas Bottom Nav -->
-            <div id="mobile-running-text-container" class="bg-amber-50 dark:bg-amber-950/80 border-t border-amber-200 dark:border-amber-900/60 px-3 py-1 overflow-hidden whitespace-nowrap flex items-center">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 mr-2 flex-shrink-0 flex items-center gap-1">
-                    📢 Info:
-                </span>
-                <div class="overflow-hidden relative w-full">
-                    <div id="mobile-running-text-content" class="inline-block text-[11px] text-amber-900 dark:text-amber-200 font-medium animate-marquee">
-                        Memuat informasi berjalan...
-                    </div>
+        <!-- BAR RUNNING TEXT (TAMPIL DI DESKTOP & MOBILE DI BAGIAN BAWAH) -->
+        <div id="global-running-text-container" class="fixed md:static bottom-16 md:bottom-0 left-0 right-0 z-20 bg-amber-50 dark:bg-amber-950/90 border-t border-amber-200 dark:border-amber-900/60 px-3 md:px-5 py-1.5 overflow-hidden flex items-center flex-shrink-0">
+            <span class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 mr-2.5 flex-shrink-0 flex items-center gap-1 z-10 bg-amber-50 dark:bg-amber-950/90 pr-2">
+                📢 INFO:
+            </span>
+            <div id="global-running-text-viewport" class="overflow-hidden relative flex-1 min-w-0">
+                <div id="global-running-text-content" class="marquee-track text-[11px] md:text-xs text-amber-900 dark:text-amber-200 font-medium">
+                    Memuat informasi berjalan...
                 </div>
             </div>
-
-            <!-- Bottom Navigation Bar -->
-            <nav id="bottom-nav" class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 h-16 flex items-center justify-around px-2">
-                <a href="#/" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
-                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                    Beranda
-                </a>
-                <a href="#/galeri" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
-                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    Galeri
-                </a>
-                <a href="#/event" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
-                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    Event
-                </a>
-                <a href="#/monitoring" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
-                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Monitoring
-                </a>
-                <button onclick="toggleMobileMoreMenu()" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full focus:outline-none cursor-pointer">
-                    <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    More
-                </button>
-            </nav>
         </div>
+
+        <!-- BOTTOM NAVIGATION (KHUSUS MOBILE) -->
+        <nav id="bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 h-16 flex items-center justify-around px-2 shadow-lg">
+            <a href="#/" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                Beranda
+            </a>
+            <a href="#/galeri" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Galeri
+            </a>
+            <a href="#/event" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Event
+            </a>
+            <a href="#/monitoring" data-link class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Monitoring
+            </a>
+            <button onclick="toggleMobileMoreMenu()" class="flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-[10px] font-medium py-1 w-full focus:outline-none cursor-pointer">
+                <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                More
+            </button>
+        </nav>
 
         <!-- Pop-up Menu More -->
         <div id="mobile-more-popup" class="hidden fixed inset-0 bg-slate-950/30 z-40 md:hidden flex items-end justify-end pb-28 pr-2">
@@ -361,61 +376,137 @@
         import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { db } from "./assets/js/firebase-init.js";
 
+        let latestRunningText = "Selamat datang di Sistem BUMKal Srihardono.";
+        let latestSpeed = "normal";
+
+        function applyMarqueeMetrics(text = latestRunningText, speed = latestSpeed) {
+            const viewport = document.getElementById('global-running-text-viewport');
+            const track = document.getElementById('global-running-text-content');
+            if (!viewport || !track) return;
+
+            track.textContent = text;
+
+            // Reset animasi sejenak agar pengukuran lebar akurat
+            track.style.animation = 'none';
+            void track.offsetWidth;
+
+            const viewportWidth = viewport.clientWidth || window.innerWidth || 360;
+            const textWidth = track.scrollWidth || 180;
+
+            const startPx = viewportWidth;
+            const endPx = -textWidth;
+            const totalDistancePx = Math.max(120, startPx - endPx);
+
+            // Kecepatan santai dalam piksel per detik: Lambat 38px/s, Normal 62px/s, Cepat 95px/s
+            const pxPerSecond = speed === 'fast' ? 95 : (speed === 'slow' ? 38 : 62);
+            const durationSec = Math.max(8, totalDistancePx / pxPerSecond);
+
+            track.style.setProperty('--marquee-start', `${startPx}px`);
+            track.style.setProperty('--marquee-end', `${endPx}px`);
+            track.style.setProperty('--marquee-duration', `${durationSec.toFixed(2)}s`);
+            track.style.animation = '';
+        }
+
         async function loadCompanyProfile() {
             try {
                 const docRef = doc(db, "pengaturan", "profil_perusahaan");
                 const docSnap = await getDoc(docRef);
 
+                let namaPerusahaan = "BUMKal Srihardono";
                 let alamatPerusahaan = "-";
                 let teleponPerusahaan = "-";
-                let logoUrl = "assets/icons/icon-192.png";
+                let iconUrl = "assets/icons/icon-192.png";
+                let mobileIconUrl = "assets/icons/Logo.png";
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    if (data.nama) namaPerusahaan = data.nama;
                     alamatPerusahaan = data.alamat || "-";
                     teleponPerusahaan = data.telepon || "-";
-                    if (data.logo) logoUrl = data.logo;
+                    if (data.iconUrl) {
+                        iconUrl = data.iconUrl;
+                        mobileIconUrl = data.iconUrl;
+                    } else if (data.logo) {
+                        iconUrl = data.logo;
+                        mobileIconUrl = data.logo;
+                    }
                 }
 
+                const headerCompanyNameEl = document.getElementById('header-company-name');
                 const headerAddressEl = document.getElementById('header-company-address');
                 const headerPhoneEl = document.getElementById('header-company-phone');
                 const headerLogoEl = document.getElementById('header-logo-img');
-                const sidebarLogoEl = document.getElementById('sidebar-logo-img');
+                const mobileLogoEl = document.getElementById('mobile-logo-img');
+                const appleIconEl = document.getElementById('apple-touch-icon-link');
 
+                if (headerCompanyNameEl) headerCompanyNameEl.textContent = namaPerusahaan;
                 if (headerAddressEl) headerAddressEl.textContent = `Alamat: ${alamatPerusahaan}`;
                 if (headerPhoneEl) headerPhoneEl.textContent = `Telp: ${teleponPerusahaan}`;
 
-                if (headerLogoEl && logoUrl) headerLogoEl.src = logoUrl;
-                if (sidebarLogoEl && logoUrl) sidebarLogoEl.src = logoUrl;
+                if (mobileLogoEl && mobileIconUrl) {
+                    mobileLogoEl.src = mobileIconUrl;
+                }
+
+                if (iconUrl) {
+                    if (headerLogoEl) headerLogoEl.src = iconUrl;
+                    if (appleIconEl) appleIconEl.href = iconUrl;
+                }
 
             } catch (error) {
                 console.error("Gagal memuat profil perusahaan dari database:", error);
             }
         }
 
+        window.reloadCompanyProfile = loadCompanyProfile;
+
         async function loadRunningText() {
             try {
+                const wrapper = document.getElementById('global-running-text-container');
+                const container = document.getElementById('global-running-text-content');
+                if (!wrapper || !container) return;
+
+                let globalAktif = true;
+                let kecepatan = 'normal';
+
+                const configSnap = await getDoc(doc(db, "pengaturan", "running_text"));
+                if (configSnap.exists()) {
+                    const cfg = configSnap.data();
+                    if (typeof cfg.aktif === 'boolean') globalAktif = cfg.aktif;
+                    if (cfg.kecepatan) kecepatan = cfg.kecepatan;
+                }
+
+                if (!globalAktif) {
+                    wrapper.classList.add('hidden');
+                    return;
+                } else {
+                    wrapper.classList.remove('hidden');
+                }
+
                 const querySnapshot = await getDocs(collection(db, "running_text"));
                 const texts = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
                     if (data.aktif && data.teks) {
                         texts.push(data.teks);
                     }
                 });
 
-                const container = document.getElementById('mobile-running-text-content');
-                if (container) {
-                    if (texts.length > 0) {
-                        container.textContent = texts.join("   •   ");
-                    } else {
-                        container.textContent = "Selamat datang di Sistem BUMKal Srihardono.";
-                    }
-                }
+                latestRunningText = texts.length > 0
+                    ? texts.join("   •   ")
+                    : "Selamat datang di Sistem BUMKal Srihardono.";
+                latestSpeed = kecepatan;
+
+                applyMarqueeMetrics(latestRunningText, latestSpeed);
             } catch (error) {
                 console.error("Gagal memuat running text:", error);
             }
         }
+
+        window.reloadGlobalRunningText = loadRunningText;
+
+        window.addEventListener("resize", () => {
+            applyMarqueeMetrics(latestRunningText, latestSpeed);
+        });
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCompanyProfile();
