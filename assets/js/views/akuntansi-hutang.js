@@ -1,0 +1,422 @@
+// File: assets/js/views/akuntansi-hutang.js
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { db } from "../firebase-init.js";
+
+export function renderHutang() {
+    return `
+        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+            <!-- Header Halaman -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <a href="#/akuntansi" data-link title="Kembali ke Akuntansi" class="w-9 h-9 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Pengelolaan Hutang Usaha</h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Catat kewajiban hutang, pantau jatuh tempo, dan proses pelunasan hutang BUMKal.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ringkasan Hutang -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                    <span class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Total Hutang Tercatat</span>
+                    <span id="total-hutang-semua" class="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1 block">Rp 0</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                    <span class="block text-[10px] font-bold uppercase text-rose-600 dark:text-rose-400">Sisa Kewajiban Belum Lunas</span>
+                    <span id="total-hutang-sisa" class="text-sm font-bold text-rose-700 dark:text-rose-300 mt-1 block">Rp 0</span>
+                </div>
+                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                    <span class="block text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">Sudah Dilunasi</span>
+                    <span id="total-hutang-lunas" class="text-sm font-bold text-emerald-700 dark:text-emerald-300 mt-1 block">Rp 0</span>
+                </div>
+            </div>
+
+            <!-- Form Input Hutang Baru -->
+            <div class="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Form Pencatatan Hutang Baru</h2>
+                <form id="form-hutang" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL TRANSAKSI *</label>
+                        <input type="date" id="hutang-tgl" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JATUH TEMPO</label>
+                        <input type="date" id="hutang-jatuh-tempo" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">UNIT USAHA *</label>
+                        <select id="hutang-unit" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                            <option value="">-- Pilih Unit Usaha --</option>
+                            <option value="KANTOR PUSAT (01)">KANTOR PUSAT (01)</option>
+                            <option value="AGROWISATA (02)">AGROWISATA (02)</option>
+                            <option value="KOMPOS (03)">KOMPOS (03)</option>
+                            <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">NAMA KREDITUR / SUPPLIER *</label>
+                        <input type="text" id="hutang-kreditur" placeholder="Nama pihak pemberi hutang / supplier" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN HUTANG / KEWAJIBAN (COA) *</label>
+                        <select id="hutang-akun-kode" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                            <option value="">-- Memuat Akun Hutang --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JUMLAH KEWAJIBAN (RP) *</label>
+                        <input type="number" id="hutang-jumlah" min="1" step="any" placeholder="0" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">KETERANGAN / URAIAN *</label>
+                        <input type="text" id="hutang-keterangan" placeholder="Contoh: Pembelian bibit / bahan baku operasional tempo" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    </div>
+                    <div class="md:col-span-3 flex justify-end gap-2 pt-2">
+                        <button type="submit" id="btn-simpan-hutang" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-none transition cursor-pointer shadow-sm">Simpan Hutang</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Filter & Tabel Daftar Hutang -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+                    <span class="font-bold text-slate-800 dark:text-slate-200">DAFTAR HUTANG USAHA</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="filter-status-hutang" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-1.5 rounded-none">
+                            <option value="">-- Semua Status --</option>
+                            <option value="Belum Lunas">Belum Lunas</option>
+                            <option value="Lunas">Lunas</option>
+                        </select>
+                        <span id="total-hutang-count" class="text-slate-500 font-normal">Total: 0 Data</span>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+                                <th class="py-3 px-4 font-semibold">Tanggal / Tempo</th>
+                                <th class="py-3 px-4 font-semibold">Unit Usaha</th>
+                                <th class="py-3 px-4 font-semibold">Kreditur & Keterangan</th>
+                                <th class="py-3 px-4 font-semibold text-right">Jumlah (Rp)</th>
+                                <th class="py-3 px-4 font-semibold text-center">Status</th>
+                                <th class="py-3 px-4 font-semibold text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-hutang-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            <tr><td colspan="6" class="py-8 text-center text-slate-400">Memuat data hutang...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Toast Notifikasi -->
+            <div id="toast-hutang" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-in-out pointer-events-none">
+                <div class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-none shadow-xl border border-slate-700 dark:border-slate-200 flex items-center gap-3 text-xs font-semibold">
+                    <svg id="toast-hutang-icon" class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span id="toast-hutang-message">Pesan notifikasi</span>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+let hutangToastTimer = null;
+
+export function initHutangHandler() {
+    const formHutang = document.getElementById('form-hutang');
+    const hutangTgl = document.getElementById('hutang-tgl');
+    const hutangJatuhTempo = document.getElementById('hutang-jatuh-tempo');
+    const hutangUnit = document.getElementById('hutang-unit');
+    const hutangKreditur = document.getElementById('hutang-kreditur');
+    const hutangAkunKode = document.getElementById('hutang-akun-kode');
+    const hutangJumlah = document.getElementById('hutang-jumlah');
+    const hutangKeterangan = document.getElementById('hutang-keterangan');
+    const btnSimpanHutang = document.getElementById('btn-simpan-hutang');
+
+    const filterStatus = document.getElementById('filter-status-hutang');
+    const tableBody = document.getElementById('table-hutang-body');
+    const totalCountEl = document.getElementById('total-hutang-count');
+    const totalSemuaEl = document.getElementById('total-hutang-semua');
+    const totalSisaEl = document.getElementById('total-hutang-sisa');
+    const totalLunasEl = document.getElementById('total-hutang-lunas');
+
+    if (hutangTgl && !hutangTgl.value) {
+        hutangTgl.value = new Date().toISOString().split('T')[0];
+    }
+
+    let hutangList = [];
+
+    function formatRupiah(num) {
+        return "Rp " + Number(num || 0).toLocaleString('id-ID');
+    }
+
+    function showToast(message, isError = false) {
+        const toast = document.getElementById('toast-hutang');
+        const msgEl = document.getElementById('toast-hutang-message');
+        const iconEl = document.getElementById('toast-hutang-icon');
+        if (!toast || !msgEl) return;
+
+        if (hutangToastTimer) clearTimeout(hutangToastTimer);
+
+        msgEl.textContent = message;
+        if (iconEl) {
+            iconEl.setAttribute('class', isError ? 'w-4 h-4 text-rose-500 flex-shrink-0' : 'w-4 h-4 text-emerald-400 flex-shrink-0');
+            iconEl.innerHTML = isError
+                ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>`
+                : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>`;
+        }
+
+        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+        toast.classList.add('translate-y-0', 'opacity-100');
+
+        hutangToastTimer = setTimeout(() => {
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+        }, 3000);
+    }
+
+    function updateRingkasan() {
+        let totalSemua = 0;
+        let totalSisa = 0;
+        let totalLunas = 0;
+
+        hutangList.forEach(item => {
+            const jumlah = Number(item.jumlah || 0);
+            totalSemua += jumlah;
+            if (item.status === "Lunas") {
+                totalLunas += jumlah;
+            } else {
+                totalSisa += jumlah;
+            }
+        });
+
+        if (totalSemuaEl) totalSemuaEl.textContent = formatRupiah(totalSemua);
+        if (totalSisaEl) totalSisaEl.textContent = formatRupiah(totalSisa);
+        if (totalLunasEl) totalLunasEl.textContent = formatRupiah(totalLunas);
+    }
+
+    async function loadCoaAndHutang() {
+        try {
+            const qCoa = query(collection(db, "coa"), orderBy("kodeAkun", "asc"));
+            const snapCoa = await getDocs(qCoa);
+            if (hutangAkunKode) hutangAkunKode.innerHTML = '<option value="">-- Pilih Akun Hutang (COA) --</option>';
+
+            snapCoa.forEach(docSnap => {
+                const data = docSnap.data();
+                const namaLower = (data.namaAkun || "").toLowerCase();
+                const kategoriLower = (data.kategori || "").toLowerCase();
+                const kode = data.kodeAkun || "";
+                const level = String(data.levelAkun || "");
+                const tipe = (data.tipeAkun || "").toLowerCase();
+
+                if ((level === "4" || tipe === "detail") && data.statusAkun !== "Nonaktif") {
+                    if (namaLower.includes("hutang") || namaLower.includes("utang") || kategoriLower.includes("hutang") || kategoriLower.includes("kewajiban") || kode.startsWith("2")) {
+                        if (hutangAkunKode) {
+                            const opt = document.createElement('option');
+                            opt.value = kode;
+                            opt.textContent = `${kode} - ${data.namaAkun}`;
+                            hutangAkunKode.appendChild(opt);
+                        }
+                    }
+                }
+            });
+
+            const qHutang = query(collection(db, "hutang"), orderBy("tglTransaksi", "desc"));
+            const snapHutang = await getDocs(qHutang);
+            hutangList = [];
+            snapHutang.forEach(docSnap => {
+                hutangList.push({ id: docSnap.id, ...docSnap.data() });
+            });
+
+            updateRingkasan();
+            renderTable();
+        } catch (err) {
+            console.error("Gagal memuat data hutang:", err);
+            if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+        }
+    }
+
+    function renderTable() {
+        if (!tableBody) return;
+        const statusFilter = filterStatus ? filterStatus.value : "";
+        const filtered = hutangList.filter(item => !statusFilter || item.status === statusFilter);
+
+        if (totalCountEl) totalCountEl.textContent = `Total: ${filtered.length} Data`;
+
+        if (filtered.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada data hutang.</td></tr>`;
+            return;
+        }
+
+        let html = "";
+        filtered.forEach(item => {
+            const isLunas = item.status === "Lunas";
+            const badgeClass = isLunas
+                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300";
+
+            html += `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                    <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
+                        <div>${item.tglTransaksi || '-'}</div>
+                        <div class="text-[11px] text-slate-500">Tempo: ${item.jatuhTempo || '-'}</div>
+                    </td>
+                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium">${item.unitUsaha || '-'}</td>
+                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
+                        <div class="font-bold text-indigo-600 dark:text-indigo-400">${item.kreditur || '-'} (${item.kodeAkun || '-'})</div>
+                        <div class="text-slate-500 text-[11px] mt-0.5">${item.keterangan || '-'}</div>
+                    </td>
+                    <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">${formatRupiah(item.jumlah)}</td>
+                    <td class="py-3 px-4 text-center">
+                        <span class="px-2 py-0.5 text-[11px] font-bold ${badgeClass}">${item.status || 'Belum Lunas'}</span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            ${!isLunas ? `<button type="button" data-lunasi-id="${item.id}" class="btn-lunasi-hutang px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition text-[11px] font-semibold cursor-pointer">Lunasi</button>` : ''}
+                            <button type="button" data-delete-hutang="${item.id}" class="btn-hapus-hutang text-rose-600 hover:text-rose-800 p-1 cursor-pointer" title="Hapus Hutang">
+                                <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = html;
+
+        document.querySelectorAll('.btn-lunasi-hutang').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.getAttribute('data-lunasi-id');
+                const target = hutangList.find(h => h.id === id);
+                if (!target) return;
+
+                btn.disabled = true;
+                try {
+                    const tglLunas = new Date().toISOString().split('T')[0];
+                    await updateDoc(doc(db, "hutang", id), {
+                        status: "Lunas",
+                        tglLunas,
+                        updatedAt: new Date().toISOString()
+                    });
+
+                    await addDoc(collection(db, "jurnal_umum"), {
+                        noRef: `HTG-LNS-${Date.now().toString().slice(-6)}`,
+                        tglTransaksi: tglLunas,
+                        unitUsaha: target.unitUsaha || "KANTOR PUSAT (01)",
+                        keterangan: `[Pelunasan Hutang] ${target.kreditur || ''} - ${target.keterangan || ''}`,
+                        rincian: [
+                            { kodeAkun: target.kodeAkun || "2.01.01", namaAkun: target.namaAkun || "Hutang Usaha", debet: Number(target.jumlah || 0), kredit: 0 },
+                            { kodeAkun: "1.01.01", namaAkun: "Kas / Bank", debet: 0, kredit: Number(target.jumlah || 0) }
+                        ],
+                        totalNilai: Number(target.jumlah || 0),
+                        createdAt: new Date().toISOString()
+                    });
+
+                    showToast("Hutang berhasil dilunasi dan dicatat ke jurnal.");
+                    await loadCoaAndHutang();
+                } catch (err) {
+                    console.error("Gagal melunasi hutang:", err);
+                    showToast("Gagal memproses pelunasan hutang.", true);
+                    btn.disabled = false;
+                }
+            };
+        });
+
+        document.querySelectorAll('.btn-hapus-hutang').forEach(btn => {
+            btn.onclick = async () => {
+                const id = btn.getAttribute('data-delete-hutang');
+                if (!id) return;
+                if (confirm("Apakah Anda yakin ingin menghapus data hutang ini?")) {
+                    try {
+                        await deleteDoc(doc(db, "hutang", id));
+                        showToast("Data hutang berhasil dihapus.");
+                        await loadCoaAndHutang();
+                    } catch (err) {
+                        console.error("Gagal menghapus hutang:", err);
+                        showToast("Gagal menghapus data hutang.", true);
+                    }
+                }
+            };
+        });
+    }
+
+    if (filterStatus) filterStatus.onchange = renderTable;
+
+    if (formHutang) {
+        formHutang.onsubmit = async (e) => {
+            e.preventDefault();
+            const tgl = hutangTgl ? hutangTgl.value : "";
+            const jatuhTempo = hutangJatuhTempo ? hutangJatuhTempo.value : "";
+            const unit = hutangUnit ? hutangUnit.value : "";
+            const kreditur = hutangKreditur ? hutangKreditur.value.trim() : "";
+            const akunKode = hutangAkunKode ? hutangAkunKode.value : "";
+            const jumlah = parseFloat(hutangJumlah ? hutangJumlah.value : 0) || 0;
+            const ket = hutangKeterangan ? hutangKeterangan.value.trim() : "";
+
+            if (!akunKode) {
+                showToast("Pilih akun hutang / kewajiban terlebih dahulu.", true);
+                return;
+            }
+            if (jumlah <= 0) {
+                showToast("Jumlah kewajiban harus lebih besar dari 0.", true);
+                return;
+            }
+
+            const selectedCoaOpt = hutangAkunKode.options[hutangAkunKode.selectedIndex];
+            const namaAkun = selectedCoaOpt ? selectedCoaOpt.textContent.split(' - ').slice(1).join(' - ') || "Hutang Usaha" : "Hutang Usaha";
+
+            if (btnSimpanHutang) {
+                btnSimpanHutang.disabled = true;
+                btnSimpanHutang.textContent = "Menyimpan...";
+            }
+
+            try {
+                await addDoc(collection(db, "hutang"), {
+                    noRef: `HTG-${Date.now().toString().slice(-6)}`,
+                    tglTransaksi: tgl,
+                    jatuhTempo,
+                    unitUsaha: unit,
+                    kreditur,
+                    kodeAkun: akunKode,
+                    namaAkun,
+                    jumlah,
+                    keterangan: ket,
+                    status: "Belum Lunas",
+                    createdAt: new Date().toISOString()
+                });
+
+                await addDoc(collection(db, "jurnal_umum"), {
+                    noRef: `HTG-${Date.now().toString().slice(-6)}`,
+                    tglTransaksi: tgl,
+                    unitUsaha: unit,
+                    keterangan: `[Hutang] ${kreditur} - ${ket}`,
+                    rincian: [
+                        { kodeAkun: "5.01.01", namaAkun: "Beban Operasional Usaha", debet: jumlah, kredit: 0 },
+                        { kodeAkun: akunKode, namaAkun, debet: 0, kredit: jumlah }
+                    ],
+                    totalNilai: jumlah,
+                    createdAt: new Date().toISOString()
+                });
+
+                showToast("Data hutang berhasil disimpan.");
+                formHutang.reset();
+                if (hutangTgl) hutangTgl.value = new Date().toISOString().split('T')[0];
+                await loadCoaAndHutang();
+            } catch (err) {
+                console.error("Gagal menyimpan hutang:", err);
+                showToast("Terjadi kesalahan saat menyimpan data hutang.", true);
+            } finally {
+                if (btnSimpanHutang) {
+                    btnSimpanHutang.disabled = false;
+                    btnSimpanHutang.textContent = "Simpan Hutang";
+                }
+            }
+        };
+    }
+
+    loadCoaAndHutang();
+}
