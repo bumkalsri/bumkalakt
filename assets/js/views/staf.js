@@ -1,3 +1,4 @@
+// File: assets/js/views/staf.js
 import { getDocs, collection, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
@@ -32,7 +33,7 @@ export async function initStafHandler() {
         try {
             const querySnapshot = await getDocs(collection(db, "users"));
             
-            // Filter fleksibel untuk role admin, monitoring, dan kantor
+            // Filter fleksibel untuk role Administrator, monitoring, dan kantor
             let stafList = [];
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data();
@@ -45,7 +46,7 @@ export async function initStafHandler() {
             });
 
             if (stafList.length === 0) {
-                container.innerHTML = `<div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">Tidak ada pengguna dengan role Admin, Monitoring, atau Kantor.</div>`;
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none">Tidak ada pengguna dengan role Administrator, Monitoring, atau Kantor.</div>`;
                 if (infoCountEl) infoCountEl.textContent = `Total: 0 Staf`;
                 return;
             }
@@ -79,14 +80,16 @@ export async function initStafHandler() {
                 const email = data.email || '-';
                 const uid = data.id;
                 const photoURL = data.photoURL;
-                const currentRole = data.role || 'admin';
+                const currentRole = data.role || 'Administrator';
 
+                // Generator Avatar yang aman
                 let avatarHTML = '';
-                if (photoURL) {
-                    avatarHTML = `<img src="${photoURL}" class="w-10 h-10 sm:w-8 sm:h-8 object-cover flex-shrink-0" alt="Avatar">`;
+                const initials = name.substring(0, 2).toUpperCase();
+
+                if (photoURL && typeof photoURL === 'string' && photoURL.trim() !== "") {
+                    avatarHTML = `<img src="${photoURL}" class="w-10 h-10 sm:w-8 sm:h-8 object-cover flex-shrink-0 rounded-full" alt="Avatar" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0 rounded-full\\'>${initials}</div>';">`;
                 } else {
-                    const initials = name.substring(0, 2).toUpperCase();
-                    avatarHTML = `<div class="w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">${initials}</div>`;
+                    avatarHTML = `<div class="w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0 rounded-full">${initials}</div>`;
                 }
 
                 // Render Card (HP) dengan Pilihan Role
@@ -103,7 +106,7 @@ export async function initStafHandler() {
                         <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                             <div class="flex items-center gap-1.5">
                                 <select id="role-select-staf-card-${uid}" class="w-full p-2 text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none rounded-none">
-                                    <option value="admin" ${currentRole.toLowerCase() === 'admin' ? 'selected' : ''}>admin</option>
+                                    <option value="Administrator" ${currentRole.toLowerCase() === 'admin' || currentRole.toLowerCase() === 'administrator' ? 'selected' : ''}>Administrator</option>
                                     <option value="Monitoring" ${currentRole.toLowerCase() === 'monitoring' ? 'selected' : ''}>Monitoring</option>
                                     <option value="Kantor" ${currentRole.toLowerCase() === 'kantor' ? 'selected' : ''}>Kantor</option>
                                     <option value="Tamu" ${currentRole.toLowerCase() === 'tamu' ? 'selected' : ''}>Tamu</option>
@@ -123,9 +126,11 @@ export async function initStafHandler() {
                 tableRowsHTML += `
                     <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
                         <td class="p-3.5 text-center text-slate-500 dark:text-slate-400 font-medium">${index + 1}</td>
-                        <td class="p-3.5 flex items-center gap-3">
-                            ${avatarHTML}
-                            <span class="font-semibold text-slate-800 dark:text-slate-100">${name}</span>
+                        <td class="p-3.5">
+                            <div class="flex items-center gap-3">
+                                ${avatarHTML}
+                                <span class="font-semibold text-slate-800 dark:text-slate-100">${name}</span>
+                            </div>
                         </td>
                         <td class="p-3.5 text-slate-600 dark:text-slate-300">${email}</td>
                         <td class="p-3.5">
@@ -134,7 +139,7 @@ export async function initStafHandler() {
                         <td class="p-3.5 text-center">
                             <div class="inline-flex items-center gap-2">
                                 <select id="role-select-staf-table-${uid}" class="p-1.5 text-xs border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none rounded-none">
-                                    <option value="admin" ${currentRole.toLowerCase() === 'admin' ? 'selected' : ''}>admin</option>
+                                    <option value="Administrator" ${currentRole.toLowerCase() === 'admin' || currentRole.toLowerCase() === 'administrator' ? 'selected' : ''}>Administrator</option>
                                     <option value="Monitoring" ${currentRole.toLowerCase() === 'monitoring' ? 'selected' : ''}>Monitoring</option>
                                     <option value="Kantor" ${currentRole.toLowerCase() === 'kantor' ? 'selected' : ''}>Kantor</option>
                                     <option value="Tamu" ${currentRole.toLowerCase() === 'tamu' ? 'selected' : ''}>Tamu</option>
@@ -183,7 +188,7 @@ export async function initStafHandler() {
             const userDocRef = doc(db, "users", uid);
             await deleteDoc(userDocRef);
             alert("Pengguna berhasil dihapus dari database!");
-            loadStaf(); // Muat ulang data setelah dihapus
+            loadStaf();
         } catch (err) {
             console.error("Gagal menghapus pengguna:", err);
             alert("Gagal menghapus pengguna dari database.");

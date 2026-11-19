@@ -1,3 +1,4 @@
+// File: assets/js/views/tamu.js
 import { getDocs, collection, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
@@ -31,22 +32,18 @@ export async function initTamuHandler() {
 
         try {
             const querySnapshot = await getDocs(collection(db, "users"));
-            
-            // Filter HANYA role yang bernilai 'Tamu' (atau otomatis ubah 'Staf' menjadi 'Tamu')
             let usersList = [];
             
             for (const docSnap of querySnapshot.docs) {
                 const data = docSnap.data();
                 let role = data.role || 'Tamu';
 
-                // Jika role sebelumnya adalah 'Staf' atau kosong, otomatis ubah/migrasikan ke 'Tamu' di database
                 if (role === 'Staf' || !data.role) {
                     role = 'Tamu';
                     const userRef = doc(db, "users", docSnap.id);
                     await updateDoc(userRef, { role: 'Tamu' });
                 }
 
-                // Hanya masukkan ke daftar jika rolenya adalah 'Tamu'
                 if (role === 'Tamu') {
                     usersList.push({ id: docSnap.id, ...data, role });
                 }
@@ -89,15 +86,17 @@ export async function initTamuHandler() {
                 const photoURL = data.photoURL;
                 const currentRole = data.role;
 
+                // Generator Avatar yang aman: Cek apakah photoURL valid dan tidak kosong
                 let avatarHTML = '';
-                if (photoURL) {
-                    avatarHTML = `<img src="${photoURL}" class="w-10 h-10 sm:w-8 sm:h-8 object-cover flex-shrink-0" alt="Avatar">`;
+                const initials = name.substring(0, 2).toUpperCase();
+
+                if (photoURL && typeof photoURL === 'string' && photoURL.trim() !== "") {
+                    avatarHTML = `<img src="${photoURL}" class="w-10 h-10 sm:w-8 sm:h-8 object-cover flex-shrink-0 rounded-full" alt="Avatar" onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\\'w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0 rounded-full\\'>${initials}</div>';">`;
                 } else {
-                    const initials = name.substring(0, 2).toUpperCase();
-                    avatarHTML = `<div class="w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0">${initials}</div>`;
+                    avatarHTML = `<div class="w-10 h-10 sm:w-8 sm:h-8 bg-indigo-600 text-white font-bold flex items-center justify-center text-xs flex-shrink-0 rounded-full">${initials}</div>`;
                 }
 
-                // Render Card (HP) dengan Pilihan Role (Tamu, Monitoring, Kantor, Administrator)
+                // Render Card (HP)
                 cardsHTML += `
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 shadow-xs rounded-none flex flex-col gap-3">
                         <div class="flex items-center gap-3">
@@ -127,13 +126,15 @@ export async function initTamuHandler() {
                     </div>
                 `;
 
-                // Render Baris Tabel (Desktop) dengan Pilihan Role Dropdown & Tombol Aksi
+                // Render Baris Tabel (Desktop)
                 tableRowsHTML += `
                     <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition">
                         <td class="p-3.5 text-center text-slate-500 dark:text-slate-400 font-medium">${index + 1}</td>
-                        <td class="p-3.5 flex items-center gap-3">
-                            ${avatarHTML}
-                            <span class="font-semibold text-slate-800 dark:text-slate-100">${name}</span>
+                        <td class="p-3.5">
+                            <div class="flex items-center gap-3">
+                                ${avatarHTML}
+                                <span class="font-semibold text-slate-800 dark:text-slate-100">${name}</span>
+                            </div>
                         </td>
                         <td class="p-3.5 text-slate-600 dark:text-slate-300">${email}</td>
                         <td class="p-3.5">
@@ -170,7 +171,6 @@ export async function initTamuHandler() {
         }
     };
 
-    // Fungsi global untuk memperbarui role user di Firestore
     window.updateUserRole = async (uid, newRole) => {
         if (!confirm(`Apakah Anda yakin ingin mengubah role pengguna ini menjadi "${newRole}"?`)) return;
         try {
@@ -184,7 +184,6 @@ export async function initTamuHandler() {
         }
     };
 
-    // Fungsi global untuk menghapus data profil pengguna dari Firestore
     window.deleteUser = async (uid) => {
         if (!confirm("Apakah Anda yakin ingin menghapus data pengguna ini dari database?")) return;
         try {

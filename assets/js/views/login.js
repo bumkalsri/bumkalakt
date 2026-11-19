@@ -1,6 +1,6 @@
 // File: assets/js/views/login.js
 import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getDoc, setDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getDoc, setDoc, doc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { auth, db } from "../firebase-init.js";
 
 export function renderLogin() {
@@ -69,12 +69,18 @@ export function initLoginHandler() {
                 if (!userDocSnap.exists()) {
                     currentName = currentName.charAt(0).toUpperCase() + currentName.slice(1);
 
+                    // Cek apakah koleksi "users" masih kosong (belum ada user sama sekali)
+                    const allUsersSnapshot = await getDocs(collection(db, "users"));
+                    // Jika koleksi masih kosong, user pertama otomatis jadi "Administrator"
+                    // Jika sudah ada user sebelumnya, user berikutnya otomatis jadi "Tamu"
+                    const assignedRole = allUsersSnapshot.empty ? "Administrator" : "Tamu";
+
                     userData = {
                         uid: user.uid,
                         email: user.email,
                         nama: currentName,
                         photoURL: currentPhoto,
-                        role: "admin", 
+                        role: assignedRole, 
                         createdAt: new Date().toISOString()
                     };
 
@@ -91,7 +97,7 @@ export function initLoginHandler() {
 
                 localStorage.setItem('user_name', userData.nama || currentName);
                 localStorage.setItem('user_email', userData.email);
-                localStorage.setItem('user_role', userData.role || 'admin');
+                localStorage.setItem('user_role', userData.role || 'Tamu');
                 localStorage.setItem('user_avatar', userData.photoURL);
                 
                 const nameParts = (userData.nama || currentName).split(' ');
