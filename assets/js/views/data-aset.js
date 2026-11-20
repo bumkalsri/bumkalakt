@@ -1,9 +1,10 @@
 // File: assets/js/views/data-aset.js
 import {
     getDocs,
+    query,
+    where,
     collection,
     updateDoc,
-    deleteDoc,
     doc,
     serverTimestamp,
     writeBatch
@@ -32,6 +33,63 @@ function formatRupiah(num) {
     return "Rp " + Number(num || 0).toLocaleString("id-ID");
 }
 
+function formatRibuan(num) {
+    const clean = Math.max(0, Math.round(Number(num) || 0));
+    return clean.toLocaleString("id-ID");
+}
+
+function parseRibuanNumber(rawVal) {
+    const digits = String(rawVal ?? "").replace(/\D/g, "");
+    if (!digits) return 0;
+    const parsed = parseInt(digits, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function normalizeDateIso(rawVal) {
+    const s = String(rawVal ?? "").trim();
+    const fullMatch = s.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+    if (fullMatch) {
+        return `${fullMatch[1]}-${fullMatch[2].padStart(2, "0")}-${fullMatch[3].padStart(2, "0")}`;
+    }
+    const ymMatch = s.match(/(\d{4})[-/](\d{1,2})/);
+    if (ymMatch) {
+        return `${ymMatch[1]}-${ymMatch[2].padStart(2, "0")}-01`;
+    }
+    const yMatch = s.match(/\b(20\d{2})\b/);
+    if (yMatch) {
+        return `${yMatch[1]}-01-01`;
+    }
+    return "";
+}
+
+function getAsetPurchaseDate(item = {}) {
+    const direct = normalizeDateIso(item.tglBeli ?? item.tglTransaksi ?? item.tanggalBeli ?? item.tanggal ?? "");
+    if (direct) return direct;
+    if (item.periode) {
+        const fromPeriode = normalizeDateIso(item.periode);
+        if (fromPeriode) return fromPeriode;
+    }
+    if (item.tahun) {
+        const fromTahun = normalizeDateIso(String(item.tahun));
+        if (fromTahun) return fromTahun;
+    }
+    return "";
+}
+
+function parseAccountLabel(rawLabel) {
+    const str = String(rawLabel || "").trim();
+    if (!str) return { kodeAkun: "", namaAkun: "", label: "" };
+    const parts = str.split(" - ");
+    if (parts.length >= 2) {
+        return {
+            kodeAkun: parts[0].trim(),
+            namaAkun: parts.slice(1).join(" - ").trim(),
+            label: str
+        };
+    }
+    return { kodeAkun: str, namaAkun: str, label: str };
+}
+
 function getKondisiBadgeClass(kondisi) {
     const k = String(kondisi || "").toLowerCase();
     if (k.includes("rusak")) {
@@ -49,6 +107,19 @@ function buildSelectOptions(items, placeholder, selectedValue = "") {
         const label = `${acc.kodeAkun} - ${acc.namaAkun}`;
         const isSel = selectedValue && (selectedValue === label || selectedValue === acc.kodeAkun);
         opts.push(`<option value="${escapeHtml(label)}" ${isSel ? "selected" : ""}>${escapeHtml(label)}</option>`);
+    });
+    return opts.join("");
+}
+
+function buildSupplierOptions(suppliers, selectedValue = "") {
+    const opts = [`<option value="">-- Pilih Supplier (Opsional) --</option>`];
+    suppliers.forEach((sup) => {
+        const kode = String(sup.kodeKontak || "").trim();
+        const nama = String(sup.nama || "").trim();
+        const label = kode ? `${kode} - ${nama}` : nama;
+        const val = kode ? `${kode} - ${nama}` : nama;
+        const isSel = selectedValue && (selectedValue === val || (kode && selectedValue === kode));
+        opts.push(`<option value="${escapeHtml(val)}" ${isSel ? "selected" : ""}>${escapeHtml(label)}</option>`);
     });
     return opts.join("");
 }
@@ -86,13 +157,13 @@ export function renderAset() {
             </div>
 
             <!-- Filter & Pencarian -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs items-end">
-                <div class="sm:col-span-2">
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 text-xs items-end">
+                <div class="lg:col-span-4">
                     <label for="aset-search" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">CARI ASET / LOKASI</label>
                     <input type="text" id="aset-search" placeholder="Cari kode inventaris, nama aset, lokasi, atau tahun..."
                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
                 </div>
-                <div>
+                <div class="lg:col-span-2">
                     <label for="aset-filter-kondisi" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER KONDISI</label>
                     <select id="aset-filter-kondisi"
                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
@@ -101,6 +172,22 @@ export function renderAset() {
                         <option value="Kurang Baik">Kurang Baik</option>
                         <option value="Rusak Berat">Rusak Berat</option>
                     </select>
+                </div>
+                <div class="lg:col-span-2">
+                    <label for="aset-filter-tgl-mulai" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL MULAI</label>
+                    <input type="date" id="aset-filter-tgl-mulai"
+                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
+                </div>
+                <div class="lg:col-span-2">
+                    <label for="aset-filter-tgl-sampai" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL SAMPAI</label>
+                    <input type="date" id="aset-filter-tgl-sampai"
+                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
+                </div>
+                <div class="lg:col-span-2">
+                    <button type="button" id="btn-reset-filter-aset"
+                        class="w-full px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold border border-slate-300 dark:border-slate-700 rounded-none transition cursor-pointer">
+                        Reset Filter
+                    </button>
                 </div>
             </div>
 
@@ -141,7 +228,7 @@ export function renderAset() {
                             </select>
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="text-[11px] text-sky-700 dark:text-sky-300 hidden sm:inline">No. Inventaris otomatis ter-generate saat disimpan</span>
+                            <span id="nota-periode-status" class="text-[11px] font-semibold text-sky-700 dark:text-sky-300 hidden sm:inline">No. Inventaris &amp; jurnal otomatis ter-generate saat disimpan</span>
                             <button type="button" id="btn-x-transaksi-aset" aria-label="Tutup dialog" class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 cursor-pointer">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                             </button>
@@ -156,14 +243,17 @@ export function renderAset() {
                                 <label for="nota-tgl-beli" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tgl. Beli *</label>
                                 <input type="date" id="nota-tgl-beli" value="${todayIso}" required
                                     class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-teal-600">
+                                <p id="nota-tgl-warning" class="hidden text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-1"></p>
                             </div>
                             <div class="md:col-span-3">
                                 <label for="nota-pemasok" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Kode Pemasok / Toko</label>
-                                <input type="text" id="nota-pemasok" placeholder="Opsional"
+                                <select id="nota-pemasok"
                                     class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-teal-600">
+                                    <option value="">-- Pilih Supplier (Opsional) --</option>
+                                </select>
                             </div>
                             <div class="md:col-span-6">
-                                <label for="nota-akun-bayar" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Akun Pembayaran / Sumber Dana (Kas / Bank / Hutang)</label>
+                                <label for="nota-akun-bayar" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Akun Pembayaran / Sumber Dana (Kas / Bank)</label>
                                 <select id="nota-akun-bayar"
                                     class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-teal-600">
                                     <option value="">-- Pilih Akun Pembayaran --</option>
@@ -242,7 +332,7 @@ export function renderAset() {
                             </div>
                             <div>
                                 <label for="edit-aset-harga" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Harga Satuan (Rp)</label>
-                                <input type="number" id="edit-aset-harga" min="0" step="any" class="w-full p-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
+                                <input type="text" inputmode="numeric" id="edit-aset-harga" class="w-full p-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 text-right focus:outline-none focus:border-indigo-600 rounded-none">
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-2">
@@ -317,6 +407,9 @@ export async function initAsetHandler() {
     const infoCountEl = document.getElementById('aset-info-count');
     const searchEl = document.getElementById('aset-search');
     const filterKondisiEl = document.getElementById('aset-filter-kondisi');
+    const filterTglMulaiEl = document.getElementById('aset-filter-tgl-mulai');
+    const filterTglSampaiEl = document.getElementById('aset-filter-tgl-sampai');
+    const btnResetFilterEl = document.getElementById('btn-reset-filter-aset');
 
     const btnHapusMasal = document.getElementById('btn-hapus-masal-aset');
     const labelHapusMasal = document.getElementById('label-hapus-masal-aset');
@@ -331,6 +424,10 @@ export async function initAsetHandler() {
     const itemsContainer = document.getElementById('nota-items-container');
     const totalDisplayEl = document.getElementById('nota-total-display');
     const btnSimpanSeluruh = document.getElementById('btn-simpan-seluruh-aset');
+    const tglBeliInput = document.getElementById('nota-tgl-beli');
+    const tglWarningEl = document.getElementById('nota-tgl-warning');
+    const periodeStatusEl = document.getElementById('nota-periode-status');
+    const pemasokSelect = document.getElementById('nota-pemasok');
     const akunBayarSelect = document.getElementById('nota-akun-bayar');
 
     const paginationBar = document.getElementById('aset-pagination-bar');
@@ -343,6 +440,7 @@ export async function initAsetHandler() {
     const btnCloseEdit = document.getElementById('btn-close-modal-edit-aset');
     const btnCancelEdit = document.getElementById('btn-cancel-modal-edit-aset');
     const editForm = document.getElementById('form-edit-aset');
+    const editHargaInput = document.getElementById('edit-aset-harga');
     const btnUpdateAset = document.getElementById('btn-update-aset');
 
     const confirmModal = document.getElementById('modal-konfirmasi-aset');
@@ -353,9 +451,28 @@ export async function initAsetHandler() {
 
     let allAsetList = [];
     let coaList = [];
+    let supplierList = [];
+    let tutupBulanMap = new Map();
+    let activePeriodKey = "";
     let selectedIds = new Set();
     let currentPage = 1;
     let pendingConfirmResolver = null;
+
+    function attachRibuanFormatter(inputEl, onFormatted = null) {
+        if (!inputEl) return;
+        inputEl.addEventListener('input', () => {
+            const num = parseRibuanNumber(inputEl.value);
+            inputEl.value = num > 0 ? formatRibuan(num) : "";
+            if (typeof onFormatted === "function") onFormatted(num);
+        });
+        inputEl.addEventListener('blur', () => {
+            const num = parseRibuanNumber(inputEl.value);
+            inputEl.value = formatRibuan(num);
+            if (typeof onFormatted === "function") onFormatted(num);
+        });
+    }
+
+    attachRibuanFormatter(editHargaInput);
 
     function showToast(message, isError = false) {
         const toast = document.getElementById('toast-aset');
@@ -380,6 +497,215 @@ export async function initAsetHandler() {
             toast.classList.remove('translate-y-0', 'opacity-100');
             toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
         }, 3000);
+    }
+
+    function normalizePeriodKey(rawVal) {
+        const s = String(rawVal || "").trim().toLowerCase();
+        const isoMatch = s.match(/(\d{4})[-/](\d{1,2})/);
+        if (isoMatch) {
+            return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}`;
+        }
+
+        const bulanMap = {
+            januari: "01", jan: "01",
+            februari: "02", feb: "02",
+            maret: "03", mar: "03",
+            april: "04", apr: "04",
+            mei: "05",
+            juni: "06", jun: "06",
+            juli: "07", jul: "07",
+            agustus: "08", agu: "08", ags: "08",
+            september: "09", sep: "09", sept: "09",
+            oktober: "10", okt: "10",
+            november: "11", nov: "11",
+            desember: "12", des: "12"
+        };
+
+        const yearMatch = s.match(/\b(20\d{2})\b/);
+        for (const [namaBulan, mm] of Object.entries(bulanMap)) {
+            if (new RegExp(`\\b${namaBulan}\\b`).test(s) && yearMatch) {
+                return `${yearMatch[1]}-${mm}`;
+            }
+        }
+        return "";
+    }
+
+    function extractDocPeriodKey(data = {}, docId = "") {
+        const direct = normalizePeriodKey(
+            data.periodKey ??
+            data.periode ??
+            data.bulanKey ??
+            data.bulan_key ??
+            data.bulanAktif ??
+            data.bulan_aktif ??
+            data.activePeriod ??
+            data.active_period ??
+            ""
+        );
+        if (direct) return direct;
+
+        const yearVal = String(data.tahun ?? data.year ?? "").trim();
+        const monthVal = String(data.bulan ?? data.month ?? data.namaBulan ?? "").trim();
+        if (yearVal && monthVal) {
+            const combined = normalizePeriodKey(`${yearVal}-${monthVal}`) || normalizePeriodKey(`${monthVal} ${yearVal}`);
+            if (combined) return combined;
+        }
+
+        return normalizePeriodKey(docId);
+    }
+
+    function isDocClosed(data = {}) {
+        if (data.isClosed === true || data.closed === true || data.terkunci === true || data.locked === true || Boolean(data.closedAt)) {
+            return true;
+        }
+        if (data.aktif === false || data.isAktif === false || data.is_aktif === false || data.isActive === false || data.active === false) {
+            return true;
+        }
+        const statusCandidate = String(
+            data.status ?? data.statusPeriode ?? data.status_periode ?? data.statusBulan ?? data.status_bulan ?? data.state ?? ""
+        )
+            .trim()
+            .toLowerCase();
+
+        return (
+            statusCandidate.includes("tutup") ||
+            statusCandidate.includes("close") ||
+            statusCandidate.includes("kunci") ||
+            statusCandidate.includes("lock") ||
+            statusCandidate.includes("selesai") ||
+            statusCandidate === "nonaktif" ||
+            statusCandidate === "tidak aktif"
+        );
+    }
+
+    function isDocActive(data = {}) {
+        if (isDocClosed(data)) return false;
+        if (
+            data.isActive === true ||
+            data.active === true ||
+            data.aktif === true ||
+            data.isAktif === true ||
+            data.is_aktif === true ||
+            data.isCurrent === true ||
+            data.current === true
+        ) {
+            return true;
+        }
+        const statusCandidate = String(
+            data.status ?? data.statusPeriode ?? data.status_periode ?? data.statusBulan ?? data.status_bulan ?? data.state ?? ""
+        )
+            .trim()
+            .toLowerCase();
+
+        return (
+            statusCandidate === "aktif" ||
+            statusCandidate === "active" ||
+            statusCandidate === "open" ||
+            statusCandidate === "terbuka" ||
+            statusCandidate === "berjalan"
+        );
+    }
+
+    function detectPeriodFromHeaderDom() {
+        const headerText = String(document.body?.innerText || "");
+        const match = headerText.match(/Bulan\s+Aktif\s*:\s*([^\n]+)/i);
+        if (!match) return "";
+        return normalizePeriodKey(match[1]);
+    }
+
+    function getPeriodeStatus(tglIso) {
+        const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
+        const periodKey = normalizePeriodKey(tglIso);
+        if (!periodKey) {
+            return { isAllowed: false, reason: "invalid_date", periodKey: "", label: "" };
+        }
+
+        const docData = tutupBulanMap.get(periodKey);
+        const label = docData && docData.namaBulan && docData.tahun
+            ? `${docData.namaBulan} ${docData.tahun} (${periodKey})`
+            : periodKey;
+
+        if (docData && isDocClosed(docData)) {
+            const statusText = String(
+                docData.status ?? docData.statusPeriode ?? docData.statusBulan ?? "Ditutup"
+            ).trim();
+            return {
+                isAllowed: false,
+                reason: "closed",
+                periodKey,
+                label,
+                statusText
+            };
+        }
+
+        if (effectiveActivePeriod && periodKey !== effectiveActivePeriod) {
+            return {
+                isAllowed: false,
+                reason: "not_active_month",
+                periodKey,
+                label,
+                activePeriodKey: effectiveActivePeriod
+            };
+        }
+
+        return {
+            isAllowed: true,
+            reason: "ok",
+            periodKey,
+            label
+        };
+    }
+
+    function getPeriodeBlockMessage(info) {
+        if (!info || info.isAllowed) return "";
+        if (info.reason === "closed") {
+            return `Periode ${info.label} berstatus "${info.statusText || "Ditutup"}". Transaksi tidak dapat disimpan.`;
+        }
+        if (info.reason === "not_active_month") {
+            return `Tanggal ${info.periodKey} bukan bulan aktif (bulan aktif: ${info.activePeriodKey}).`;
+        }
+        return "Tanggal transaksi tidak valid.";
+    }
+
+    function syncPeriodeValidationUI() {
+        const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
+        const tglVal = tglBeliInput ? tglBeliInput.value : "";
+        const info = getPeriodeStatus(tglVal);
+        const blockMsg = getPeriodeBlockMessage(info);
+
+        if (tglWarningEl) {
+            if (!info.isAllowed) {
+                tglWarningEl.textContent = blockMsg;
+                tglWarningEl.classList.remove('hidden');
+            } else {
+                tglWarningEl.textContent = "";
+                tglWarningEl.classList.add('hidden');
+            }
+        }
+
+        if (tglBeliInput) {
+            if (!info.isAllowed) {
+                tglBeliInput.classList.remove('border-slate-300', 'dark:border-slate-700', 'focus:border-teal-600');
+                tglBeliInput.classList.add('border-rose-500', 'dark:border-rose-500', 'focus:border-rose-600');
+            } else {
+                tglBeliInput.classList.remove('border-rose-500', 'dark:border-rose-500', 'focus:border-rose-600');
+                tglBeliInput.classList.add('border-slate-300', 'dark:border-slate-700', 'focus:border-teal-600');
+            }
+        }
+
+        if (periodeStatusEl) {
+            if (!info.isAllowed) {
+                periodeStatusEl.className = "text-[11px] font-bold text-rose-600 dark:text-rose-400 hidden sm:inline";
+                periodeStatusEl.textContent = blockMsg;
+            } else {
+                periodeStatusEl.className = "text-[11px] font-semibold text-sky-700 dark:text-sky-300 hidden sm:inline";
+                periodeStatusEl.textContent = effectiveActivePeriod
+                    ? `Bulan aktif: ${effectiveActivePeriod} • No. Inventaris & jurnal otomatis ter-generate`
+                    : "No. Inventaris & jurnal otomatis ter-generate saat disimpan";
+            }
+        }
+
+        return info.isAllowed;
     }
 
     function closeConfirmModal(result = false) {
@@ -414,46 +740,149 @@ export async function initAsetHandler() {
     if (btnConfirmBatal) btnConfirmBatal.addEventListener('click', onConfirmBatal);
     if (confirmModal) confirmModal.addEventListener('click', onConfirmBackdrop);
 
+    async function applyAsetAndJurnalDeletion(targetAsetIds) {
+        const idSet = new Set((targetAsetIds || []).filter(Boolean));
+        if (idSet.size === 0) return;
+
+        const targetItems = allAsetList.filter((a) => idSet.has(a.id));
+        const noRefSet = new Set(targetItems.map((a) => String(a.noRef || "").trim()).filter(Boolean));
+
+        const jurnalDocsByNoRef = new Map();
+        for (const refVal of noRefSet) {
+            const qRef = query(collection(db, "jurnal_umum"), where("noRef", "==", refVal));
+            const snap = await getDocs(qRef);
+            snap.forEach((d) => {
+                jurnalDocsByNoRef.set(d.id, { ref: d.ref, data: d.data() || {} });
+            });
+        }
+
+        const batch = writeBatch(db);
+        idSet.forEach((id) => {
+            batch.delete(doc(db, "aset", id));
+        });
+
+        jurnalDocsByNoRef.forEach(({ ref, data }) => {
+            const refVal = String(data.noRef || "").trim();
+            const remainingItems = allAsetList.filter(
+                (a) => !idSet.has(a.id) && String(a.noRef || "").trim() === refVal
+            );
+
+            if (remainingItems.length === 0) {
+                batch.delete(ref);
+                return;
+            }
+
+            const remainingKodes = new Set(
+                remainingItems.map((a) => String(a.kodeInventaris || "").trim()).filter(Boolean)
+            );
+            const remainingTotal = remainingItems.reduce(
+                (sum, a) =>
+                    sum +
+                    (Number(a.totalNilai ?? Number(a.harga || 0) * (parseInt(a.jumlah, 10) || 1)) || 0),
+                0
+            );
+
+            const currentRincian = Array.isArray(data.rincian) ? data.rincian : [];
+            const updatedRincian = currentRincian
+                .filter((row) => {
+                    const isDebitRow = Number(row.debet || 0) > 0 && Number(row.kredit || 0) === 0;
+                    if (!isDebitRow) return true;
+                    const rowKode = String(row.kodeInventaris || "").trim();
+                    if (rowKode) return remainingKodes.has(rowKode);
+                    return true;
+                })
+                .map((row) => {
+                    const isCreditRow = Number(row.kredit || 0) > 0 && Number(row.debet || 0) === 0;
+                    if (isCreditRow) {
+                        return { ...row, kredit: remainingTotal };
+                    }
+                    return row;
+                });
+
+            batch.update(ref, {
+                rincian: updatedRincian,
+                totalNilai: remainingTotal,
+                updatedAt: new Date().toISOString()
+            });
+        });
+
+        await batch.commit();
+    }
+
+    function populateSupplierDropdown() {
+        if (!pemasokSelect) return;
+        const prev = pemasokSelect.value;
+        pemasokSelect.innerHTML = buildSupplierOptions(supplierList, prev);
+    }
+
+    function isActiveAccount(acc) {
+        const status = String(acc.statusAkun ?? "Aktif").trim().toLowerCase();
+        return status === "" || status === "aktif" || status === "active";
+    }
+
+    function getKasBankLevel4Accounts() {
+        return coaList.filter((c) => {
+            const level = String(c.levelAkun ?? "").trim();
+            const cfGroup = String(c.cashFlowGroup ?? "").trim().toLowerCase();
+            return isActiveAccount(c) && level === "4" && cfGroup === "kas dan bank";
+        });
+    }
+
+    function getAsetLevel4Accounts() {
+        return coaList.filter((c) => {
+            const level = String(c.levelAkun ?? "").trim();
+            const k = String(c.kodeAkun || "").trim();
+            const n = String(c.namaAkun || "").toLowerCase();
+            const isAssetLike = k.startsWith("1") || n.includes("aset") || n.includes("inventaris") || n.includes("peralatan") || n.includes("kendaraan") || n.includes("bangunan") || n.includes("mesin");
+            return isActiveAccount(c) && level === "4" && isAssetLike && !n.includes("akumulasi");
+        });
+    }
+
+    function getAkumulasiLevel4Accounts() {
+        return coaList.filter((c) => {
+            const level = String(c.levelAkun ?? "").trim();
+            const n = String(c.namaAkun || "").toLowerCase();
+            return isActiveAccount(c) && level === "4" && (n.includes("akumulasi") || n.includes("penyusutan"));
+        });
+    }
+
+    function getPenyusutanLevel4Accounts() {
+        return coaList.filter((c) => {
+            const level = String(c.levelAkun ?? "").trim();
+            const k = String(c.kodeAkun || "").trim();
+            const n = String(c.namaAkun || "").toLowerCase();
+            const isBeban = k.startsWith("5") || k.startsWith("6") || n.includes("penyusutan") || n.includes("beban");
+            return isActiveAccount(c) && level === "4" && isBeban;
+        });
+    }
+
     function populateCoaDropdowns() {
-        const bayarCandidates = coaList.filter((c) => {
-            const k = String(c.kodeAkun || "").trim();
-            const n = String(c.namaAkun || "").toLowerCase();
-            return k.startsWith("11") || k.startsWith("21") || n.includes("kas") || n.includes("bank") || n.includes("hutang") || n.includes("utang");
-        });
-
-        const asetCandidates = coaList.filter((c) => {
-            const k = String(c.kodeAkun || "").trim();
-            const n = String(c.namaAkun || "").toLowerCase();
-            return (k.startsWith("12") || k.startsWith("13") || n.includes("aset") || n.includes("inventaris") || n.includes("peralatan")) && !n.includes("akumulasi");
-        });
-
-        const akumCandidates = coaList.filter((c) => String(c.namaAkun || "").toLowerCase().includes("akumulasi"));
-
-        const bebanCandidates = coaList.filter((c) => {
-            const k = String(c.kodeAkun || "").trim();
-            const n = String(c.namaAkun || "").toLowerCase();
-            return k.startsWith("5") || k.startsWith("6") || n.includes("penyusutan") || n.includes("beban");
-        });
+        const bayarCandidates = getKasBankLevel4Accounts();
+        const asetCandidates = getAsetLevel4Accounts();
+        const akumCandidates = getAkumulasiLevel4Accounts();
+        const bebanCandidates = getPenyusutanLevel4Accounts();
 
         if (akunBayarSelect) {
+            const prev = akunBayarSelect.value;
             akunBayarSelect.innerHTML = buildSelectOptions(
-                bayarCandidates.length > 0 ? bayarCandidates : coaList,
-                "-- Pilih Akun Pembayaran --"
+                bayarCandidates,
+                "-- Pilih Akun Pembayaran --",
+                prev
             );
         }
 
         if (itemsContainer) {
             itemsContainer.querySelectorAll('.nota-akun-aset').forEach((sel) => {
                 const prev = sel.value;
-                sel.innerHTML = buildSelectOptions(asetCandidates.length > 0 ? asetCandidates : coaList, "-- Pilih Akun Aset --", prev);
+                sel.innerHTML = buildSelectOptions(asetCandidates, "-- Pilih Akun Aset --", prev);
             });
             itemsContainer.querySelectorAll('.nota-akun-akum').forEach((sel) => {
                 const prev = sel.value;
-                sel.innerHTML = buildSelectOptions(akumCandidates.length > 0 ? akumCandidates : coaList, "-- Akun Akumulasi --", prev);
+                sel.innerHTML = buildSelectOptions(akumCandidates, "-- Akun Akumulasi --", prev);
             });
             itemsContainer.querySelectorAll('.nota-akun-beban').forEach((sel) => {
                 const prev = sel.value;
-                sel.innerHTML = buildSelectOptions(bebanCandidates.length > 0 ? bebanCandidates : coaList, "-- Biaya Penyusutan --", prev);
+                sel.innerHTML = buildSelectOptions(bebanCandidates, "-- Biaya Penyusutan --", prev);
             });
         }
     }
@@ -462,7 +891,7 @@ export async function initAsetHandler() {
         let total = 0;
         if (itemsContainer) {
             itemsContainer.querySelectorAll('.nota-item-row').forEach((row) => {
-                const harga = parseFloat(row.querySelector('.nota-harga')?.value || 0) || 0;
+                const harga = parseRibuanNumber(row.querySelector('.nota-harga')?.value || 0);
                 const qty = Math.max(1, parseInt(row.querySelector('.nota-qty')?.value || 1, 10) || 1);
                 total += harga * qty;
             });
@@ -486,17 +915,9 @@ export async function initAsetHandler() {
         if (!itemsContainer) return;
         const rowNum = itemsContainer.querySelectorAll('.nota-item-row').length + 1;
 
-        const asetCandidates = coaList.filter((c) => {
-            const k = String(c.kodeAkun || "").trim();
-            const n = String(c.namaAkun || "").toLowerCase();
-            return (k.startsWith("12") || k.startsWith("13") || n.includes("aset") || n.includes("inventaris") || n.includes("peralatan")) && !n.includes("akumulasi");
-        });
-        const akumCandidates = coaList.filter((c) => String(c.namaAkun || "").toLowerCase().includes("akumulasi"));
-        const bebanCandidates = coaList.filter((c) => {
-            const k = String(c.kodeAkun || "").trim();
-            const n = String(c.namaAkun || "").toLowerCase();
-            return k.startsWith("5") || k.startsWith("6") || n.includes("penyusutan") || n.includes("beban");
-        });
+        const asetCandidates = getAsetLevel4Accounts();
+        const akumCandidates = getAkumulasiLevel4Accounts();
+        const bebanCandidates = getPenyusutanLevel4Accounts();
 
         const rowEl = document.createElement('div');
         rowEl.className = "nota-item-row bg-slate-50/70 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 p-3 rounded-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end";
@@ -511,41 +932,41 @@ export async function initAsetHandler() {
             <div class="lg:col-span-2">
                 <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Akun Aset</label>
                 <select class="nota-akun-aset w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-teal-600">
-                    ${buildSelectOptions(asetCandidates.length > 0 ? asetCandidates : coaList, "-- Pilih Akun Aset --")}
+                    ${buildSelectOptions(asetCandidates, "-- Pilih Akun Aset --")}
                 </select>
             </div>
             <div class="lg:col-span-2">
                 <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Akun Akumulasi Penyusutan</label>
                 <select class="nota-akun-akum w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-teal-600">
-                    ${buildSelectOptions(akumCandidates.length > 0 ? akumCandidates : coaList, "-- Akun Akumulasi --")}
-                </select>
-            </div>
-            <div class="lg:col-span-2">
-                <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Biaya Penyusutan</label>
-                <select class="nota-akun-beban w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-teal-600">
-                    ${buildSelectOptions(bebanCandidates.length > 0 ? bebanCandidates : coaList, "-- Biaya Penyusutan --")}
+                    ${buildSelectOptions(akumCandidates, "-- Akun Akumulasi --")}
                 </select>
             </div>
             <div class="lg:col-span-1">
-                <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Harga (Rp)</label>
-                <input type="number" min="0" step="any" value="0" class="nota-harga w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-right rounded-none focus:outline-none focus:border-teal-600">
+                <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Biaya Penyusutan</label>
+                <select class="nota-akun-beban w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-none focus:outline-none focus:border-teal-600">
+                    ${buildSelectOptions(bebanCandidates, "-- Biaya --")}
+                </select>
             </div>
-            <div class="lg:col-span-1 flex gap-1.5">
-                <div class="flex-1 min-w-0">
+            <div class="lg:col-span-2">
+                <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Harga (Rp)</label>
+                <input type="text" inputmode="numeric" value="0" class="nota-harga w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-right font-semibold rounded-none focus:outline-none focus:border-teal-600">
+            </div>
+            <div class="lg:col-span-2 flex items-end justify-between gap-1.5">
+                <div class="w-14 sm:w-16 flex-shrink-0">
                     <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Umur (Th)</label>
-                    <input type="number" min="0" value="5" class="nota-umur w-full px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-center rounded-none focus:outline-none focus:border-teal-600">
+                    <input type="number" min="0" value="5" class="nota-umur w-full px-1.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100 text-center rounded-none focus:outline-none focus:border-teal-600">
                 </div>
                 <input type="hidden" class="nota-qty" value="1">
-            </div>
-            <div class="lg:col-span-1 flex items-center justify-end gap-1.5 pb-0.5">
-                <button type="button" title="Tambah baris di bawah" class="btn-add-inline w-6 h-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold inline-flex items-center justify-center cursor-pointer transition flex-shrink-0">+</button>
-                <button type="button" title="Hapus baris" class="btn-remove-inline w-6 h-6 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 inline-flex items-center justify-center cursor-pointer transition flex-shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
+                <div class="flex items-center justify-end gap-1 pb-0.5 flex-shrink-0">
+                    <button type="button" title="Tambah baris di bawah" class="btn-add-inline w-6 h-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold inline-flex items-center justify-center cursor-pointer transition flex-shrink-0">+</button>
+                    <button type="button" title="Hapus baris" class="btn-remove-inline w-6 h-6 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 inline-flex items-center justify-center cursor-pointer transition flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>
             </div>
         `;
 
-        rowEl.querySelector('.nota-harga')?.addEventListener('input', hitungTotalNota);
+        attachRibuanFormatter(rowEl.querySelector('.nota-harga'), () => hitungTotalNota());
         rowEl.querySelector('.btn-add-inline')?.addEventListener('click', () => {
             addNotaItemRow();
             renumberNotaRows();
@@ -566,9 +987,14 @@ export async function initAsetHandler() {
     }
 
     function resetNotaForm() {
+        const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
         if (formNota) formNota.reset();
-        const tglEl = document.getElementById('nota-tgl-beli');
-        if (tglEl) tglEl.value = new Date().toISOString().slice(0, 10);
+        if (tglBeliInput) {
+            const todayIso = new Date().toISOString().slice(0, 10);
+            tglBeliInput.value = effectiveActivePeriod ? `${effectiveActivePeriod}-01` : todayIso;
+        }
+        populateSupplierDropdown();
+        populateCoaDropdowns();
         if (itemsContainer) {
             itemsContainer.innerHTML = "";
             addNotaItemRow();
@@ -577,13 +1003,15 @@ export async function initAsetHandler() {
             renumberNotaRows();
         }
         hitungTotalNota();
+        syncPeriodeValidationUI();
     }
 
-    function openTransaksiModal() {
+    async function openTransaksiModal() {
         if (!modalTransaksi) return;
+        await Promise.all([loadTutupBulan(), loadCoa()]);
         resetNotaForm();
         modalTransaksi.classList.remove('hidden');
-        document.getElementById('nota-tgl-beli')?.focus();
+        tglBeliInput?.focus();
     }
 
     function closeTransaksiModal() {
@@ -608,7 +1036,7 @@ export async function initAsetHandler() {
         document.getElementById('edit-aset-id').value = item.id || "";
         document.getElementById('edit-aset-nama').value = item.nama || "";
         document.getElementById('edit-aset-kondisi').value = item.kondisi || "Baik";
-        document.getElementById('edit-aset-harga').value = String(item.harga ?? 0);
+        document.getElementById('edit-aset-harga').value = formatRibuan(item.harga ?? 0);
         document.getElementById('edit-aset-jumlah').value = String(item.jumlah || 1);
         document.getElementById('edit-aset-tahun').value = String(item.tahun || new Date().getFullYear());
         document.getElementById('edit-aset-umur').value = String(item.umurTahun ?? 5);
@@ -626,6 +1054,10 @@ export async function initAsetHandler() {
     if (btnTutupNota) btnTutupNota.onclick = closeTransaksiModal;
     if (btnXTransaksi) btnXTransaksi.onclick = closeTransaksiModal;
     if (btnResetNota) btnResetNota.onclick = resetNotaForm;
+    if (tglBeliInput) {
+        tglBeliInput.addEventListener('change', syncPeriodeValidationUI);
+        tglBeliInput.addEventListener('input', syncPeriodeValidationUI);
+    }
 
     const onTransaksiBackdrop = (e) => {
         if (modalTransaksi && e.target === modalTransaksi) closeTransaksiModal();
@@ -659,12 +1091,19 @@ export async function initAsetHandler() {
     function getFilteredAset() {
         const keyword = searchEl ? searchEl.value.trim().toLowerCase() : "";
         const selectedKondisi = filterKondisiEl ? filterKondisiEl.value : "";
+        const tglMulai = normalizeDateIso(filterTglMulaiEl ? filterTglMulaiEl.value : "");
+        const tglSampai = normalizeDateIso(filterTglSampaiEl ? filterTglSampaiEl.value : "");
 
         return allAsetList.filter((item) => {
             const matchKondisi = !selectedKondisi || String(item.kondisi || "") === selectedKondisi;
             if (!matchKondisi) return false;
+
+            const itemDate = getAsetPurchaseDate(item);
+            if (tglMulai && (!itemDate || itemDate < tglMulai)) return false;
+            if (tglSampai && (!itemDate || itemDate > tglSampai)) return false;
+
             if (!keyword) return true;
-            const hay = `${item.kodeInventaris || ""} ${item.nama || ""} ${item.kondisi || ""} ${item.tahun || ""} ${item.lokasi || ""} ${item.keterangan || ""}`.toLowerCase();
+            const hay = `${item.kodeInventaris || ""} ${item.nama || ""} ${item.kondisi || ""} ${item.tahun || ""} ${item.lokasi || ""} ${item.pemasok || ""} ${item.keterangan || ""} ${itemDate}`.toLowerCase();
             return hay.includes(keyword);
         });
     }
@@ -725,6 +1164,7 @@ export async function initAsetHandler() {
                                 </th>
                                 <th class="p-3.5 w-12 text-center">No</th>
                                 <th class="p-3.5">Kode / Nama Aset</th>
+                                <th class="p-3.5 w-32">Tgl. Pembelian</th>
                                 <th class="p-3.5">Kondisi</th>
                                 <th class="p-3.5 text-center w-20">Jumlah</th>
                                 <th class="p-3.5 text-right w-28">Harga (Rp)</th>
@@ -741,6 +1181,7 @@ export async function initAsetHandler() {
             const safeId = escapeHtml(item.id);
             const safeKode = escapeHtml(item.kodeInventaris || "");
             const safeNama = escapeHtml(item.nama || "-");
+            const tglBeliFmt = escapeHtml(getAsetPurchaseDate(item) || "-");
             const safeKondisi = escapeHtml(item.kondisi || "Baik");
             const badgeClass = getKondisiBadgeClass(item.kondisi);
             const jml = parseInt(item.jumlah, 10) || 1;
@@ -759,6 +1200,7 @@ export async function initAsetHandler() {
                         ${safeKode ? `<span class="block text-[10px] font-mono text-indigo-600 dark:text-indigo-400 font-semibold">${safeKode}</span>` : ""}
                         <span class="font-semibold text-slate-800 dark:text-slate-100">${safeNama}</span>
                     </td>
+                    <td class="p-3.5 font-mono text-[11px] text-slate-600 dark:text-slate-300 whitespace-nowrap">${tglBeliFmt}</td>
                     <td class="p-3.5"><span class="px-2 py-0.5 text-[10px] font-semibold border ${badgeClass}">${safeKondisi}</span></td>
                     <td class="p-3.5 text-center font-medium">${jml.toLocaleString("id-ID")}</td>
                     <td class="p-3.5 text-right font-semibold">${hargaFmt}</td>
@@ -791,6 +1233,7 @@ export async function initAsetHandler() {
             const safeId = escapeHtml(item.id);
             const safeKode = escapeHtml(item.kodeInventaris || "");
             const safeNama = escapeHtml(item.nama || "-");
+            const tglBeliFmt = escapeHtml(getAsetPurchaseDate(item) || "-");
             const safeKondisi = escapeHtml(item.kondisi || "Baik");
             const badgeClass = getKondisiBadgeClass(item.kondisi);
             const jml = parseInt(item.jumlah, 10) || 1;
@@ -829,9 +1272,15 @@ export async function initAsetHandler() {
                             <span class="font-semibold text-slate-700 dark:text-slate-200">${safeTahun}</span>
                         </div>
                     </div>
-                    <div class="text-[11px] text-slate-600 dark:text-slate-400 break-words">
-                        <span class="text-slate-400">Lokasi:</span>
-                        <span class="font-medium text-slate-700 dark:text-slate-300 ml-1">${safeLokasi}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-400 break-words">
+                        <div>
+                            <span class="text-slate-400">Tgl. Beli:</span>
+                            <span class="font-mono font-semibold text-slate-700 dark:text-slate-300 ml-1">${tglBeliFmt}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400">Lokasi:</span>
+                            <span class="font-medium text-slate-700 dark:text-slate-300 ml-1">${safeLokasi}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -873,12 +1322,12 @@ export async function initAsetHandler() {
             btn.onclick = async () => {
                 const id = btn.getAttribute('data-delete-aset');
                 if (!id) return;
-                const ok = await askSmoothConfirm("Hapus Aset", "Apakah Anda yakin ingin menghapus aset ini?", "Ya, Hapus");
+                const ok = await askSmoothConfirm("Hapus Aset", "Apakah Anda yakin ingin menghapus aset ini beserta jurnal terkaitnya?", "Ya, Hapus");
                 if (!ok) return;
                 try {
-                    await deleteDoc(doc(db, "aset", id));
+                    await applyAsetAndJurnalDeletion([id]);
                     selectedIds.delete(id);
-                    showToast("Aset berhasil dihapus!");
+                    showToast("Aset & jurnal terkait berhasil dihapus!");
                     await loadAset();
                 } catch (err) {
                     console.error("Gagal menghapus aset:", err);
@@ -886,6 +1335,92 @@ export async function initAsetHandler() {
                 }
             };
         });
+    }
+
+    async function loadTutupBulan() {
+        try {
+            const snap = await getDocs(collection(db, "tutup_bulan"));
+            const nextMap = new Map();
+            let detectedActive = "";
+            let latestClosedNextPeriod = "";
+            let latestClosedKey = "";
+
+            snap.forEach((d) => {
+                const data = d.data() || {};
+                const key = extractDocPeriodKey(data, d.id);
+                if (key) {
+                    const entry = { id: d.id, ...data };
+                    nextMap.set(key, entry);
+                    if (!detectedActive && isDocActive(entry)) {
+                        detectedActive = key;
+                    }
+                    if (isDocClosed(entry)) {
+                        const nextKey = normalizePeriodKey(data.nextPeriodKey ?? data.next_period_key ?? "");
+                        if (nextKey && (!latestClosedKey || key >= latestClosedKey)) {
+                            latestClosedKey = key;
+                            latestClosedNextPeriod = nextKey;
+                        }
+                    }
+                }
+            });
+
+            if (!detectedActive && latestClosedNextPeriod && !nextMap.has(latestClosedNextPeriod)) {
+                detectedActive = latestClosedNextPeriod;
+            }
+
+            if (!detectedActive) {
+                for (const colName of ["pengaturan", "pengaturan_sistem"]) {
+                    try {
+                        const cfgSnap = await getDocs(collection(db, colName));
+                        cfgSnap.forEach((d) => {
+                            const data = d.data() || {};
+                            const candidate = normalizePeriodKey(
+                                data.bulanAktif ?? data.bulan_aktif ?? data.activePeriod ?? data.active_period ?? data.periodeAktif ?? data.periode ?? ""
+                            );
+                            if (!detectedActive && candidate) {
+                                detectedActive = candidate;
+                            }
+                        });
+                    } catch (_) {
+                        // abaikan jika koleksi tidak ada
+                    }
+                    if (detectedActive) break;
+                }
+            }
+
+            if (!detectedActive) {
+                detectedActive = detectPeriodFromHeaderDom();
+            }
+
+            tutupBulanMap = nextMap;
+            activePeriodKey = detectedActive;
+            syncPeriodeValidationUI();
+        } catch (err) {
+            console.warn("Gagal memuat status tutup_bulan:", err);
+            const fallbackDom = detectPeriodFromHeaderDom();
+            if (fallbackDom) {
+                activePeriodKey = fallbackDom;
+                syncPeriodeValidationUI();
+            }
+        }
+    }
+
+    async function loadSuppliers() {
+        try {
+            const snap = await getDocs(collection(db, "kontak"));
+            const list = [];
+            snap.forEach((d) => {
+                const data = d.data();
+                if (String(data.kategori || "").trim() === "Supplier") {
+                    list.push({ id: d.id, ...data });
+                }
+            });
+            list.sort((a, b) => String(a.kodeKontak || a.nama || "").localeCompare(String(b.kodeKontak || b.nama || ""), "id"));
+            supplierList = list;
+            populateSupplierDropdown();
+        } catch (err) {
+            console.warn("Gagal memuat data Supplier dari kontak:", err);
+        }
     }
 
     async function loadCoa() {
@@ -932,6 +1467,15 @@ export async function initAsetHandler() {
         renderAsetView();
     };
 
+    const onResetFilter = () => {
+        if (searchEl) searchEl.value = "";
+        if (filterKondisiEl) filterKondisiEl.value = "";
+        if (filterTglMulaiEl) filterTglMulaiEl.value = "";
+        if (filterTglSampaiEl) filterTglSampaiEl.value = "";
+        currentPage = 1;
+        renderAsetView();
+    };
+
     const onPrevPage = () => {
         if (currentPage > 1) {
             currentPage -= 1;
@@ -953,7 +1497,7 @@ export async function initAsetHandler() {
 
         const ok = await askSmoothConfirm(
             "Hapus Masal Aset",
-            `Apakah Anda yakin ingin menghapus ${idsToDelete.length} aset terpilih secara masal?`,
+            `Apakah Anda yakin ingin menghapus ${idsToDelete.length} aset terpilih beserta jurnal terkaitnya secara masal?`,
             "Ya, Hapus Semua"
         );
         if (!ok) return;
@@ -964,17 +1508,13 @@ export async function initAsetHandler() {
         }
 
         try {
-            const chunkSize = 400;
+            const chunkSize = 100;
             for (let i = 0; i < idsToDelete.length; i += chunkSize) {
-                const batch = writeBatch(db);
-                idsToDelete.slice(i, i + chunkSize).forEach((id) => {
-                    batch.delete(doc(db, "aset", id));
-                });
-                await batch.commit();
+                await applyAsetAndJurnalDeletion(idsToDelete.slice(i, i + chunkSize));
             }
 
             idsToDelete.forEach((id) => selectedIds.delete(id));
-            showToast(`${idsToDelete.length} aset berhasil dihapus!`);
+            showToast(`${idsToDelete.length} aset & jurnal terkait berhasil dihapus!`);
             await loadAset();
         } catch (err) {
             console.error("Gagal menghapus aset secara masal:", err);
@@ -985,6 +1525,9 @@ export async function initAsetHandler() {
 
     if (searchEl) searchEl.addEventListener('input', onFilterChange);
     if (filterKondisiEl) filterKondisiEl.addEventListener('change', onFilterChange);
+    if (filterTglMulaiEl) filterTglMulaiEl.addEventListener('change', onFilterChange);
+    if (filterTglSampaiEl) filterTglSampaiEl.addEventListener('change', onFilterChange);
+    if (btnResetFilterEl) btnResetFilterEl.addEventListener('click', onResetFilter);
     if (btnPrevPage) btnPrevPage.addEventListener('click', onPrevPage);
     if (btnNextPage) btnNextPage.addEventListener('click', onNextPage);
     if (btnHapusMasal) btnHapusMasal.addEventListener('click', onBulkDelete);
@@ -993,9 +1536,20 @@ export async function initAsetHandler() {
         formNota.onsubmit = async (e) => {
             e.preventDefault();
 
+            await loadTutupBulan();
+
             const unitKerja = document.getElementById('nota-unit-kerja')?.value || UNIT_KERJA_OPTIONS[0];
-            const tglBeli = document.getElementById('nota-tgl-beli')?.value || new Date().toISOString().slice(0, 10);
-            const tahun = tglBeli.slice(0, 4) || String(new Date().getFullYear());
+            const tglBeli = String(tglBeliInput?.value || document.getElementById('nota-tgl-beli')?.value || "").trim();
+            const periodeInfo = getPeriodeStatus(tglBeli);
+
+            if (!periodeInfo.isAllowed) {
+                syncPeriodeValidationUI();
+                showToast(`Tidak bisa simpan: ${getPeriodeBlockMessage(periodeInfo)}`, true);
+                tglBeliInput?.focus();
+                return;
+            }
+
+            const tahun = periodeInfo.periodKey.slice(0, 4) || String(new Date().getFullYear());
             const pemasok = document.getElementById('nota-pemasok')?.value.trim() || "";
             const akunBayar = document.getElementById('nota-akun-bayar')?.value || "";
             const keterangan = document.getElementById('nota-keterangan')?.value.trim() || "";
@@ -1010,7 +1564,7 @@ export async function initAsetHandler() {
                 const akunAset = row.querySelector('.nota-akun-aset')?.value || "";
                 const akunAkumulasi = row.querySelector('.nota-akun-akum')?.value || "";
                 const biayaPenyusutan = row.querySelector('.nota-akun-beban')?.value || "";
-                const harga = Math.max(0, parseFloat(row.querySelector('.nota-harga')?.value || 0) || 0);
+                const harga = parseRibuanNumber(row.querySelector('.nota-harga')?.value || 0);
                 const jumlah = Math.max(1, parseInt(row.querySelector('.nota-qty')?.value || 1, 10) || 1);
                 const umurTahun = Math.max(0, parseInt(row.querySelector('.nota-umur')?.value || 5, 10) || 0);
 
@@ -1027,6 +1581,21 @@ export async function initAsetHandler() {
 
             if (validItems.length === 0) {
                 showToast("Isi minimal 1 Nama Aset pada rincian nota.", true);
+                return;
+            }
+
+            const totalNota = validItems.reduce((sum, it) => sum + (it.harga * it.jumlah), 0);
+            const bayarAcc = parseAccountLabel(akunBayar);
+
+            if (totalNota > 0 && !bayarAcc.kodeAkun) {
+                showToast("Pilih Akun Pembayaran / Sumber Dana terlebih dahulu untuk pencatatan jurnal.", true);
+                akunBayarSelect?.focus();
+                return;
+            }
+
+            const missingAssetAccounts = validItems.filter((it) => (it.harga * it.jumlah) > 0 && !parseAccountLabel(it.akunAset).kodeAkun);
+            if (missingAssetAccounts.length > 0) {
+                showToast("Pilih Akun Aset untuk setiap item aset yang memiliki nilai.", true);
                 return;
             }
 
@@ -1047,36 +1616,52 @@ export async function initAsetHandler() {
                 });
 
                 const batch = writeBatch(db);
-                const totalNota = validItems.reduce((sum, it) => sum + (it.harga * it.jumlah), 0);
-
                 const notaRef = doc(collection(db, "nota_aset"));
+                const noRef = `AST-${notaRef.id.slice(0, 6).toUpperCase()}`;
+                const nowIso = new Date().toISOString();
+                const ketUtama = keterangan
+                    ? `[Pembelian Aset] ${keterangan}`
+                    : `[Pembelian Aset] ${validItems.map((it) => it.nama).join(", ")}`;
+
                 batch.set(notaRef, {
+                    noRef,
                     unitKerja,
+                    unitUsaha: unitKerja,
                     tglBeli,
+                    tglTransaksi: tglBeli,
+                    periode: periodeInfo.periodKey,
                     tahun,
                     pemasok,
                     akunBayar,
-                    keterangan,
+                    keterangan: ketUtama,
                     jumlahItem: validItems.length,
                     totalNilai: totalNota,
                     createdAt: serverTimestamp()
                 });
 
+                const rincianJurnal = [];
+
                 validItems.forEach((it) => {
                     nextSeq += 1;
                     const kodeInventaris = `${prefix}${String(nextSeq).padStart(3, "0")}`;
                     const asetRef = doc(collection(db, "aset"));
+                    const subtotal = it.harga * it.jumlah;
+                    const asetAcc = parseAccountLabel(it.akunAset);
+
                     batch.set(asetRef, {
                         kodeInventaris,
                         notaId: notaRef.id,
+                        noRef,
                         nama: it.nama,
                         kondisi: "Baik",
                         jumlah: it.jumlah,
                         harga: it.harga,
+                        totalNilai: subtotal,
                         tahun,
                         umurTahun: it.umurTahun,
                         lokasi: unitKerja,
                         tglBeli,
+                        periode: periodeInfo.periodKey,
                         pemasok,
                         akunBayar,
                         akunAset: it.akunAset,
@@ -1085,16 +1670,52 @@ export async function initAsetHandler() {
                         keterangan,
                         createdAt: serverTimestamp()
                     });
+
+                    if (subtotal > 0 && asetAcc.kodeAkun) {
+                        rincianJurnal.push({
+                            debet: subtotal,
+                            kredit: 0,
+                            kodeAkun: asetAcc.kodeAkun,
+                            namaAkun: asetAcc.namaAkun,
+                            kodeInventaris,
+                            namaAset: it.nama
+                        });
+                    }
                 });
+
+                if (totalNota > 0 && bayarAcc.kodeAkun) {
+                    rincianJurnal.push({
+                        debet: 0,
+                        kredit: totalNota,
+                        kodeAkun: bayarAcc.kodeAkun,
+                        namaAkun: bayarAcc.namaAkun
+                    });
+                }
+
+                if (rincianJurnal.length > 0) {
+                    const jurnalRef = doc(collection(db, "jurnal_umum"));
+                    batch.set(jurnalRef, {
+                        noRef,
+                        jenisTransaksi: "Pembelian Aset",
+                        type: "Aset",
+                        unitUsaha: unitKerja,
+                        tglTransaksi: tglBeli,
+                        keterangan: ketUtama,
+                        totalNilai: totalNota,
+                        rincian: rincianJurnal,
+                        createdAt: nowIso,
+                        updatedAt: nowIso
+                    });
+                }
 
                 await batch.commit();
 
-                showToast(`${validItems.length} item aset berhasil disimpan!`);
+                showToast(`${validItems.length} item aset & jurnal umum berhasil disimpan!`);
                 closeTransaksiModal();
                 await loadAset();
             } catch (err) {
-                console.error("Gagal menyimpan nota aset:", err);
-                showToast("Gagal menyimpan data aset.", true);
+                console.error("Gagal menyimpan nota aset & jurnal:", err);
+                showToast("Gagal menyimpan data aset dan jurnal.", true);
             } finally {
                 if (btnSimpanSeluruh) {
                     btnSimpanSeluruh.disabled = false;
@@ -1112,7 +1733,7 @@ export async function initAsetHandler() {
 
             const nama = document.getElementById('edit-aset-nama')?.value.trim() || "";
             const kondisi = document.getElementById('edit-aset-kondisi')?.value || "Baik";
-            const harga = Math.max(0, parseFloat(document.getElementById('edit-aset-harga')?.value || 0) || 0);
+            const harga = parseRibuanNumber(document.getElementById('edit-aset-harga')?.value || 0);
             const jumlah = Math.max(1, parseInt(document.getElementById('edit-aset-jumlah')?.value || 1, 10) || 1);
             const tahun = document.getElementById('edit-aset-tahun')?.value.trim() || String(new Date().getFullYear());
             const umurTahun = Math.max(0, parseInt(document.getElementById('edit-aset-umur')?.value || 5, 10) || 0);
@@ -1162,8 +1783,15 @@ export async function initAsetHandler() {
         if (modalTransaksi) modalTransaksi.removeEventListener('click', onTransaksiBackdrop);
         if (editModal) editModal.removeEventListener('click', onEditBackdrop);
         document.removeEventListener('keydown', onKeyDown);
+        if (tglBeliInput) {
+            tglBeliInput.removeEventListener('change', syncPeriodeValidationUI);
+            tglBeliInput.removeEventListener('input', syncPeriodeValidationUI);
+        }
         if (searchEl) searchEl.removeEventListener('input', onFilterChange);
         if (filterKondisiEl) filterKondisiEl.removeEventListener('change', onFilterChange);
+        if (filterTglMulaiEl) filterTglMulaiEl.removeEventListener('change', onFilterChange);
+        if (filterTglSampaiEl) filterTglSampaiEl.removeEventListener('change', onFilterChange);
+        if (btnResetFilterEl) btnResetFilterEl.removeEventListener('click', onResetFilter);
         if (btnPrevPage) btnPrevPage.removeEventListener('click', onPrevPage);
         if (btnNextPage) btnNextPage.removeEventListener('click', onNextPage);
         if (btnHapusMasal) btnHapusMasal.removeEventListener('click', onBulkDelete);
@@ -1175,8 +1803,12 @@ export async function initAsetHandler() {
     asetCleanup = cleanup;
 
     resetNotaForm();
-    await loadCoa();
-    await loadAset();
+    await Promise.all([loadTutupBulan(), loadSuppliers(), loadCoa(), loadAset()]);
+    const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
+    if (tglBeliInput && effectiveActivePeriod && !tglBeliInput.value.startsWith(effectiveActivePeriod)) {
+        tglBeliInput.value = `${effectiveActivePeriod}-01`;
+        syncPeriodeValidationUI();
+    }
 
     return cleanup;
 }

@@ -29,6 +29,7 @@ import { renderManajemenText, initManajemenTextHandler } from './views/manajemen
 import { renderManajemenGaleri, initManajemenGaleriHandler } from './views/manajemen-galeri.js';
 import { renderManajemenEvent, initManajemenEventHandler } from './views/manajemen-event.js';
 import { renderManajemenProduk, initManajemenProdukHandler } from './views/manajemen-produk.js';
+import { renderManajemenLaporanTanggungJawab, initManajemenLaporanTanggungJawabHandler } from './views/manajemen-laporan-tanggung-jawab.js';
 
 // Impor sub-halaman Database
 import { renderResetData, initResetDataHandler } from './views/database-reset-data.js';
@@ -85,6 +86,7 @@ const routes = {
     '/manajemen-galeri': renderManajemenGaleri,
     '/manajemen-event': renderManajemenEvent,
     '/manajemen-produk': renderManajemenProduk,
+    '/manajemen-laporan-tanggung-jawab': renderManajemenLaporanTanggungJawab,
     '/database': renderDatabase,
     '/database-reset-data': renderResetData,
     '/database-control-size': renderControlSize,
@@ -110,19 +112,9 @@ const routes = {
     '/login': renderLogin
 };
 
-// Fungsi Logout Global
-window.handleLogout = () => {
-    signOut(auth).then(() => {
-        localStorage.clear();
-        location.hash = '#/login';
-    }).catch(error => {
-        console.error("Gagal keluar:", error);
-    });
-};
-
 let activeViewCleanup = null;
 
-export function router() {
+function runActiveViewCleanup() {
     if (typeof activeViewCleanup === 'function') {
         try {
             activeViewCleanup();
@@ -131,17 +123,32 @@ export function router() {
         }
         activeViewCleanup = null;
     }
+}
 
+// Fungsi Logout Global
+window.handleLogout = () => {
+    signOut(auth).then(() => {
+        runActiveViewCleanup();
+        localStorage.clear();
+        if (location.hash !== '#/login') {
+            location.hash = '#/login';
+        } else {
+            router();
+        }
+    }).catch(error => {
+        console.error("Gagal keluar:", error);
+    });
+};
+
+export function router() {
     let path = location.hash.slice(1).toLowerCase() || '/';
 
     if (path === '/manajemen.js') {
-        path = '/manajemen';
         location.hash = '#/manajemen';
         return;
     }
 
     if (path === '/manajemen-monitoring') {
-        path = '/database-control-size';
         location.hash = '#/database-control-size';
         return;
     }
@@ -158,6 +165,8 @@ export function router() {
         }
         return;
     }
+
+    runActiveViewCleanup();
 
     if (path === '/login') {
         if (sidebar) sidebar.style.display = 'none';
@@ -202,6 +211,7 @@ export function router() {
         else if (path === '/manajemen-galeri') cleanupResult = initManajemenGaleriHandler();
         else if (path === '/manajemen-event') cleanupResult = initManajemenEventHandler();
         else if (path === '/manajemen-produk') cleanupResult = initManajemenProdukHandler();
+        else if (path === '/manajemen-laporan-tanggung-jawab') cleanupResult = initManajemenLaporanTanggungJawabHandler();
         else if (path === '/database') cleanupResult = initDatabaseHandler();
         else if (path === '/database-reset-data') cleanupResult = initResetDataHandler();
         else if (path === '/database-control-size') cleanupResult = initControlSizeHandler();
@@ -262,94 +272,108 @@ export function initRouter() {
     if (!isAuthListenerInitialized) {
         isAuthListenerInitialized = true;
         onAuthStateChanged(auth, async (user) => {
+            const hadSessionEmail = Boolean(localStorage.getItem('user_email'));
             let path = location.hash.slice(1).toLowerCase() || '/';
-            if (!user && path !== '/login') {
-                if (location.hash !== '#/login') location.hash = '#/login';
-                return;
-            }
 
-            if (user && path === '/login') {
-                if (location.hash !== '#/') location.hash = '#/';
+            if (!user) {
+                if (hadSessionEmail) {
+                    runActiveViewCleanup();
+                    localStorage.clear();
+                }
+                if (path !== '/login') {
+                    if (location.hash !== '#/login') {
+                        location.hash = '#/login';
+                    } else {
+                        router();
+                    }
+                }
                 return;
             }
 
             let userRole = "User";
+            const email = user.email || "";
+            let photoURL = user.photoURL || localStorage.getItem('user_avatar') || "";
 
-            if (user) {
-                const email = user.email;
-                let photoURL = user.photoURL || localStorage.getItem('user_avatar') || "";
+            const fallbackPrefix = email.includes('@') ? email.split('@')[0] : (user.displayName || "User");
+            let displayName = user.displayName || fallbackPrefix;
+            displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
 
-                let displayName = user.displayName || email.split('@')[0];
-                displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+            try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDocSnap = await getDoc(userDocRef);
 
-                try {
-                    const userDocRef = doc(db, "users", user.uid);
-                    const userDocSnap = await getDoc(userDocRef);
-
-                    if (userDocSnap.exists()) {
-                        const userData = userDocSnap.data();
-                        if (userData.nama) displayName = userData.nama;
-                        if (userData.role) userRole = userData.role;
-                        if (userData.photoURL) photoURL = userData.photoURL;
-                    } else {
-                        await setDoc(userDocRef, {
-                            uid: user.uid,
-                            email: email,
-                            nama: displayName,
-                            photoURL: photoURL,
-                            role: "Staf",
-                            createdAt: new Date().toISOString()
-                        });
-                        userRole = "Staf";
-                    }
-                } catch (err) {
-                    console.error("Gagal memuat data pengguna di Firestore:", err);
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    if (userData.nama) displayName = userData.nama;
+                    if (userData.role) userRole = userData.role;
+                    if (userData.photoURL) photoURL = userData.photoURL;
+                } else {
+                    await setDoc(userDocRef, {
+                        uid: user.uid,
+                        email: email,
+                        nama: displayName,
+                        photoURL: photoURL,
+                        role: "Staf",
+                        createdAt: new Date().toISOString()
+                    });
+                    userRole = "Staf";
                 }
+            } catch (err) {
+                console.error("Gagal memuat data pengguna di Firestore:", err);
+            }
 
-                localStorage.setItem('user_name', displayName);
-                localStorage.setItem('user_email', email);
-                localStorage.setItem('user_role', userRole);
-                if (photoURL) {
-                    localStorage.setItem('user_avatar', photoURL);
+            localStorage.setItem('user_name', displayName);
+            localStorage.setItem('user_email', email);
+            localStorage.setItem('user_role', userRole);
+            if (photoURL) {
+                localStorage.setItem('user_avatar', photoURL);
+            }
+
+            const userNameEl = document.getElementById('user-name');
+            const userEmailEl = document.getElementById('user-email');
+            const userRoleEl = document.getElementById('user-role');
+            const mobileNameEl = document.getElementById('mobile-dropdown-name');
+            const mobileEmailEl = document.getElementById('mobile-dropdown-email');
+            const mobileRoleEl = document.getElementById('mobile-user-role');
+
+            if (userNameEl) userNameEl.textContent = displayName;
+            if (userEmailEl) userEmailEl.textContent = email;
+            if (userRoleEl) userRoleEl.textContent = userRole;
+            if (mobileNameEl) mobileNameEl.textContent = displayName;
+            if (mobileEmailEl) mobileEmailEl.textContent = email;
+            if (mobileRoleEl) mobileRoleEl.textContent = userRole;
+
+            const userInitialEl = document.getElementById('user-initial');
+            if (userInitialEl) {
+                const nameParts = displayName.split(' ');
+                const initials = nameParts.length > 1
+                    ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+                    : displayName.substring(0, 2).toUpperCase();
+
+                if (photoURL && photoURL.trim() !== "") {
+                    userInitialEl.innerHTML = `<img src="${photoURL}" alt="Profile" class="w-full h-full object-cover rounded-none" onerror="this.onerror=null; this.parentNode.innerHTML='${initials}';">`;
+                } else {
+                    userInitialEl.textContent = initials;
                 }
+            }
 
-                const userNameEl = document.getElementById('user-name');
-                const userEmailEl = document.getElementById('user-email');
-                const userRoleEl = document.getElementById('user-role');
-                const mobileNameEl = document.getElementById('mobile-dropdown-name');
-                const mobileEmailEl = document.getElementById('mobile-dropdown-email');
-                const mobileRoleEl = document.getElementById('mobile-user-role');
-
-                if (userNameEl) userNameEl.textContent = displayName;
-                if (userEmailEl) userEmailEl.textContent = email;
-                if (userRoleEl) userRoleEl.textContent = userRole;
-                if (mobileNameEl) mobileNameEl.textContent = displayName;
-                if (mobileEmailEl) mobileEmailEl.textContent = email;
-                if (mobileRoleEl) mobileRoleEl.textContent = userRole;
-
-                const userInitialEl = document.getElementById('user-initial');
-                if (userInitialEl) {
-                    const nameParts = displayName.split(' ');
-                    const initials = nameParts.length > 1
-                        ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
-                        : displayName.substring(0, 2).toUpperCase();
-
-                    if (photoURL && photoURL.trim() !== "") {
-                        userInitialEl.innerHTML = `<img src="${photoURL}" alt="Profile" class="w-full h-full object-cover rounded-none" onerror="this.onerror=null; this.parentNode.innerHTML='${initials}';">`;
-                    } else {
-                        userInitialEl.textContent = initials;
-                    }
+            const mobileAvatarImg = document.getElementById('mobile-user-avatar-img');
+            if (mobileAvatarImg) {
+                if (photoURL && photoURL.trim() !== "") {
+                    mobileAvatarImg.src = photoURL;
+                    mobileAvatarImg.style.display = 'block';
+                } else {
+                    mobileAvatarImg.style.display = 'none';
                 }
+            }
 
-                const mobileAvatarImg = document.getElementById('mobile-user-avatar-img');
-                if (mobileAvatarImg) {
-                    if (photoURL && photoURL.trim() !== "") {
-                        mobileAvatarImg.src = photoURL;
-                        mobileAvatarImg.style.display = 'block';
-                    } else {
-                        mobileAvatarImg.style.display = 'none';
-                    }
+            path = location.hash.slice(1).toLowerCase() || '/';
+            if (path === '/login') {
+                if (location.hash !== '#/') {
+                    location.hash = '#/';
                 }
+            } else if (!hadSessionEmail) {
+                router();
             }
         });
     }

@@ -2,11 +2,14 @@
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
+const DEFAULT_UNIT = "KANTOR PUSAT (01)";
+
 function isCashOrBankAccount(coa, kodeAkun) {
     const kode = String(kodeAkun || coa?.kodeAkun || "").trim();
     const nama = String(coa?.namaAkun || "").toLowerCase();
     const kategori = String(coa?.kategori || "").toLowerCase();
     const subKategori = String(coa?.subKategori || "").toLowerCase();
+    const reportGroup = String(coa?.reportGroup || "").toLowerCase();
 
     return (
         kode.startsWith("1.01") ||
@@ -14,6 +17,7 @@ function isCashOrBankAccount(coa, kodeAkun) {
         kategori.includes("bank") ||
         subKategori.includes("kas") ||
         subKategori.includes("bank") ||
+        reportGroup.includes("kas") ||
         nama.includes("kas ") ||
         nama.startsWith("kas") ||
         nama.includes("bank")
@@ -27,6 +31,24 @@ function resolveCashFlowCategory(coa) {
     if (raw.includes("investasi")) return "investasi";
     if (raw.includes("pendanaan") || raw.includes("modal")) return "pendanaan";
     return "";
+}
+
+function normalizePeriodKey(val) {
+    const s = String(val || "").trim();
+    const m = s.match(/^(\d{4}-\d{2})/);
+    return m ? m[1] : "";
+}
+
+function matchesUnitFilter(docUnitRaw, selectedUnit) {
+    if (!selectedUnit) return true;
+    const docUnit = String(docUnitRaw || "").trim();
+    if (!docUnit) return selectedUnit === DEFAULT_UNIT;
+    return docUnit === selectedUnit;
+}
+
+function formatRupiah(num) {
+    const rounded = Math.round(Number(num) || 0);
+    return (rounded < 0 ? "-Rp " : "Rp ") + Math.abs(rounded).toLocaleString("id-ID");
 }
 
 export function renderLaporanArusKas() {
@@ -43,7 +65,7 @@ export function renderLaporanArusKas() {
                     </a>
                     <div class="min-w-0">
                         <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Laporan Arus Kas (Cash Flow Statement)</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Rekapitulasi arus kas masuk dan kas keluar berdasarkan aktivitas BUMKal.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Rekapitulasi saldo awal kas, arus kas masuk/keluar per aktivitas, dan saldo kas akhir BUMKal.</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full md:w-auto">
@@ -79,14 +101,53 @@ export function renderLaporanArusKas() {
                 </div>
             </div>
 
-            <!-- Card Ringkasan Arus Kas Bersih -->
-            <div class="bg-indigo-900 text-white p-6 rounded-none shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <p class="text-xs uppercase tracking-widest text-indigo-200 font-semibold">Kenaikan / Penurunan Kas Bersih</p>
-                    <h2 id="summary-kas-bersih" class="text-2xl font-extrabold mt-1">Rp 0</h2>
+            <!-- Card Ringkasan Arus Kas Bersih & Saldo Kas -->
+            <div class="bg-indigo-900 text-white p-6 rounded-none shadow-sm space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-widest text-indigo-200 font-semibold">Kenaikan / Penurunan Kas Bersih</p>
+                        <h2 id="summary-kas-bersih" class="text-2xl font-extrabold mt-1">Rp 0</h2>
+                    </div>
+                    <div class="text-right">
+                        <span id="badge-arus-kas" class="px-3 py-1 bg-indigo-800 text-indigo-100 font-bold text-xs uppercase">Menunggu Proses</span>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <span id="badge-arus-kas" class="px-3 py-1 bg-indigo-800 text-indigo-100 font-bold text-xs uppercase">Menunggu Proses</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-indigo-800/80 text-xs">
+                    <div class="bg-indigo-950/60 border border-indigo-800 p-3">
+                        <span class="block text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">Saldo Kas Awal (Saldo Awal)</span>
+                        <span id="summary-saldo-awal-kas" class="text-sm font-bold text-white mt-0.5 block">Rp 0</span>
+                    </div>
+                    <div class="bg-indigo-950/60 border border-indigo-800 p-3">
+                        <span class="block text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">Mutasi Kas Bersih Periode</span>
+                        <span id="summary-mutasi-kas" class="text-sm font-bold text-emerald-300 mt-0.5 block">Rp 0</span>
+                    </div>
+                    <div class="bg-indigo-950/60 border border-indigo-800 p-3">
+                        <span class="block text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">Saldo Kas Akhir</span>
+                        <span id="summary-saldo-akhir-kas" class="text-sm font-bold text-amber-300 mt-0.5 block">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rincian Saldo Awal Kas & Bank -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                    <span>SALDO AWAL KAS &amp; BANK (SUMBER: SALDO AWAL)</span>
+                    <span id="total-saldo-awal-kas" class="text-indigo-600 dark:text-indigo-400">Rp 0</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+                                <th class="py-2.5 px-4 font-semibold w-32">Kode Akun</th>
+                                <th class="py-2.5 px-4 font-semibold">Nama Akun Kas / Bank</th>
+                                <th class="py-2.5 px-4 font-semibold w-36">Periode / Basis</th>
+                                <th class="py-2.5 px-4 font-semibold text-right w-44">Saldo Awal (Rp)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-saldo-awal-kas-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            <tr><td colspan="4" class="py-6 text-center text-slate-400">Memuat data saldo awal kas...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -176,6 +237,12 @@ export function initLaporanArusKasHandler() {
     const btnTampilkan = document.getElementById('btn-tampilkan');
     const btnCetak = document.getElementById('btn-cetak-arus-kas');
 
+    const tableSaldoAwalKasBody = document.getElementById('table-saldo-awal-kas-body');
+    const totalSaldoAwalKasEl = document.getElementById('total-saldo-awal-kas');
+    const summarySaldoAwalKasEl = document.getElementById('summary-saldo-awal-kas');
+    const summaryMutasiKasEl = document.getElementById('summary-mutasi-kas');
+    const summarySaldoAkhirKasEl = document.getElementById('summary-saldo-akhir-kas');
+
     const tableOperasiBody = document.getElementById('table-operasi-body');
     const tableInvestasiBody = document.getElementById('table-investasi-body');
     const tablePendanaanBody = document.getElementById('table-pendanaan-body');
@@ -188,6 +255,7 @@ export function initLaporanArusKasHandler() {
 
     let coaByKode = {};
     let allJurnalList = [];
+    let allSaldoAwalList = [];
 
     async function loadData() {
         try {
@@ -202,6 +270,12 @@ export function initLaporanArusKasHandler() {
                 }
             });
 
+            const snapSaldoAwal = await getDocs(collection(db, "saldo_awal"));
+            allSaldoAwalList = [];
+            snapSaldoAwal.forEach(docSnap => {
+                allSaldoAwalList.push({ id: docSnap.id, ...docSnap.data() });
+            });
+
             const qJurnal = query(collection(db, "jurnal_umum"), orderBy("tglTransaksi", "asc"));
             const snapJurnal = await getDocs(qJurnal);
             allJurnalList = [];
@@ -212,10 +286,80 @@ export function initLaporanArusKasHandler() {
             prosesArusKas();
         } catch (err) {
             console.error("Gagal memuat data laporan arus kas:", err);
+            if (tableSaldoAwalKasBody) tableSaldoAwalKasBody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-red-500">Gagal memuat data saldo awal.</td></tr>`;
             if (tableOperasiBody) tableOperasiBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-red-500">Gagal memuat data dari database.</td></tr>`;
             if (tableInvestasiBody) tableInvestasiBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-red-500">Gagal memuat data dari database.</td></tr>`;
             if (tablePendanaanBody) tablePendanaanBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-red-500">Gagal memuat data dari database.</td></tr>`;
         }
+    }
+
+    function hitungSaldoAwalKas(unitVal, tglMulaiVal, tglSampaiVal) {
+        const endPeriod = normalizePeriodKey(tglSampaiVal);
+        const byKode = {};
+
+        // 1. Ambil seluruh saldo awal kas/bank hingga periode akhir filter (termasuk periode awal / bulan lalu)
+        allSaldoAwalList.forEach(item => {
+            if (!matchesUnitFilter(item.unitUsaha, unitVal)) return;
+
+            const kode = String(item.kodeAkun || "").trim();
+            if (!kode || !isCashOrBankAccount(coaByKode[kode], kode)) return;
+
+            const periode = normalizePeriodKey(item.periode);
+            if (endPeriod && periode && periode > endPeriod) return;
+
+            const coa = coaByKode[kode];
+            const debit = parseFloat(item.debit) || 0;
+            const kredit = parseFloat(item.kredit) || 0;
+            const saldoNormal = String(item.saldoNormal || coa?.saldoNormal || "Debit").toLowerCase();
+            const saldo = saldoNormal.includes("kredit") ? (kredit - debit) : (debit - kredit);
+
+            if (!byKode[kode]) {
+                byKode[kode] = {
+                    kodeAkun: kode,
+                    namaAkun: coa?.namaAkun || item.namaAkun || kode,
+                    periodeLabel: periode || "-",
+                    jumlah: 0
+                };
+            }
+            byKode[kode].jumlah += saldo;
+            if (periode) {
+                byKode[kode].periodeLabel = periode;
+            }
+        });
+
+        // 2. Jika ada Tanggal Mulai, tambahkan mutasi kas sebelum Tanggal Mulai agar menjadi saldo awal per Tanggal Mulai
+        if (tglMulaiVal) {
+            allJurnalList.forEach(item => {
+                if (!matchesUnitFilter(item.unitUsaha, unitVal)) return;
+                if (!item.tglTransaksi || item.tglTransaksi >= tglMulaiVal) return;
+
+                const rincian = Array.isArray(item.rincian) ? item.rincian : [];
+                rincian.forEach(r => {
+                    const kode = String(r.kodeAkun || "").trim();
+                    if (!kode || !isCashOrBankAccount(coaByKode[kode], kode)) return;
+
+                    const d = parseFloat(r.debet) || 0;
+                    const k = parseFloat(r.kredit) || 0;
+                    const netCash = d - k;
+                    if (netCash === 0) return;
+
+                    const coa = coaByKode[kode];
+                    if (!byKode[kode]) {
+                        byKode[kode] = {
+                            kodeAkun: kode,
+                            namaAkun: coa?.namaAkun || r.namaAkun || kode,
+                            periodeLabel: `s/d ${tglMulaiVal}`,
+                            jumlah: 0
+                        };
+                    }
+                    byKode[kode].jumlah += netCash;
+                });
+            });
+        }
+
+        return Object.values(byKode)
+            .filter(r => r.jumlah !== 0)
+            .sort((a, b) => String(a.kodeAkun).localeCompare(String(b.kodeAkun)));
     }
 
     function prosesArusKas() {
@@ -225,6 +369,9 @@ export function initLaporanArusKasHandler() {
         const tglMulaiVal = filterTglMulai ? filterTglMulai.value : "";
         const tglSampaiVal = filterTglSampai ? filterTglSampai.value : "";
 
+        const saldoAwalKasList = hitungSaldoAwalKas(unitVal, tglMulaiVal, tglSampaiVal);
+        const totalSaldoAwalKas = saldoAwalKasList.reduce((acc, r) => acc + r.jumlah, 0);
+
         const buckets = {
             operasi: {},
             investasi: {},
@@ -232,7 +379,7 @@ export function initLaporanArusKasHandler() {
         };
 
         allJurnalList.forEach(item => {
-            if (unitVal && item.unitUsaha !== unitVal) return;
+            if (!matchesUnitFilter(item.unitUsaha, unitVal)) return;
             if (tglMulaiVal && item.tglTransaksi && item.tglTransaksi < tglMulaiVal) return;
             if (tglSampaiVal && item.tglTransaksi && item.tglTransaksi > tglSampaiVal) return;
 
@@ -270,27 +417,6 @@ export function initLaporanArusKasHandler() {
                     }
                     buckets[kategori][targetKode].jumlah += netCashImpact;
                 }
-            } else {
-                rincian.forEach(r => {
-                    const kode = String(r.kodeAkun || "").trim();
-                    const coa = coaByKode[kode];
-                    const kategori = resolveCashFlowCategory(coa);
-                    if (!kategori || !buckets[kategori]) return;
-
-                    const d = parseFloat(r.debet) || 0;
-                    const k = parseFloat(r.kredit) || 0;
-                    const net = d - k;
-                    if (net === 0) return;
-
-                    if (!buckets[kategori][kode]) {
-                        buckets[kategori][kode] = {
-                            kodeAkun: kode,
-                            namaAkun: coa?.namaAkun || r.namaAkun || kode,
-                            jumlah: 0
-                        };
-                    }
-                    buckets[kategori][kode].jumlah += net;
-                });
             }
         });
 
@@ -306,23 +432,44 @@ export function initLaporanArusKasHandler() {
         const sumOperasi = listOperasi.reduce((acc, r) => acc + r.jumlah, 0);
         const sumInvestasi = listInvestasi.reduce((acc, r) => acc + r.jumlah, 0);
         const sumPendanaan = listPendanaan.reduce((acc, r) => acc + r.jumlah, 0);
-        const totalKasBersih = sumOperasi + sumInvestasi + sumPendanaan;
+        const totalMutasiKas = sumOperasi + sumInvestasi + sumPendanaan;
+        const saldoKasAkhir = totalSaldoAwalKas + totalMutasiKas;
 
-        if (totalOperasiEl) totalOperasiEl.textContent = `Rp ${sumOperasi.toLocaleString('id-ID')}`;
-        if (totalInvestasiEl) totalInvestasiEl.textContent = `Rp ${sumInvestasi.toLocaleString('id-ID')}`;
-        if (totalPendanaanEl) totalPendanaanEl.textContent = `Rp ${sumPendanaan.toLocaleString('id-ID')}`;
-        if (summaryKasBersih) summaryKasBersih.textContent = `Rp ${totalKasBersih.toLocaleString('id-ID')}`;
+        if (totalSaldoAwalKasEl) totalSaldoAwalKasEl.textContent = formatRupiah(totalSaldoAwalKas);
+        if (summarySaldoAwalKasEl) summarySaldoAwalKasEl.textContent = formatRupiah(totalSaldoAwalKas);
+        if (summaryMutasiKasEl) summaryMutasiKasEl.textContent = formatRupiah(totalMutasiKas);
+        if (summarySaldoAkhirKasEl) summarySaldoAkhirKasEl.textContent = formatRupiah(saldoKasAkhir);
+
+        if (totalOperasiEl) totalOperasiEl.textContent = formatRupiah(sumOperasi);
+        if (totalInvestasiEl) totalInvestasiEl.textContent = formatRupiah(sumInvestasi);
+        if (totalPendanaanEl) totalPendanaanEl.textContent = formatRupiah(sumPendanaan);
+        if (summaryKasBersih) summaryKasBersih.textContent = formatRupiah(saldoKasAkhir);
 
         if (badgeArusKas) {
-            if (totalKasBersih > 0) {
+            if (saldoKasAkhir > 0) {
                 badgeArusKas.textContent = "Surplus Kas";
                 badgeArusKas.className = "px-3 py-1 bg-emerald-600 text-white font-bold text-xs uppercase";
-            } else if (totalKasBersih < 0) {
+            } else if (saldoKasAkhir < 0) {
                 badgeArusKas.textContent = "Defisit Kas";
                 badgeArusKas.className = "px-3 py-1 bg-rose-600 text-white font-bold text-xs uppercase";
             } else {
                 badgeArusKas.textContent = "Impas (Zero)";
                 badgeArusKas.className = "px-3 py-1 bg-amber-600 text-white font-bold text-xs uppercase";
+            }
+        }
+
+        if (tableSaldoAwalKasBody) {
+            if (saldoAwalKasList.length === 0) {
+                tableSaldoAwalKasBody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-400">Tidak ada data saldo awal kas/bank pada periode ini.</td></tr>`;
+            } else {
+                tableSaldoAwalKasBody.innerHTML = saldoAwalKasList.map(row => `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                        <td class="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-400">${row.kodeAkun}</td>
+                        <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${row.namaAkun}</td>
+                        <td class="py-3 px-4 text-slate-500">${row.periodeLabel}</td>
+                        <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">${formatRupiah(row.jumlah)}</td>
+                    </tr>
+                `).join("");
             }
         }
 
@@ -336,7 +483,7 @@ export function initLaporanArusKasHandler() {
                         <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
                             <td class="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-400">${item.kodeAkun}</td>
                             <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${item.namaAkun}</td>
-                            <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">Rp ${item.jumlah.toLocaleString('id-ID')}</td>
+                            <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">${formatRupiah(item.jumlah)}</td>
                         </tr>
                     `;
                 });

@@ -13,6 +13,13 @@ import { db } from "../firebase-init.js";
 
 const PAGE_SIZE = 10;
 
+const KATEGORI_PREFIX = {
+    Pelanggan: "PLG",
+    Supplier: "SUP",
+    Mitra: "MTR",
+    Lainnya: "LNY"
+};
+
 function escapeHtml(val) {
     return String(val ?? "")
         .replace(/&/g, "&amp;")
@@ -64,7 +71,7 @@ export function renderKontak() {
             <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs items-end">
                 <div class="sm:col-span-2">
                     <label for="kontak-search" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">CARI KONTAK</label>
-                    <input type="text" id="kontak-search" placeholder="Cari nama, telepon, atau alamat..."
+                    <input type="text" id="kontak-search" placeholder="Cari kode, nama, telepon, atau alamat..."
                         class="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
                 </div>
                 <div>
@@ -116,18 +123,25 @@ export function renderKontak() {
                     </div>
                     <form id="form-tambah-kontak" class="space-y-3 text-xs">
                         <input type="hidden" id="kontak-edit-id" value="">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="kontak-kategori" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kategori</label>
+                                <select id="kontak-kategori" class="w-full p-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
+                                    <option value="Pelanggan">Pelanggan</option>
+                                    <option value="Supplier">Supplier</option>
+                                    <option value="Mitra">Mitra</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="kontak-kode" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kode Kontak (Otomatis)</label>
+                                <input type="text" id="kontak-kode" readonly
+                                    class="w-full p-2 border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-950/70 text-indigo-700 dark:text-indigo-400 font-mono font-bold focus:outline-none rounded-none">
+                            </div>
+                        </div>
                         <div>
                             <label for="kontak-nama" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lengkap / Instansi *</label>
                             <input type="text" id="kontak-nama" required class="w-full p-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none" placeholder="Contoh: PT Maju Jaya">
-                        </div>
-                        <div>
-                            <label for="kontak-kategori" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Kategori</label>
-                            <select id="kontak-kategori" class="w-full p-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 rounded-none">
-                                <option value="Pelanggan">Pelanggan</option>
-                                <option value="Supplier">Supplier</option>
-                                <option value="Mitra">Mitra</option>
-                                <option value="Lainnya">Lainnya</option>
-                            </select>
                         </div>
                         <div>
                             <label for="kontak-telepon" class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Nomor Telepon / WhatsApp</label>
@@ -187,10 +201,38 @@ export async function initKontakHandler() {
     const btnCancel = document.getElementById('btn-cancel-modal');
     const form = document.getElementById('form-tambah-kontak');
     const btnSimpan = document.getElementById('btn-simpan-kontak');
+    const kategoriSelect = document.getElementById('kontak-kategori');
+    const kodeInput = document.getElementById('kontak-kode');
 
     let allKontakList = [];
     let selectedIds = new Set();
     let currentPage = 1;
+
+    function generateKodeByKategori(kategori) {
+        const prefix = KATEGORI_PREFIX[kategori] || "KTK";
+        let maxSeq = 0;
+
+        allKontakList.forEach((item) => {
+            const kode = String(item.kodeKontak || "").trim().toUpperCase();
+            const match = kode.match(new RegExp(`^${prefix}-(\\d+)$`));
+            if (match) {
+                const num = parseInt(match[1], 10);
+                if (!Number.isNaN(num) && num > maxSeq) {
+                    maxSeq = num;
+                }
+            }
+        });
+
+        return `${prefix}-${String(maxSeq + 1).padStart(3, "0")}`;
+    }
+
+    function syncKodePreview() {
+        if (!kodeInput) return;
+        const isEditing = Boolean(editIdInput && editIdInput.value.trim());
+        if (isEditing) return;
+        const kat = kategoriSelect ? kategoriSelect.value : "Pelanggan";
+        kodeInput.value = generateKodeByKategori(kat);
+    }
 
     function showToast(message, isError = false) {
         const toast = document.getElementById('toast-kontak');
@@ -236,6 +278,8 @@ export async function initKontakHandler() {
         if (!modal) return;
         if (form) form.reset();
         if (editIdInput) editIdInput.value = "";
+        if (kategoriSelect) kategoriSelect.value = "Pelanggan";
+        syncKodePreview();
         if (modalTitle) modalTitle.textContent = "Form Tambah Kontak";
         if (btnSimpan) btnSimpan.textContent = "Simpan Kontak";
         modal.classList.remove('hidden');
@@ -255,8 +299,10 @@ export async function initKontakHandler() {
         const teleponEl = document.getElementById('kontak-telepon');
         const alamatEl = document.getElementById('kontak-alamat');
 
+        const katVal = item.kategori || "Pelanggan";
+        if (kategoriEl) kategoriEl.value = katVal;
+        if (kodeInput) kodeInput.value = item.kodeKontak || generateKodeByKategori(katVal);
         if (namaEl) namaEl.value = item.nama || "";
-        if (kategoriEl) kategoriEl.value = item.kategori || "Pelanggan";
         if (teleponEl) teleponEl.value = item.telepon || "";
         if (alamatEl) alamatEl.value = item.alamat || "";
 
@@ -274,6 +320,7 @@ export async function initKontakHandler() {
     if (btnOpen) btnOpen.onclick = openAddModal;
     if (btnClose) btnClose.onclick = closeModal;
     if (btnCancel) btnCancel.onclick = closeModal;
+    if (kategoriSelect) kategoriSelect.onchange = syncKodePreview;
 
     const onModalBackdropClick = (e) => {
         if (modal && e.target === modal) closeModal();
@@ -296,7 +343,7 @@ export async function initKontakHandler() {
             if (!matchKat) return false;
 
             if (!keyword) return true;
-            const hay = `${item.nama || ""} ${item.kategori || ""} ${item.telepon || ""} ${item.alamat || ""}`.toLowerCase();
+            const hay = `${item.kodeKontak || ""} ${item.nama || ""} ${item.kategori || ""} ${item.telepon || ""} ${item.alamat || ""}`.toLowerCase();
             return hay.includes(keyword);
         });
     }
@@ -358,6 +405,7 @@ export async function initKontakHandler() {
                                     <input type="checkbox" class="kontak-select-all w-4 h-4 accent-indigo-600 cursor-pointer rounded-none" ${allPageSelected ? "checked" : ""} title="Pilih semua di halaman ini">
                                 </th>
                                 <th class="p-3.5 w-12 text-center">No</th>
+                                <th class="p-3.5 w-28">Kode</th>
                                 <th class="p-3.5">Nama / Instansi</th>
                                 <th class="p-3.5">Kategori</th>
                                 <th class="p-3.5">Telepon</th>
@@ -371,6 +419,7 @@ export async function initKontakHandler() {
         pageItems.forEach((item, idx) => {
             const nomorUrut = startIdx + idx + 1;
             const safeId = escapeHtml(item.id);
+            const safeKode = escapeHtml(item.kodeKontak || "-");
             const safeNama = escapeHtml(item.nama || "-");
             const safeKat = escapeHtml(item.kategori || "Umum");
             const safeTel = escapeHtml(item.telepon || "-");
@@ -384,6 +433,7 @@ export async function initKontakHandler() {
                         <input type="checkbox" data-kontak-id="${safeId}" class="kontak-row-checkbox w-4 h-4 accent-indigo-600 cursor-pointer rounded-none" ${isChecked ? "checked" : ""}>
                     </td>
                     <td class="p-3.5 text-center text-slate-500 font-medium">${nomorUrut}</td>
+                    <td class="p-3.5 font-mono font-bold text-indigo-600 dark:text-indigo-400">${safeKode}</td>
                     <td class="p-3.5 font-semibold text-slate-800 dark:text-slate-100">${safeNama}</td>
                     <td class="p-3.5"><span class="px-2 py-0.5 text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">${safeKat}</span></td>
                     <td class="p-3.5">
@@ -422,6 +472,7 @@ export async function initKontakHandler() {
 
         pageItems.forEach((item) => {
             const safeId = escapeHtml(item.id);
+            const safeKode = escapeHtml(item.kodeKontak || "-");
             const safeNama = escapeHtml(item.nama || "-");
             const safeKat = escapeHtml(item.kategori || "Umum");
             const safeTel = escapeHtml(item.telepon || "-");
@@ -435,7 +486,10 @@ export async function initKontakHandler() {
                         <div class="flex items-start gap-2.5 min-w-0">
                             <input type="checkbox" data-kontak-id="${safeId}" class="kontak-row-checkbox w-4 h-4 mt-0.5 accent-indigo-600 cursor-pointer rounded-none flex-shrink-0" ${isChecked ? "checked" : ""}>
                             <div class="min-w-0">
-                                <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900 mb-1">${safeKat}</span>
+                                <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                                    <span class="font-mono font-bold text-[10px] text-indigo-600 dark:text-indigo-400">${safeKode}</span>
+                                    <span class="inline-block px-2 py-0.5 text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">${safeKat}</span>
+                                </div>
                                 <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm leading-snug break-words">${safeNama}</h3>
                             </div>
                         </div>
@@ -467,7 +521,6 @@ export async function initKontakHandler() {
 
         container.innerHTML = html;
 
-        // Handler ceklis pilih semua di halaman aktif
         container.querySelectorAll('.kontak-select-all').forEach((chkAll) => {
             chkAll.onchange = () => {
                 const checked = chkAll.checked;
@@ -482,7 +535,6 @@ export async function initKontakHandler() {
             };
         });
 
-        // Handler ceklis per baris/card
         container.querySelectorAll('.kontak-row-checkbox').forEach((chkRow) => {
             chkRow.onchange = () => {
                 const id = chkRow.getAttribute('data-kontak-id');
@@ -496,7 +548,6 @@ export async function initKontakHandler() {
             };
         });
 
-        // Handler edit kontak
         container.querySelectorAll('.btn-edit-kontak').forEach((btn) => {
             btn.onclick = () => {
                 const id = btn.getAttribute('data-edit-kontak');
@@ -505,7 +556,6 @@ export async function initKontakHandler() {
             };
         });
 
-        // Handler hapus satu kontak
         container.querySelectorAll('.btn-hapus-kontak').forEach((btn) => {
             btn.onclick = async () => {
                 const id = btn.getAttribute('data-delete-kontak');
@@ -533,7 +583,7 @@ export async function initKontakHandler() {
                 list.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            list.sort((a, b) => String(a.nama || "").localeCompare(String(b.nama || ""), "id"));
+            list.sort((a, b) => String(a.kodeKontak || a.nama || "").localeCompare(String(b.kodeKontak || b.nama || ""), "id"));
             allKontakList = list;
 
             const validIds = new Set(allKontakList.map((k) => k.id));
@@ -619,7 +669,7 @@ export async function initKontakHandler() {
             const alamatEl = document.getElementById('kontak-alamat');
 
             const nama = namaEl ? namaEl.value.trim() : "";
-            const kategori = kategoriEl ? kategoriEl.value : "Umum";
+            const kategori = kategoriEl ? kategoriEl.value : "Pelanggan";
             const telepon = teleponEl ? teleponEl.value.trim() : "";
             const alamat = alamatEl ? alamatEl.value.trim() : "";
 
@@ -635,7 +685,10 @@ export async function initKontakHandler() {
 
             try {
                 if (targetId) {
+                    const existing = allKontakList.find((k) => k.id === targetId);
+                    const kodeKontak = existing?.kodeKontak || (kodeInput ? kodeInput.value.trim() : generateKodeByKategori(kategori));
                     await updateDoc(doc(db, "kontak", targetId), {
+                        kodeKontak,
                         nama,
                         kategori,
                         telepon,
@@ -644,14 +697,16 @@ export async function initKontakHandler() {
                     });
                     showToast("Kontak berhasil diperbarui!");
                 } else {
+                    const kodeKontak = generateKodeByKategori(kategori);
                     await addDoc(collection(db, "kontak"), {
+                        kodeKontak,
                         nama,
                         kategori,
                         telepon,
                         alamat,
                         createdAt: serverTimestamp()
                     });
-                    showToast("Kontak berhasil ditambahkan!");
+                    showToast(`Kontak berhasil ditambahkan (${kodeKontak})!`);
                 }
 
                 closeModal();

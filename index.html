@@ -249,7 +249,13 @@
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 md:gap-3">
+                <span id="header-active-period" title="Periode Buku / Bulan Aktif"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[11px] md:text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
+                    <span class="text-slate-500 dark:text-slate-400 font-normal hidden sm:inline">Bulan Aktif:</span>
+                    <span id="header-active-period-text">Memuat...</span>
+                </span>
+
                 <button id="theme-toggle-btn" onclick="toggleTheme()" class="hidden md:block p-2 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none cursor-pointer" title="Ubah Tema Cerah/Gelap">
                     <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                     <svg class="w-5 h-5 block dark:hidden text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
@@ -379,13 +385,96 @@
         </div>
     </div>
 
-    <!-- Script Mengambil Profil Perusahaan & Running Text dari Firestore -->
+    <!-- Script Mengambil Profil Perusahaan, Bulan Aktif & Running Text dari Firestore -->
     <script type="module">
         import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { db } from "./assets/js/firebase-init.js";
 
+        const BULAN_NAMES = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
         let latestRunningText = "Selamat datang di Sistem BUMKal Srihardono.";
         let latestSpeed = "normal";
+
+        function formatPeriodLabel(periodKey, fallbackNamaBulan = "", fallbackTahun = "") {
+            const key = String(periodKey || "").trim();
+            if (/^\d{4}-\d{2}$/.test(key)) {
+                const [yyyy, mm] = key.split("-");
+                const idx = parseInt(mm, 10) - 1;
+                const namaBulan = fallbackNamaBulan || (BULAN_NAMES[idx] || mm);
+                const tahun = fallbackTahun || yyyy;
+                return `${namaBulan} ${tahun} (${key})`;
+            }
+            if (fallbackNamaBulan && fallbackTahun) {
+                return `${fallbackNamaBulan} ${fallbackTahun}`;
+            }
+            return key || "-";
+        }
+
+        function nextPeriodKeyFrom(periodKey) {
+            const key = String(periodKey || "").trim();
+            if (!/^\d{4}-\d{2}$/.test(key)) return "";
+            let y = parseInt(key.slice(0, 4), 10);
+            let m = parseInt(key.slice(5, 7), 10) + 1;
+            if (m > 12) {
+                m = 1;
+                y += 1;
+            }
+            return `${y}-${String(m).padStart(2, "0")}`;
+        }
+
+        async function loadActivePeriod() {
+            const elText = document.getElementById('header-active-period-text');
+            if (!elText) return;
+
+            try {
+                const snap = await getDocs(collection(db, "tutup_bulan"));
+                const records = [];
+                const closedKeys = new Set();
+
+                snap.forEach((d) => {
+                    const data = d.data() || {};
+                    const key = String(data.periodKey || d.id || "").trim();
+                    if (!key) return;
+                    const status = String(data.status || "").trim();
+                    const isClosed = status.toLowerCase().includes("tutup") || status.toLowerCase().includes("close");
+                    if (isClosed) closedKeys.add(key);
+                    records.push({ key, isClosed, ...data });
+                });
+
+                records.sort((a, b) => a.key.localeCompare(b.key));
+
+                // 1. Cari dokumen di tutup_bulan yang statusnya belum ditutup (aktif/terbuka)
+                const openDoc = records.find((r) => !r.isClosed);
+                if (openDoc) {
+                    elText.textContent = formatPeriodLabel(openDoc.key, openDoc.namaBulan, openDoc.tahun);
+                    return;
+                }
+
+                // 2. Jika ada nextPeriodKey dari periode tertutup terakhir yang belum masuk closedKeys, gunakan itu
+                for (let i = records.length - 1; i >= 0; i -= 1) {
+                    const nextKey = String(records[i].nextPeriodKey || nextPeriodKeyFrom(records[i].key) || "").trim();
+                    if (nextKey && !closedKeys.has(nextKey)) {
+                        elText.textContent = formatPeriodLabel(nextKey);
+                        return;
+                    }
+                }
+
+                // 3. Fallback ke bulan berjalan saat ini
+                const now = new Date();
+                const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+                elText.textContent = formatPeriodLabel(currentKey);
+            } catch (err) {
+                console.warn("Gagal memuat bulan aktif dari tutup_bulan:", err);
+                const now = new Date();
+                const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+                elText.textContent = formatPeriodLabel(currentKey);
+            }
+        }
+
+        window.reloadActivePeriod = loadActivePeriod;
 
         function applyMarqueeMetrics(text = latestRunningText, speed = latestSpeed) {
             const viewport = document.getElementById('global-running-text-viewport');
@@ -518,6 +607,7 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             loadCompanyProfile();
+            loadActivePeriod();
             loadRunningText();
         });
     </script>

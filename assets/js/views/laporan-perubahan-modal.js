@@ -2,6 +2,19 @@
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
+function formatRupiah(num) {
+    const rounded = Math.round(Number(num) || 0);
+    return (rounded < 0 ? "-Rp " : "Rp ") + Math.abs(rounded).toLocaleString("id-ID");
+}
+
+function formatSignedRupiah(num) {
+    const rounded = Math.round(Number(num) || 0);
+    const absFormatted = `Rp ${Math.abs(rounded).toLocaleString("id-ID")}`;
+    if (rounded > 0) return `(+) ${absFormatted}`;
+    if (rounded < 0) return `(-) ${absFormatted}`;
+    return `Rp 0`;
+}
+
 export function renderLaporanPerubahanModal() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
@@ -16,7 +29,7 @@ export function renderLaporanPerubahanModal() {
                     </a>
                     <div class="min-w-0">
                         <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Laporan Perubahan Modal (Statement of Changes in Equity)</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Rekapitulasi perubahan modal BUMKal dari awal periode hingga akhir periode.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Rekapitulasi perubahan modal BUMKal dari awal periode hingga akhir periode (rinci per akun).</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full md:w-auto">
@@ -63,22 +76,23 @@ export function renderLaporanPerubahanModal() {
                 </div>
             </div>
 
-            <!-- Tabel Komponen Perubahan Modal -->
+            <!-- Tabel Komponen Perubahan Modal Rinci Per Akun -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
-                    <span>RINCIAN PERUBAHAN MODAL</span>
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <span>RINCIAN PERUBAHAN MODAL PER AKUN</span>
                     <span id="periode-label" class="text-slate-500 font-normal">Periode: -</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-                                <th class="py-3 px-4 font-semibold">Keterangan Komponen Perubahan Modal</th>
+                                <th class="py-3 px-4 font-semibold w-36">Kode Akun</th>
+                                <th class="py-3 px-4 font-semibold">Keterangan Komponen / Nama Akun</th>
                                 <th class="py-3 px-4 font-semibold text-right w-56">Jumlah (Rp)</th>
                             </tr>
                         </thead>
                         <tbody id="table-perubahan-modal-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                            <tr><td colspan="2" class="py-8 text-center text-slate-400">Silakan klik "Tampilkan Laporan".</td></tr>
+                            <tr><td colspan="3" class="py-8 text-center text-slate-400">Silakan klik "Tampilkan Laporan".</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -140,7 +154,7 @@ export function initLaporanPerubahanModalHandler() {
             prosesPerubahanModal();
         } catch (err) {
             console.error("Gagal memuat data laporan perubahan modal:", err);
-            if (tableBody) tableBody.innerHTML = `<tr><td colspan="2" class="py-6 text-center text-red-500">Gagal memuat data dari database.</td></tr>`;
+            if (tableBody) tableBody.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-red-500">Gagal memuat data dari database.</td></tr>`;
         }
     }
 
@@ -156,13 +170,7 @@ export function initLaporanPerubahanModalHandler() {
             periodeLabel.textContent = `Periode: ${tglMulaiVal || 'Awal'} s.d. ${tglSampaiVal || 'Sekarang'} ${unitVal ? '(' + unitVal + ')' : ''}`;
         }
 
-        let modalAwalTotal = 0;
-        let tambahanModalTotal = 0;
-        let priveTotal = 0;
-        let totalPendapatan = 0;
-        let totalBeban = 0;
-
-        let akunMap = {};
+        const akunMap = {};
         coaList.forEach(coa => {
             const reportGroup = String(coa.reportGroup || "").toLowerCase();
             const kategori = String(coa.kategori || "").toLowerCase();
@@ -205,7 +213,13 @@ export function initLaporanPerubahanModalHandler() {
                 }
 
                 if (jenis) {
-                    akunMap[kode] = { jenis, totalDebet: 0, totalKredit: 0 };
+                    akunMap[kode] = {
+                        kodeAkun: kode,
+                        namaAkun: String(coa.namaAkun || kode).trim(),
+                        jenis,
+                        totalDebet: 0,
+                        totalKredit: 0
+                    };
                 }
             }
         });
@@ -215,6 +229,23 @@ export function initLaporanPerubahanModalHandler() {
             if (periodeSampai && sa.periode && String(sa.periode) > periodeSampai) return;
 
             const kode = String(sa.kodeAkun || "").trim();
+            if (!kode) return;
+
+            if (!akunMap[kode] && kode.startsWith("3")) {
+                const namaLower = String(sa.namaAkun || "").toLowerCase();
+                let jenis = "modal_awal";
+                if (namaLower.includes("prive") || namaLower.includes("penarikan")) jenis = "prive";
+                else if (namaLower.includes("tambahan") || namaLower.includes("setoran")) jenis = "tambahan";
+
+                akunMap[kode] = {
+                    kodeAkun: kode,
+                    namaAkun: String(sa.namaAkun || kode).trim(),
+                    jenis,
+                    totalDebet: 0,
+                    totalKredit: 0
+                };
+            }
+
             if (akunMap[kode]) {
                 akunMap[kode].totalDebet += parseFloat(sa.debit) || 0;
                 akunMap[kode].totalKredit += parseFloat(sa.kredit) || 0;
@@ -237,21 +268,76 @@ export function initLaporanPerubahanModalHandler() {
             }
         });
 
-        Object.values(akunMap).forEach(acc => {
-            const saldoKreditNet = acc.totalKredit - acc.totalDebet;
-            const saldoDebetNet = acc.totalDebet - acc.totalKredit;
+        const detailModalAwal = [];
+        const detailTambahan = [];
+        const detailPrive = [];
+        const detailPendapatan = [];
+        const detailBeban = [];
 
-            if (acc.jenis === "modal_awal") modalAwalTotal += saldoKreditNet;
-            else if (acc.jenis === "tambahan") tambahanModalTotal += saldoKreditNet;
-            else if (acc.jenis === "prive") priveTotal += saldoDebetNet;
-            else if (acc.jenis === "pendapatan") totalPendapatan += saldoKreditNet;
-            else if (acc.jenis === "beban") totalBeban += saldoDebetNet;
-        });
+        let modalAwalTotal = 0;
+        let tambahanModalTotal = 0;
+        let priveTotal = 0;
+        let totalPendapatan = 0;
+        let totalBeban = 0;
+
+        Object.values(akunMap)
+            .sort((a, b) => a.kodeAkun.localeCompare(b.kodeAkun))
+            .forEach(acc => {
+                const saldoKreditNet = acc.totalKredit - acc.totalDebet;
+                const saldoDebetNet = acc.totalDebet - acc.totalKredit;
+
+                if (acc.jenis === "modal_awal") {
+                    modalAwalTotal += saldoKreditNet;
+                    if (saldoKreditNet !== 0) {
+                        detailModalAwal.push({
+                            kodeAkun: acc.kodeAkun,
+                            namaAkun: acc.namaAkun,
+                            jumlah: saldoKreditNet
+                        });
+                    }
+                } else if (acc.jenis === "tambahan") {
+                    tambahanModalTotal += saldoKreditNet;
+                    if (saldoKreditNet !== 0) {
+                        detailTambahan.push({
+                            kodeAkun: acc.kodeAkun,
+                            namaAkun: acc.namaAkun,
+                            jumlah: saldoKreditNet
+                        });
+                    }
+                } else if (acc.jenis === "prive") {
+                    priveTotal += saldoDebetNet;
+                    if (saldoDebetNet !== 0) {
+                        detailPrive.push({
+                            kodeAkun: acc.kodeAkun,
+                            namaAkun: acc.namaAkun,
+                            jumlah: saldoDebetNet
+                        });
+                    }
+                } else if (acc.jenis === "pendapatan") {
+                    totalPendapatan += saldoKreditNet;
+                    if (saldoKreditNet !== 0) {
+                        detailPendapatan.push({
+                            kodeAkun: acc.kodeAkun,
+                            namaAkun: acc.namaAkun,
+                            jumlah: saldoKreditNet
+                        });
+                    }
+                } else if (acc.jenis === "beban") {
+                    totalBeban += saldoDebetNet;
+                    if (saldoDebetNet !== 0) {
+                        detailBeban.push({
+                            kodeAkun: acc.kodeAkun,
+                            namaAkun: acc.namaAkun,
+                            jumlah: saldoDebetNet
+                        });
+                    }
+                }
+            });
 
         const labaRugiBersih = totalPendapatan - totalBeban;
         const modalAkhir = modalAwalTotal + tambahanModalTotal + labaRugiBersih - priveTotal;
 
-        if (summaryModalAkhir) summaryModalAkhir.textContent = `Rp ${modalAkhir.toLocaleString('id-ID')}`;
+        if (summaryModalAkhir) summaryModalAkhir.textContent = formatRupiah(modalAkhir);
         if (badgeStatusModal) {
             badgeStatusModal.textContent = modalAkhir >= 0 ? "Normal / Sehat" : "Defisit Ekuitas";
             badgeStatusModal.className = modalAkhir >= 0
@@ -259,30 +345,117 @@ export function initLaporanPerubahanModalHandler() {
                 : "px-3 py-1 bg-rose-600 text-white font-bold text-xs uppercase";
         }
 
-        tableBody.innerHTML = `
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">Modal Awal / Saldo Awal Ekuitas</td>
-                <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">Rp ${modalAwalTotal.toLocaleString('id-ID')}</td>
-            </tr>
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">Tambahan Setoran Modal</td>
-                <td class="py-3 px-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">(+) Rp ${tambahanModalTotal.toLocaleString('id-ID')}</td>
-            </tr>
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">Laba / Rugi Bersih Periode Berjalan</td>
-                <td class="py-3 px-4 text-right font-semibold ${labaRugiBersih >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
-                    ${labaRugiBersih >= 0 ? '(+) ' : '(-) '} Rp ${Math.abs(labaRugiBersih).toLocaleString('id-ID')}
-                </td>
-            </tr>
-            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">Prive / Penarikan Modal Pihak Pengelola</td>
-                <td class="py-3 px-4 text-right font-semibold text-rose-600 dark:text-rose-400">(-) Rp ${priveTotal.toLocaleString('id-ID')}</td>
-            </tr>
-            <tr class="bg-slate-50 dark:bg-slate-950 font-bold border-t-2 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100">
+        const renderSectionRows = ({
+            headerTitle,
+            headerTotalText,
+            headerTotalClass = "text-slate-800 dark:text-slate-100",
+            items,
+            emptyText,
+            valueFormatter = (v) => formatRupiah(v),
+            valueClassFn = () => "text-slate-700 dark:text-slate-200"
+        }) => {
+            let rowsHtml = `
+                <tr class="bg-slate-50/90 dark:bg-slate-950/80 font-bold text-slate-800 dark:text-slate-100">
+                    <td class="py-2.5 px-4 text-slate-400">—</td>
+                    <td class="py-2.5 px-4">${headerTitle}</td>
+                    <td class="py-2.5 px-4 text-right ${headerTotalClass}">${headerTotalText}</td>
+                </tr>
+            `;
+
+            if (!items || items.length === 0) {
+                rowsHtml += `
+                    <tr>
+                        <td class="py-2 px-4 text-slate-400"></td>
+                        <td class="py-2 px-8 italic text-slate-400">${emptyText}</td>
+                        <td class="py-2 px-4 text-right text-slate-400">Rp 0</td>
+                    </tr>
+                `;
+                return rowsHtml;
+            }
+
+            items.forEach(row => {
+                rowsHtml += `
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                        <td class="py-2 px-4 pl-6 font-semibold text-indigo-600 dark:text-indigo-400">${row.kodeAkun}</td>
+                        <td class="py-2 px-4 pl-6 text-slate-700 dark:text-slate-300">${row.namaAkun}</td>
+                        <td class="py-2 px-4 text-right font-medium ${valueClassFn(row.jumlah)}">${valueFormatter(row.jumlah)}</td>
+                    </tr>
+                `;
+            });
+
+            return rowsHtml;
+        };
+
+        let html = "";
+
+        // 1. Modal Awal / Saldo Awal Ekuitas
+        html += renderSectionRows({
+            headerTitle: "Modal Awal / Saldo Awal Ekuitas",
+            headerTotalText: formatRupiah(modalAwalTotal),
+            items: detailModalAwal,
+            emptyText: "Tidak ada rincian akun saldo awal ekuitas pada periode ini."
+        });
+
+        // 2. Tambahan Setoran Modal
+        html += renderSectionRows({
+            headerTitle: "Tambahan Setoran Modal",
+            headerTotalText: formatSignedRupiah(tambahanModalTotal),
+            headerTotalClass: "text-emerald-600 dark:text-emerald-400",
+            items: detailTambahan,
+            emptyText: "Tidak ada mutasi tambahan setoran modal pada periode ini.",
+            valueFormatter: (v) => formatRupiah(v),
+            valueClassFn: () => "text-emerald-600 dark:text-emerald-400"
+        });
+
+        // 3. Laba / Rugi Bersih Periode Berjalan (Rinci Akun Pendapatan & Beban)
+        const labaRugiItems = [
+            ...detailPendapatan.map(p => ({
+                kodeAkun: p.kodeAkun,
+                namaAkun: `Pendapatan — ${p.namaAkun}`,
+                jumlah: p.jumlah
+            })),
+            ...detailBeban.map(b => ({
+                kodeAkun: b.kodeAkun,
+                namaAkun: `Beban — ${b.namaAkun}`,
+                jumlah: -Math.abs(b.jumlah)
+            }))
+        ];
+
+        html += renderSectionRows({
+            headerTitle: "Laba / Rugi Bersih Periode Berjalan",
+            headerTotalText: formatSignedRupiah(labaRugiBersih),
+            headerTotalClass: labaRugiBersih >= 0
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-rose-600 dark:text-rose-400",
+            items: labaRugiItems,
+            emptyText: "Tidak ada rincian mutasi akun pendapatan/beban pada periode ini.",
+            valueFormatter: (v) => formatSignedRupiah(v),
+            valueClassFn: (v) => v >= 0
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-rose-600 dark:text-rose-400"
+        });
+
+        // 4. Prive / Penarikan Modal Pihak Pengelola
+        html += renderSectionRows({
+            headerTitle: "Prive / Penarikan Modal Pihak Pengelola",
+            headerTotalText: priveTotal > 0 ? `(-) ${formatRupiah(priveTotal)}` : `Rp 0`,
+            headerTotalClass: "text-rose-600 dark:text-rose-400",
+            items: detailPrive,
+            emptyText: "Tidak ada penarikan prive pada periode ini.",
+            valueFormatter: (v) => `(-) ${formatRupiah(v)}`,
+            valueClassFn: () => "text-rose-600 dark:text-rose-400"
+        });
+
+        // Total Modal Akhir
+        html += `
+            <tr class="bg-slate-100 dark:bg-slate-950 font-bold border-t-2 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100">
+                <td class="py-3.5 px-4"></td>
                 <td class="py-3.5 px-4 text-right uppercase">Total Modal Akhir :</td>
-                <td class="py-3.5 px-4 text-right text-indigo-600 dark:text-indigo-400 text-sm">Rp ${modalAkhir.toLocaleString('id-ID')}</td>
+                <td class="py-3.5 px-4 text-right text-indigo-600 dark:text-indigo-400 text-sm">${formatRupiah(modalAkhir)}</td>
             </tr>
         `;
+
+        tableBody.innerHTML = html;
     }
 
     const onTampilkanClick = () => prosesPerubahanModal();

@@ -1,10 +1,46 @@
 // File: assets/js/views/keuangan-kas-keluar.js
-import { collection, addDoc, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
+
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function parseDigitsToNumber(val) {
+    const cleaned = String(val ?? "").replace(/\D/g, "");
+    if (!cleaned) return 0;
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatRibuanInput(val) {
+    const raw = String(val ?? "").replace(/\D/g, "");
+    if (!raw) return "";
+    const num = Number(raw);
+    return Number.isFinite(num) ? num.toLocaleString("id-ID") : "";
+}
+
+function formatRupiah(num) {
+    return "Rp " + Math.max(0, Math.round(Number(num) || 0)).toLocaleString("id-ID");
+}
 
 export function renderKasKeluar() {
     return `
-        <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
+        <style>
+            @keyframes kkSmoothIn {
+                from { opacity: 0; transform: translateY(6px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .kk-smooth-enter {
+                animation: kkSmoothIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+            }
+        </style>
+        <div class="space-y-6 pb-10 max-w-7xl mx-auto kk-smooth-enter">
             <!-- Header Halaman -->
             <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div class="flex items-center gap-3">
@@ -14,83 +50,75 @@ export function renderKasKeluar() {
                         </svg>
                     </a>
                     <div>
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Pencatatan Kas Keluar (Cash Out)</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pencatatan transaksi pembayaran beban operasional, pembelian inventaris, atau pelunasan hutang BUMKal.</p>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Pencatatan Kas Keluar (Cash Out)</h1>
+                            <span id="badge-bulan-aktif-kk" class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors duration-200">Periode Aktif</span>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pencatatan transaksi pembayaran beban operasional, pembelian inventaris, atau pelunasan hutang BUMKal (mendukung multi akun beban).</p>
                     </div>
                 </div>
             </div>
 
             <!-- Form Input Kas Keluar -->
-            <div class="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Form Transaksi Kas Keluar</h2>
-                <form id="form-kas-keluar" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL TRANSAKSI *</label>
-                        <input type="date" id="kk-tgl" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+            <div class="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none transition-opacity duration-200">
+                <div class="flex items-center justify-between gap-2 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Form Transaksi Kas Keluar</h2>
+                    <span id="kk-periode-info" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400"></span>
+                </div>
+                <form id="form-kas-keluar" class="space-y-4 text-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="kk-tgl" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL TRANSAKSI *</label>
+                            <input type="date" id="kk-tgl" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-150">
+                            <p id="kk-tgl-warning" class="hidden text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-1"></p>
+                        </div>
+                        <div>
+                            <label for="kk-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">UNIT USAHA *</label>
+                            <select id="kk-unit" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                                <option value="">-- Pilih Unit Usaha --</option>
+                                <option value="KANTOR PUSAT (01)">KANTOR PUSAT (01)</option>
+                                <option value="AGROWISATA (02)">AGROWISATA (02)</option>
+                                <option value="KOMPOS (03)">KOMPOS (03)</option>
+                                <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="kk-akun-kas" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN KAS / BANK PEMBAYAR (KREDIT) *</label>
+                            <select id="kk-akun-kas" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                                <option value="">-- Pilih Akun Kas / Bank Pembayar --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="kk-penerima" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">DIBAYARKAN KEPADA / PENERIMA *</label>
+                            <input type="text" id="kk-penerima" placeholder="Contoh: Toko Bangunan / Vendor / Staf" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">UNIT USAHA *</label>
-                        <select id="kk-unit" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
-                            <option value="">-- Pilih Unit Usaha --</option>
-                            <option value="KANTOR PUSAT (01)">KANTOR PUSAT (01)</option>
-                            <option value="AGROWISATA (02)">AGROWISATA (02)</option>
-                            <option value="KOMPOS (03)">KOMPOS (03)</option>
-                            <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
-                        </select>
+
+                    <!-- Rincian Multi Akun Beban / Pengeluaran (Debet) -->
+                    <div class="border border-slate-200 dark:border-slate-800 rounded-none overflow-hidden">
+                        <div class="bg-slate-50 dark:bg-slate-950 px-4 py-2.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2">
+                            <span class="font-bold text-slate-800 dark:text-slate-200">RINCIAN AKUN BEBAN / PENGELUARAN (DEBET - MULTI AKUN) *</span>
+                            <button type="button" id="btn-tambah-akun-kk" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-[11px] rounded-none transition cursor-pointer">
+                                + Tambah Akun
+                            </button>
+                        </div>
+                        <div id="kk-multi-akun-container" class="p-3 space-y-2.5 bg-white dark:bg-slate-900"></div>
+                        <div class="bg-slate-50 dark:bg-slate-950 px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between font-bold">
+                            <span class="text-slate-600 dark:text-slate-300">TOTAL KAS KELUAR (DEBET = KREDIT):</span>
+                            <span id="kk-total-display" class="text-rose-600 dark:text-rose-400 text-sm">Rp 0</span>
+                        </div>
                     </div>
+
                     <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN BEBAN / PENGELUARAN (DEBET) *</label>
-                        <select id="kk-akun-beban" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
-                            <option value="">-- Memuat Akun Beban --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN KAS / BANK PEMBAYAR (KREDIT) *</label>
-                        <select id="kk-akun-kas" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
-                            <option value="">-- Memuat Akun Kas --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JUMLAH NOMINAL (RP) *</label>
-                        <input type="number" id="kk-jumlah" min="1" step="any" placeholder="0" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">DIBAYARKAN KEPADA / PENERIMA *</label>
-                        <input type="text" id="kk-penerima" placeholder="Contoh: Toko Bangunan / Vendor / Staf" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
-                    </div>
-                    <div class="md:col-span-3">
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">KETERANGAN / URAIAN TRANSAKSI *</label>
+                        <label for="kk-keterangan" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">KETERANGAN / URAIAN TRANSAKSI *</label>
                         <input type="text" id="kk-keterangan" placeholder="Contoh: Pembayaran pembelian alat kebersihan unit kantor" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div class="md:col-span-3 flex justify-end gap-2 pt-2">
+
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" id="btn-reset-kk" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold px-5 py-2.5 rounded-none border border-slate-300 dark:border-slate-700 transition cursor-pointer">Reset Form</button>
                         <button type="submit" id="btn-simpan-kk" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-none transition cursor-pointer shadow-sm">Simpan Transaksi Kas Keluar</button>
                     </div>
                 </form>
-            </div>
-
-            <!-- Tabel Riwayat Kas Keluar -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
-                    <span>RIWAYAT TRANSAKSI KAS KELUAR</span>
-                    <span id="total-kk-count" class="text-slate-500 font-normal">Total: 0 Data</span>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
-                        <thead>
-                            <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-                                <th class="py-3 px-4 font-semibold w-28">Tanggal</th>
-                                <th class="py-3 px-4 font-semibold w-36">Unit Usaha</th>
-                                <th class="py-3 px-4 font-semibold w-40">Penerima / Vendor</th>
-                                <th class="py-3 px-4 font-semibold">Uraian & Akun</th>
-                                <th class="py-3 px-4 font-semibold text-right w-40">Jumlah (Rp)</th>
-                                <th class="py-3 px-4 font-semibold text-center w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-kk-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                            <tr><td colspan="6" class="py-8 text-center text-slate-400">Memuat data riwayat kas keluar...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
 
             <!-- Toast Notifikasi -->
@@ -105,25 +133,33 @@ export function renderKasKeluar() {
 }
 
 let kasKeluarToastTimer = null;
+let kasKeluarCleanup = null;
 
 export function initKasKeluarHandler() {
+    if (typeof kasKeluarCleanup === "function") {
+        kasKeluarCleanup();
+        kasKeluarCleanup = null;
+    }
+
     const formKasKeluar = document.getElementById('form-kas-keluar');
     const kkTgl = document.getElementById('kk-tgl');
     const kkUnit = document.getElementById('kk-unit');
-    const kkAkunBeban = document.getElementById('kk-akun-beban');
     const kkAkunKas = document.getElementById('kk-akun-kas');
-    const kkJumlah = document.getElementById('kk-jumlah');
     const kkPenerima = document.getElementById('kk-penerima');
     const kkKeterangan = document.getElementById('kk-keterangan');
+    const btnTambahAkun = document.getElementById('btn-tambah-akun-kk');
+    const btnResetKk = document.getElementById('btn-reset-kk');
+    const multiAkunContainer = document.getElementById('kk-multi-akun-container');
+    const totalDisplayEl = document.getElementById('kk-total-display');
     const btnSimpanKk = document.getElementById('btn-simpan-kk');
-    const tableBody = document.getElementById('table-kk-body');
-    const totalCountEl = document.getElementById('total-kk-count');
 
-    if (kkTgl && !kkTgl.value) {
-        kkTgl.value = new Date().toISOString().split('T')[0];
-    }
+    const badgeBulanAktif = document.getElementById('badge-bulan-aktif-kk');
+    const periodeInfoEl = document.getElementById('kk-periode-info');
+    const tglWarningEl = document.getElementById('kk-tgl-warning');
 
-    let kasKeluarList = [];
+    let bebanAccountOptions = [];
+    let tutupBulanMap = new Map();
+    let activePeriodKey = "";
 
     function showToast(message, isError = false) {
         const toast = document.getElementById('toast-kas-keluar');
@@ -150,185 +186,617 @@ export function initKasKeluarHandler() {
         }, 3000);
     }
 
-    async function loadCoaAndData() {
+    function normalizePeriodKey(rawVal) {
+        const s = String(rawVal || "").trim().toLowerCase();
+        const isoMatch = s.match(/(\d{4})[-/](\d{1,2})/);
+        if (isoMatch) {
+            return `${isoMatch[1]}-${isoMatch[2].padStart(2, "0")}`;
+        }
+
+        const bulanMap = {
+            januari: "01", jan: "01",
+            februari: "02", feb: "02",
+            maret: "03", mar: "03",
+            april: "04", apr: "04",
+            mei: "05",
+            juni: "06", jun: "06",
+            juli: "07", jul: "07",
+            agustus: "08", agu: "08", ags: "08",
+            september: "09", sep: "09", sept: "09",
+            oktober: "10", okt: "10",
+            november: "11", nov: "11",
+            desember: "12", des: "12"
+        };
+
+        const yearMatch = s.match(/\b(20\d{2})\b/);
+        for (const [namaBulan, mm] of Object.entries(bulanMap)) {
+            if (new RegExp(`\\b${namaBulan}\\b`).test(s) && yearMatch) {
+                return `${yearMatch[1]}-${mm}`;
+            }
+        }
+        return "";
+    }
+
+    function extractDocPeriodKey(data = {}, docId = "") {
+        const direct = normalizePeriodKey(
+            data.periodKey ??
+            data.periode ??
+            data.bulanKey ??
+            data.bulan_key ??
+            data.bulanAktif ??
+            data.bulan_aktif ??
+            data.activePeriod ??
+            data.active_period ??
+            ""
+        );
+        if (direct) return direct;
+
+        const yearVal = String(data.tahun ?? data.year ?? "").trim();
+        const monthVal = String(data.bulan ?? data.month ?? data.namaBulan ?? "").trim();
+        if (yearVal && monthVal) {
+            const combined = normalizePeriodKey(`${yearVal}-${monthVal}`) || normalizePeriodKey(`${monthVal} ${yearVal}`);
+            if (combined) return combined;
+        }
+
+        return normalizePeriodKey(docId);
+    }
+
+    function isDocClosed(data = {}) {
+        if (data.isClosed === true || data.closed === true || data.terkunci === true || data.locked === true || Boolean(data.closedAt)) {
+            return true;
+        }
+        if (data.aktif === false || data.isAktif === false || data.is_aktif === false || data.isActive === false || data.active === false) {
+            return true;
+        }
+        const statusCandidate = String(
+            data.status ?? data.statusPeriode ?? data.status_periode ?? data.statusBulan ?? data.status_bulan ?? data.state ?? ""
+        )
+            .trim()
+            .toLowerCase();
+
+        return (
+            statusCandidate.includes("tutup") ||
+            statusCandidate.includes("close") ||
+            statusCandidate.includes("kunci") ||
+            statusCandidate.includes("lock") ||
+            statusCandidate.includes("selesai") ||
+            statusCandidate === "nonaktif" ||
+            statusCandidate === "tidak aktif"
+        );
+    }
+
+    function isDocActive(data = {}) {
+        if (isDocClosed(data)) return false;
+        if (
+            data.isActive === true ||
+            data.active === true ||
+            data.aktif === true ||
+            data.isAktif === true ||
+            data.is_aktif === true ||
+            data.isCurrent === true ||
+            data.current === true
+        ) {
+            return true;
+        }
+        const statusCandidate = String(
+            data.status ?? data.statusPeriode ?? data.status_periode ?? data.statusBulan ?? data.status_bulan ?? data.state ?? ""
+        )
+            .trim()
+            .toLowerCase();
+
+        return (
+            statusCandidate === "aktif" ||
+            statusCandidate === "active" ||
+            statusCandidate === "open" ||
+            statusCandidate === "terbuka" ||
+            statusCandidate === "berjalan"
+        );
+    }
+
+    function detectPeriodFromHeaderDom() {
+        const headerText = String(document.body?.innerText || "");
+        const match = headerText.match(/Bulan\s+Aktif\s*:\s*([^\n]+)/i);
+        if (!match) return "";
+        return normalizePeriodKey(match[1]);
+    }
+
+    function getPeriodeStatus(tglIso) {
+        const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
+        const periodKey = normalizePeriodKey(tglIso);
+        if (!periodKey) {
+            return { isAllowed: false, reason: "invalid_date", periodKey: "", label: "" };
+        }
+
+        const docData = tutupBulanMap.get(periodKey);
+        const label = docData && docData.namaBulan && docData.tahun
+            ? `${docData.namaBulan} ${docData.tahun} (${periodKey})`
+            : periodKey;
+
+        if (docData && isDocClosed(docData)) {
+            const statusText = String(
+                docData.status ?? docData.statusPeriode ?? docData.statusBulan ?? "Ditutup"
+            ).trim();
+            return {
+                isAllowed: false,
+                reason: "closed",
+                periodKey,
+                label,
+                statusText
+            };
+        }
+
+        if (effectiveActivePeriod && periodKey !== effectiveActivePeriod) {
+            return {
+                isAllowed: false,
+                reason: "not_active_month",
+                periodKey,
+                label,
+                activePeriodKey: effectiveActivePeriod
+            };
+        }
+
+        return {
+            isAllowed: true,
+            reason: "ok",
+            periodKey,
+            label
+        };
+    }
+
+    function getPeriodeBlockMessage(info) {
+        if (!info || info.isAllowed) return "";
+        if (info.reason === "closed") {
+            return `Periode ${info.label} berstatus "${info.statusText || "Ditutup"}". Transaksi tidak dapat disimpan.`;
+        }
+        if (info.reason === "not_active_month") {
+            return `Tanggal ${info.periodKey} di luar bulan aktif (${info.activePeriodKey}).`;
+        }
+        return "Tanggal transaksi tidak valid.";
+    }
+
+    function syncPeriodeValidationUI({ suppressInitialError = false } = {}) {
+        const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
+
+        if (badgeBulanAktif) {
+            if (effectiveActivePeriod) {
+                badgeBulanAktif.textContent = `Bulan Aktif: ${effectiveActivePeriod}`;
+                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors duration-200";
+            } else {
+                badgeBulanAktif.textContent = "Periode Aktif";
+                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors duration-200";
+            }
+        }
+
+        if (periodeInfoEl) {
+            periodeInfoEl.textContent = effectiveActivePeriod
+                ? `Wajib Periode: ${effectiveActivePeriod}`
+                : "";
+        }
+
+        const tglVal = kkTgl ? kkTgl.value : "";
+        const info = getPeriodeStatus(tglVal);
+        const showError = !info.isAllowed && !(suppressInitialError && !effectiveActivePeriod);
+        const blockMsg = showError ? getPeriodeBlockMessage(info) : "";
+
+        if (tglWarningEl) {
+            if (showError && blockMsg) {
+                tglWarningEl.textContent = blockMsg;
+                tglWarningEl.classList.remove('hidden');
+            } else {
+                tglWarningEl.textContent = "";
+                tglWarningEl.classList.add('hidden');
+            }
+        }
+
+        if (kkTgl) {
+            if (showError) {
+                kkTgl.classList.remove('border-slate-300', 'dark:border-slate-700', 'focus:border-indigo-600');
+                kkTgl.classList.add('border-rose-500', 'dark:border-rose-500', 'focus:border-rose-600');
+            } else {
+                kkTgl.classList.remove('border-rose-500', 'dark:border-rose-500', 'focus:border-rose-600');
+                kkTgl.classList.add('border-slate-300', 'dark:border-slate-700', 'focus:border-indigo-600');
+            }
+        }
+
+        return info.isAllowed;
+    }
+
+    async function loadTutupBulan() {
+        try {
+            const snap = await getDocs(collection(db, "tutup_bulan"));
+            const nextMap = new Map();
+            let detectedActive = "";
+            let latestClosedNextPeriod = "";
+            let latestClosedKey = "";
+
+            snap.forEach((d) => {
+                const data = d.data() || {};
+                const key = extractDocPeriodKey(data, d.id);
+                if (key) {
+                    const entry = { id: d.id, ...data };
+                    nextMap.set(key, entry);
+                    if (!detectedActive && isDocActive(entry)) {
+                        detectedActive = key;
+                    }
+                    if (isDocClosed(entry)) {
+                        const nextKey = normalizePeriodKey(data.nextPeriodKey ?? data.next_period_key ?? "");
+                        if (nextKey && (!latestClosedKey || key >= latestClosedKey)) {
+                            latestClosedKey = key;
+                            latestClosedNextPeriod = nextKey;
+                        }
+                    }
+                }
+            });
+
+            if (!detectedActive && latestClosedNextPeriod && !nextMap.has(latestClosedNextPeriod)) {
+                detectedActive = latestClosedNextPeriod;
+            }
+
+            if (!detectedActive) {
+                for (const colName of ["pengaturan", "pengaturan_sistem"]) {
+                    try {
+                        const cfgSnap = await getDocs(collection(db, colName));
+                        cfgSnap.forEach((d) => {
+                            const data = d.data() || {};
+                            const candidate = normalizePeriodKey(
+                                data.bulanAktif ?? data.bulan_aktif ?? data.activePeriod ?? data.active_period ?? data.periodeAktif ?? data.periode ?? ""
+                            );
+                            if (!detectedActive && candidate) {
+                                detectedActive = candidate;
+                            }
+                        });
+                    } catch (_) {
+                        // abaikan jika koleksi tidak ada
+                    }
+                    if (detectedActive) break;
+                }
+            }
+
+            if (!detectedActive) {
+                detectedActive = detectPeriodFromHeaderDom();
+            }
+
+            tutupBulanMap = nextMap;
+            activePeriodKey = detectedActive;
+            if (kkTgl && effectiveActivePeriod && !kkTgl.value.startsWith(effectiveActivePeriod)) {
+                kkTgl.value = `${effectiveActivePeriod}-01`;
+            }
+            syncPeriodeValidationUI({ suppressInitialError: true });
+        } catch (err) {
+            console.warn("Gagal memuat status tutup_bulan:", err);
+            const fallbackDom = detectPeriodFromHeaderDom();
+            if (fallbackDom) {
+                activePeriodKey = fallbackDom;
+                if (kkTgl && !kkTgl.value.startsWith(fallbackDom)) {
+                    kkTgl.value = `${fallbackDom}-01`;
+                }
+            }
+            syncPeriodeValidationUI({ suppressInitialError: true });
+        }
+    }
+
+    function buildBebanOptionsHtml(selectedKode = "") {
+        const opts = ['<option value="">-- Pilih Akun Beban / Pengeluaran --</option>'];
+        bebanAccountOptions.forEach(({ kode, nama }) => {
+            const isSel = selectedKode && selectedKode === kode ? "selected" : "";
+            opts.push(`<option value="${escapeHtml(kode)}" ${isSel}>${escapeHtml(`${kode} - ${nama}`)}</option>`);
+        });
+        return opts.join("");
+    }
+
+    function hitungTotalMultiAkun() {
+        let total = 0;
+        if (multiAkunContainer) {
+            multiAkunContainer.querySelectorAll('.kk-beban-row').forEach((row) => {
+                const nominal = parseDigitsToNumber(row.querySelector('.kk-row-nominal')?.value || 0);
+                total += nominal;
+            });
+        }
+        if (totalDisplayEl) {
+            totalDisplayEl.textContent = formatRupiah(total);
+        }
+        return total;
+    }
+
+    function syncRemoveButtonsState() {
+        if (!multiAkunContainer) return;
+        const rows = multiAkunContainer.querySelectorAll('.kk-beban-row');
+        rows.forEach((row) => {
+            const btnRemove = row.querySelector('.btn-hapus-baris-kk');
+            if (btnRemove) {
+                btnRemove.disabled = rows.length <= 1;
+            }
+        });
+    }
+
+    function addMultiAkunRow(selectedKode = "", nominalVal = 0) {
+        if (!multiAkunContainer) return;
+        const rowEl = document.createElement('div');
+        rowEl.className = "kk-beban-row grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center p-2.5 bg-slate-50/70 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-none transition-opacity duration-150";
+        const initialFormatted = nominalVal > 0 ? formatRibuanInput(nominalVal) : "";
+
+        rowEl.innerHTML = `
+            <div class="md:col-span-7">
+                <select class="kk-row-akun w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    ${buildBebanOptionsHtml(selectedKode)}
+                </select>
+            </div>
+            <div class="md:col-span-4">
+                <input type="text" inputmode="numeric" value="${escapeHtml(initialFormatted)}" placeholder="Nominal (Rp)" class="kk-row-nominal w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 text-right font-semibold rounded-none focus:outline-none focus:border-indigo-600">
+            </div>
+            <div class="md:col-span-1 flex justify-end">
+                <button type="button" title="Hapus baris akun" class="btn-hapus-baris-kk px-2.5 py-2 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 disabled:opacity-35 disabled:pointer-events-none text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900 rounded-none transition cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+            </div>
+        `;
+
+        const nominalInput = rowEl.querySelector('.kk-row-nominal');
+        const removeBtn = rowEl.querySelector('.btn-hapus-baris-kk');
+
+        nominalInput?.addEventListener('input', () => {
+            nominalInput.value = formatRibuanInput(nominalInput.value);
+            hitungTotalMultiAkun();
+        });
+
+        removeBtn?.addEventListener('click', () => {
+            const totalRows = multiAkunContainer.querySelectorAll('.kk-beban-row').length;
+            if (totalRows <= 1) {
+                showToast("Minimal harus ada 1 baris akun beban / pengeluaran.", true);
+                return;
+            }
+            rowEl.remove();
+            syncRemoveButtonsState();
+            hitungTotalMultiAkun();
+        });
+
+        multiAkunContainer.appendChild(rowEl);
+        syncRemoveButtonsState();
+        hitungTotalMultiAkun();
+    }
+
+    function resetMultiAkunRows() {
+        if (!multiAkunContainer) return;
+        multiAkunContainer.innerHTML = "";
+        addMultiAkunRow("", 0);
+        hitungTotalMultiAkun();
+    }
+
+    function resetFormFields(focusTgl = false) {
+        const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
+        if (formKasKeluar) formKasKeluar.reset();
+        if (kkTgl) {
+            const todayIso = new Date().toISOString().split('T')[0];
+            kkTgl.value = effectiveActivePeriod ? `${effectiveActivePeriod}-01` : todayIso;
+        }
+        if (kkUnit) kkUnit.value = "";
+        if (kkAkunKas) kkAkunKas.value = "";
+        if (kkPenerima) kkPenerima.value = "";
+        if (kkKeterangan) kkKeterangan.value = "";
+        resetMultiAkunRows();
+        syncPeriodeValidationUI({ suppressInitialError: true });
+        if (focusTgl && kkTgl) kkTgl.focus();
+    }
+
+    async function loadCoa() {
         try {
             const qCoa = query(collection(db, "coa"), orderBy("kodeAkun", "asc"));
             const snapCoa = await getDocs(qCoa);
 
-            if (kkAkunBeban) kkAkunBeban.innerHTML = '<option value="">-- Pilih Akun Beban / Pengeluaran --</option>';
+            const prevKasVal = kkAkunKas ? kkAkunKas.value : "";
             if (kkAkunKas) kkAkunKas.innerHTML = '<option value="">-- Pilih Akun Kas / Bank Pembayar --</option>';
+
+            const nextBebanOptions = [];
 
             snapCoa.forEach(docSnap => {
                 const data = docSnap.data();
-                const kode = data.kodeAkun || "";
-                const nama = data.namaAkun || "";
+                const kode = String(data.kodeAkun || "").trim();
+                const nama = String(data.namaAkun || "").trim();
                 const level = String(data.levelAkun || "");
-                const tipe = (data.tipeAkun || "").toLowerCase();
-                const group = (data.reportGroup || "").toLowerCase();
+                const tipe = String(data.tipeAkun || "").toLowerCase();
+                const group = String(data.reportGroup || "").toLowerCase();
 
-                if ((level === "4" || tipe === "detail") && data.statusAkun !== "Nonaktif") {
+                if ((level === "4" || tipe === "detail") && data.statusAkun !== "Nonaktif" && kode) {
                     if (kode.startsWith("1.01") || group.includes("kas") || group.includes("bank")) {
                         if (kkAkunKas) {
                             const opt = document.createElement('option');
                             opt.value = kode;
                             opt.textContent = `${kode} - ${nama}`;
+                            if (prevKasVal && prevKasVal === kode) opt.selected = true;
                             kkAkunKas.appendChild(opt);
                         }
                     }
-                    if (kkAkunBeban) {
-                        const opt = document.createElement('option');
-                        opt.value = kode;
-                        opt.textContent = `${kode} - ${nama}`;
-                        kkAkunBeban.appendChild(opt);
-                    }
+                    nextBebanOptions.push({ kode, nama });
                 }
             });
 
-            const qJurnal = query(collection(db, "jurnal_umum"), orderBy("tglTransaksi", "desc"));
-            const snapJurnal = await getDocs(qJurnal);
-            kasKeluarList = [];
-            snapJurnal.forEach(docSnap => {
-                const jData = docSnap.data();
-                const ket = (jData.keterangan || "").toLowerCase();
-                const ref = (jData.noRef || "").toUpperCase();
-                if (ref.startsWith("KK-") || ket.includes("[kas keluar]")) {
-                    kasKeluarList.push({ id: docSnap.id, ...jData });
-                }
-            });
+            bebanAccountOptions = nextBebanOptions;
 
-            renderTable();
+            if (multiAkunContainer) {
+                if (multiAkunContainer.children.length === 0) {
+                    addMultiAkunRow("", 0);
+                } else {
+                    multiAkunContainer.querySelectorAll('.kk-row-akun').forEach((sel) => {
+                        const prevSel = sel.value;
+                        sel.innerHTML = buildBebanOptionsHtml(prevSel);
+                    });
+                }
+            }
         } catch (err) {
-            console.error("Gagal memuat data kas keluar:", err);
-            if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+            console.error("Gagal memuat COA kas keluar:", err);
+            showToast("Gagal memuat daftar akun COA.", true);
         }
     }
 
-    function renderTable() {
-        if (!tableBody) return;
-        if (totalCountEl) totalCountEl.textContent = `Total: ${kasKeluarList.length} Data`;
+    const onTglChange = () => {
+        syncPeriodeValidationUI();
+    };
 
-        if (kasKeluarList.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada data transaksi kas keluar.</td></tr>`;
+    const onTambahAkunClick = () => {
+        addMultiAkunRow("", 0);
+    };
+
+    const onResetClick = async () => {
+        await loadTutupBulan();
+        resetFormFields(true);
+        showToast("Form kas keluar direset.");
+    };
+
+    const onFormSubmit = async (e) => {
+        e.preventDefault();
+        await loadTutupBulan();
+
+        const tgl = kkTgl ? kkTgl.value : "";
+        const periodeInfo = getPeriodeStatus(tgl);
+        if (!periodeInfo.isAllowed) {
+            syncPeriodeValidationUI();
+            showToast(`Tidak bisa simpan: ${getPeriodeBlockMessage(periodeInfo)}`, true);
+            kkTgl?.focus();
             return;
         }
 
-        let html = "";
-        kasKeluarList.forEach(item => {
-            let nominal = Number(item.totalNilai || 0);
-            let akunDebet = "-";
-            let akunKredit = "-";
+        const unit = kkUnit ? kkUnit.value : "";
+        const akunKasVal = kkAkunKas ? kkAkunKas.value : "";
+        const penerima = kkPenerima ? kkPenerima.value.trim() : "";
+        const ket = kkKeterangan ? kkKeterangan.value.trim() : "";
 
-            if (item.rincian && Array.isArray(item.rincian) && item.rincian.length >= 2) {
-                if (!nominal) {
-                    nominal = Number(item.rincian[0].debet || 0);
-                }
-                akunDebet = `${item.rincian[0].kodeAkun} - ${item.rincian[0].namaAkun}`;
-                akunKredit = `${item.rincian[1].kodeAkun} - ${item.rincian[1].namaAkun}`;
-            }
+        if (!akunKasVal) {
+            showToast("Pilih akun kas pembayar terlebih dahulu.", true);
+            return;
+        }
 
-            html += `
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${item.tglTransaksi || '-'}</td>
-                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium">${item.unitUsaha || '-'}</td>
-                    <td class="py-3 px-4 font-semibold text-rose-600 dark:text-rose-400">${item.penerimaDana || '-'}</td>
-                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
-                        <div class="font-medium text-slate-800 dark:text-slate-200">${item.keterangan || '-'}</div>
-                        <div class="text-[11px] text-slate-500 mt-0.5">Debet: ${akunDebet} | Kredit: ${akunKredit}</div>
-                    </td>
-                    <td class="py-3 px-4 text-right font-semibold text-rose-600 dark:text-rose-400">Rp ${nominal.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-center">
-                        <button type="button" data-delete-kk="${item.id}" class="btn-hapus-kk text-rose-600 hover:text-rose-800 p-1 cursor-pointer" title="Hapus Transaksi">
-                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        tableBody.innerHTML = html;
+        const rows = multiAkunContainer ? Array.from(multiAkunContainer.querySelectorAll('.kk-beban-row')) : [];
+        if (rows.length === 0) {
+            showToast("Tambahkan minimal 1 baris akun beban / pengeluaran.", true);
+            return;
+        }
 
-        document.querySelectorAll('.btn-hapus-kk').forEach(btn => {
-            btn.onclick = async () => {
-                const id = btn.getAttribute('data-delete-kk');
-                if (!id) return;
-                if (confirm("Apakah Anda yakin ingin menghapus transaksi kas keluar ini?")) {
-                    try {
-                        await deleteDoc(doc(db, "jurnal_umum", id));
-                        showToast("Transaksi kas keluar berhasil dihapus.");
-                        await loadCoaAndData();
-                    } catch (err) {
-                        console.error("Gagal menghapus kas keluar:", err);
-                        showToast("Gagal menghapus data.", true);
-                    }
-                }
-            };
-        });
-    }
+        const bebanItems = [];
+        let hasInvalidRow = false;
+        let totalNominal = 0;
 
-    if (formKasKeluar) {
-        formKasKeluar.onsubmit = async (e) => {
-            e.preventDefault();
-            const tgl = kkTgl ? kkTgl.value : "";
-            const unit = kkUnit ? kkUnit.value : "";
-            const akunBebanVal = kkAkunBeban ? kkAkunBeban.value : "";
-            const akunKasVal = kkAkunKas ? kkAkunKas.value : "";
-            const jumlah = parseFloat(kkJumlah ? kkJumlah.value : 0) || 0;
-            const penerima = kkPenerima ? kkPenerima.value.trim() : "";
-            const ket = kkKeterangan ? kkKeterangan.value.trim() : "";
+        rows.forEach((row) => {
+            const sel = row.querySelector('.kk-row-akun');
+            const nomInput = row.querySelector('.kk-row-nominal');
+            const kodeBeban = sel ? String(sel.value || "").trim() : "";
+            const nominal = parseDigitsToNumber(nomInput ? nomInput.value : 0);
 
-            if (!akunBebanVal || !akunKasVal) {
-                showToast("Pilih akun beban dan akun kas pembayar terlebih dahulu.", true);
+            if (!kodeBeban && nominal === 0) {
                 return;
             }
-            if (jumlah <= 0) {
-                showToast("Jumlah nominal harus lebih besar dari 0.", true);
+            if (!kodeBeban || nominal <= 0) {
+                hasInvalidRow = true;
+                return;
+            }
+            if (kodeBeban === akunKasVal) {
+                hasInvalidRow = true;
                 return;
             }
 
-            const bebanOpt = kkAkunBeban.options[kkAkunBeban.selectedIndex];
-            const namaBeban = bebanOpt ? bebanOpt.textContent.split(' - ').slice(1).join(' - ') || "Beban / Biaya" : "Beban / Biaya";
+            const opt = sel.options[sel.selectedIndex];
+            const namaBeban = opt ? opt.textContent.split(' - ').slice(1).join(' - ') || "Beban / Biaya" : "Beban / Biaya";
 
-            const kasOpt = kkAkunKas.options[kkAkunKas.selectedIndex];
-            const namaKas = kasOpt ? kasOpt.textContent.split(' - ').slice(1).join(' - ') || "Kas / Bank" : "Kas / Bank";
+            totalNominal += nominal;
+            bebanItems.push({
+                kodeAkun: kodeBeban,
+                namaAkun: namaBeban,
+                debet: nominal,
+                kredit: 0
+            });
+        });
 
-            const rincianJurnal = [
-                { kodeAkun: akunBebanVal, namaAkun: namaBeban, debet: jumlah, kredit: 0 },
-                { kodeAkun: akunKasVal, namaAkun: namaKas, debet: 0, kredit: jumlah }
-            ];
+        if (hasInvalidRow) {
+            showToast("Periksa baris multi akun: pilih akun beban yang valid (berbeda dari akun kas) dan nominal > 0.", true);
+            return;
+        }
 
-            const payloadJurnal = {
-                noRef: `KK-${Date.now().toString().slice(-6)}`,
-                tglTransaksi: tgl,
-                unitUsaha: unit,
-                penerimaDana: penerima,
-                keterangan: `[Kas Keluar] ${ket}`,
-                rincian: rincianJurnal,
-                totalNilai: jumlah,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
+        if (bebanItems.length === 0 || totalNominal <= 0) {
+            showToast("Isi minimal 1 akun beban / pengeluaran dengan nominal lebih besar dari 0.", true);
+            return;
+        }
 
-            if (btnSimpanKk) {
-                btnSimpanKk.disabled = true;
-                btnSimpanKk.textContent = "Menyimpan...";
-            }
+        const kasOpt = kkAkunKas.options[kkAkunKas.selectedIndex];
+        const namaKas = kasOpt ? kasOpt.textContent.split(' - ').slice(1).join(' - ') || "Kas / Bank" : "Kas / Bank";
 
-            try {
-                await addDoc(collection(db, "jurnal_umum"), payloadJurnal);
-                showToast("Transaksi kas keluar berhasil disimpan ke sistem akuntansi.");
-                formKasKeluar.reset();
-                if (kkTgl) kkTgl.value = new Date().toISOString().split('T')[0];
-                await loadCoaAndData();
-            } catch (err) {
-                console.error("Gagal menyimpan kas keluar:", err);
-                showToast("Terjadi kesalahan saat menyimpan data.", true);
-            } finally {
-                if (btnSimpanKk) {
-                    btnSimpanKk.disabled = false;
-                    btnSimpanKk.textContent = "Simpan Transaksi Kas Keluar";
-                }
-            }
+        const rincianJurnal = [
+            ...bebanItems,
+            { kodeAkun: akunKasVal, namaAkun: namaKas, debet: 0, kredit: totalNominal }
+        ];
+
+        const payloadJurnal = {
+            type: "KasKeluar",
+            jenisTransaksi: "Kas Keluar",
+            noRef: `KK-${Date.now().toString().slice(-6)}`,
+            tglTransaksi: tgl,
+            periode: periodeInfo.periodKey,
+            unitUsaha: unit,
+            penerimaDana: penerima,
+            keterangan: `[Kas Keluar] ${ket}`,
+            rincian: rincianJurnal,
+            totalNilai: totalNominal,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
         };
-    }
 
-    loadCoaAndData();
+        if (btnSimpanKk) {
+            btnSimpanKk.disabled = true;
+            btnSimpanKk.textContent = "Menyimpan...";
+        }
+
+        try {
+            await addDoc(collection(db, "jurnal_umum"), payloadJurnal);
+            showToast("Transaksi kas keluar berhasil disimpan ke sistem akuntansi.");
+            resetFormFields(false);
+        } catch (err) {
+            console.error("Gagal menyimpan kas keluar:", err);
+            showToast("Terjadi kesalahan saat menyimpan data.", true);
+        } finally {
+            if (btnSimpanKk) {
+                btnSimpanKk.disabled = false;
+                btnSimpanKk.textContent = "Simpan Transaksi Kas Keluar";
+            }
+        }
+    };
+
+    if (kkTgl) {
+        kkTgl.addEventListener('change', onTglChange);
+        kkTgl.addEventListener('input', onTglChange);
+    }
+    if (btnTambahAkun) btnTambahAkun.addEventListener('click', onTambahAkunClick);
+    if (btnResetKk) btnResetKk.addEventListener('click', onResetClick);
+    if (formKasKeluar) formKasKeluar.addEventListener('submit', onFormSubmit);
+
+    const cleanup = () => {
+        if (kasKeluarToastTimer) {
+            clearTimeout(kasKeluarToastTimer);
+            kasKeluarToastTimer = null;
+        }
+        if (kkTgl) {
+            kkTgl.removeEventListener('change', onTglChange);
+            kkTgl.removeEventListener('input', onTglChange);
+        }
+        if (btnTambahAkun) btnTambahAkun.removeEventListener('click', onTambahAkunClick);
+        if (btnResetKk) btnResetKk.removeEventListener('click', onResetClick);
+        if (formKasKeluar) formKasKeluar.removeEventListener('submit', onFormSubmit);
+        window.removeEventListener('hashchange', cleanup);
+        kasKeluarCleanup = null;
+    };
+
+    window.addEventListener('hashchange', cleanup);
+    kasKeluarCleanup = cleanup;
+
+    resetMultiAkunRows();
+    const initialDomPeriod = detectPeriodFromHeaderDom();
+    if (initialDomPeriod) {
+        activePeriodKey = initialDomPeriod;
+    }
+    if (kkTgl) {
+        const todayIso = new Date().toISOString().split('T')[0];
+        kkTgl.value = activePeriodKey ? `${activePeriodKey}-01` : todayIso;
+    }
+    syncPeriodeValidationUI({ suppressInitialError: true });
+
+    Promise.all([loadTutupBulan(), loadCoa()]);
+
+    return cleanup;
 }
