@@ -17,6 +17,7 @@ const KATEGORI_PREFIX = {
     Pelanggan: "PLG",
     Supplier: "SUP",
     Mitra: "MTR",
+    Anggota: "AGT",
     Lainnya: "LNY"
 };
 
@@ -82,6 +83,7 @@ export function renderKontak() {
                         <option value="Pelanggan">Pelanggan</option>
                         <option value="Supplier">Supplier</option>
                         <option value="Mitra">Mitra</option>
+                        <option value="Anggota">Anggota</option>
                         <option value="Lainnya">Lainnya</option>
                     </select>
                 </div>
@@ -130,6 +132,7 @@ export function renderKontak() {
                                     <option value="Pelanggan">Pelanggan</option>
                                     <option value="Supplier">Supplier</option>
                                     <option value="Mitra">Mitra</option>
+                                    <option value="Anggota">Anggota</option>
                                     <option value="Lainnya">Lainnya</option>
                                 </select>
                             </div>

@@ -1,5 +1,5 @@
 // File: assets/js/views/akuntansi-coa.js
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
 export function renderCoa() {
@@ -616,9 +616,14 @@ export async function initCoaHandler() {
 
         // Render Desktop (Menggunakan data yang dipaginasi)
         paginatedDataForDesktop.forEach(item => {
-            const statusBadge = item.statusAkun === 'Aktif' 
-                ? '<span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">Aktif</span>' 
+            const isLevel4 = String(item.levelAkun) === "4";
+            const statusBadge = item.statusAkun === 'Aktif'
+                ? '<span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">Aktif</span>'
                 : '<span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Nonaktif</span>';
+
+            const hapusBtnDesktop = isLevel4
+                ? `<button data-delete-id="${item.id}" class="btn-delete px-2 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-medium cursor-pointer">Hapus</button>`
+                : "";
 
             htmlTable += `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
@@ -631,7 +636,7 @@ export async function initCoaHandler() {
                     <td class="py-2 px-4 text-center">
                         <div class="flex items-center justify-center gap-1.5">
                             <button data-edit-id="${item.id}" class="btn-edit px-2 py-1 bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition text-[11px] font-medium cursor-pointer">Edit</button>
-                            <button data-delete-id="${item.id}" class="btn-delete px-2 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-medium cursor-pointer">Hapus</button>
+                            ${hapusBtnDesktop}
                         </div>
                     </td>
                 </tr>
@@ -640,9 +645,14 @@ export async function initCoaHandler() {
 
         // Render Mobile / HP Card (Menampilkan SEMUA data tanpa dibatasi paginasi, dengan jarak rapat)
         filteredData.forEach(item => {
-            const statusBadge = item.statusAkun === 'Aktif' 
-                ? '<span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">Aktif</span>' 
+            const isLevel4 = String(item.levelAkun) === "4";
+            const statusBadge = item.statusAkun === 'Aktif'
+                ? '<span class="px-2 py-0.5 text-[10px] font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">Aktif</span>'
                 : '<span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Nonaktif</span>';
+
+            const hapusBtnCard = isLevel4
+                ? `<button data-delete-id="${item.id}" class="btn-delete px-3 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-medium cursor-pointer">Hapus</button>`
+                : "";
 
             htmlCard += `
                 <div class="p-3 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition text-xs border-b border-slate-100 dark:border-slate-800 last:border-none">
@@ -662,7 +672,7 @@ export async function initCoaHandler() {
                     </div>
                     <div class="flex items-center justify-end gap-2 pt-1">
                         <button data-edit-id="${item.id}" class="btn-edit px-3 py-1 bg-indigo-50 text-indigo-600 border border-indigo-200 hover:bg-indigo-100 transition text-[11px] font-medium cursor-pointer">Edit</button>
-                        <button data-delete-id="${item.id}" class="btn-delete px-3 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-medium cursor-pointer">Hapus</button>
+                        ${hapusBtnCard}
                     </div>
                 </div>
             `;
@@ -676,7 +686,7 @@ export async function initCoaHandler() {
         if (btnPrevPage) btnPrevPage.disabled = currentPage === 1;
         if (btnNextPage) btnNextPage.disabled = currentPage === totalPages;
 
-        // Pasang Event Handler untuk Tombol Edit & Hapus
+        // Pasang Event Handler untuk Tombol Edit & Hapus (Hapus hanya untuk Level 4)
         document.querySelectorAll('.btn-edit').forEach(btn => {
             btn.onclick = () => {
                 const id = btn.getAttribute('data-edit-id');
@@ -698,7 +708,13 @@ export async function initCoaHandler() {
 
         document.querySelectorAll('.btn-delete').forEach(btn => {
             btn.onclick = () => {
-                currentDeleteId = btn.getAttribute('data-delete-id');
+                const id = btn.getAttribute('data-delete-id');
+                const acc = allCoaList.find(a => a.id === id);
+                if (!acc || String(acc.levelAkun) !== "4") {
+                    showToast("Penghapusan hanya diizinkan untuk akun Level 4.", true);
+                    return;
+                }
+                currentDeleteId = id;
                 toggleHapusModal(true);
             };
         });
@@ -748,7 +764,7 @@ export async function initCoaHandler() {
         try {
             const q = query(collection(db, "coa"), orderBy("kodeAkun", "asc"));
             const querySnapshot = await getDocs(q);
-            
+
             allCoaList = [];
             querySnapshot.forEach((docSnap) => {
                 allCoaList.push({ id: docSnap.id, ...docSnap.data() });
@@ -819,27 +835,68 @@ export async function initCoaHandler() {
         formEdit.onsubmit = async (e) => {
             e.preventDefault();
             const id = document.getElementById('edit-id').value;
+            const kodeVal = document.getElementById('edit-kode').value;
+            const namaBaru = document.getElementById('edit-nama').value.trim();
+
+            const oldAcc = allCoaList.find(a => a.id === id);
+            const namaLama = oldAcc ? (oldAcc.namaAkun || "").trim() : "";
 
             if (btnPerbarui) {
                 btnPerbarui.disabled = true;
                 btnPerbarui.textContent = "Memperbarui...";
             }
 
+            const nowIso = new Date().toISOString();
             const updatedData = {
-                namaAkun: document.getElementById('edit-nama').value,
+                namaAkun: namaBaru,
                 saldoNormal: document.getElementById('edit-saldo').value,
                 reportGroup: document.getElementById('edit-report').value,
                 cashFlowGroup: document.getElementById('edit-cashflow').value,
                 pagu: document.getElementById('edit-pagu').value,
-                statusAkun: document.getElementById('edit-status').value
+                statusAkun: document.getElementById('edit-status').value,
+                updatedAt: nowIso
             };
 
             try {
+                const batch = writeBatch(db);
                 const docRef = doc(db, "coa", id);
-                await updateDoc(docRef, updatedData);
-                showToast("Akun berhasil diperbarui!");
+                batch.update(docRef, updatedData);
+
+                const childAccounts = allCoaList.filter(item =>
+                    item.id !== id &&
+                    typeof item.kodeAkun === "string" &&
+                    item.kodeAkun.startsWith(kodeVal + ".")
+                );
+
+                let syncedChildrenCount = 0;
+                childAccounts.forEach(child => {
+                    const childPatch = {
+                        namaHeaderInduk: namaBaru,
+                        updatedAt: nowIso
+                    };
+
+                    if (
+                        namaLama &&
+                        namaLama !== namaBaru &&
+                        typeof child.namaAkun === "string" &&
+                        child.namaAkun.startsWith(namaLama)
+                    ) {
+                        childPatch.namaAkun = namaBaru + child.namaAkun.slice(namaLama.length);
+                    }
+
+                    batch.update(doc(db, "coa", child.id), childPatch);
+                    syncedChildrenCount++;
+                });
+
+                await batch.commit();
+
+                showToast(
+                    syncedChildrenCount > 0
+                        ? `Akun diperbarui beserta ${syncedChildrenCount} akun turunan!`
+                        : "Akun berhasil diperbarui!"
+                );
                 toggleEditModal(false);
-                loadCoaData();
+                await loadCoaData();
             } catch (err) {
                 console.error("Gagal memperbarui akun:", err);
                 showToast("Terjadi kesalahan saat memperbarui data.", true);
@@ -854,6 +911,12 @@ export async function initCoaHandler() {
     if (btnKonfirmasiHapus) {
         btnKonfirmasiHapus.onclick = async () => {
             if (!currentDeleteId) return;
+            const targetAcc = allCoaList.find(a => a.id === currentDeleteId);
+            if (!targetAcc || String(targetAcc.levelAkun) !== "4") {
+                toggleHapusModal(false);
+                showToast("Hanya akun Level 4 yang dapat dihapus.", true);
+                return;
+            }
             try {
                 await deleteDoc(doc(db, "coa", currentDeleteId));
                 toggleHapusModal(false);

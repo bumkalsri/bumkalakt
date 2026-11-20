@@ -1,5 +1,5 @@
 // File: assets/js/views/akuntansi-saldo-awal.js
-import { collection, getDocs, getDoc, doc, setDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, getDoc, doc, setDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
 const PAGE_SIZE = 10;
@@ -40,34 +40,34 @@ export function renderSaldoAwal() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3">
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div class="flex items-center gap-3 min-w-0">
                     <a href="#/akuntansi" data-link title="Kembali ke Akuntansi" class="w-9 h-9 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div>
+                    <div class="min-w-0">
                         <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Saldo Awal</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Input dan kelola saldo awal akun perkiraan Neraca (COA) per periode &amp; unit.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Input dan kelola saldo awal akun perkiraan Neraca (COA) per periode &amp; unit. Tekan Enter untuk pindah kolom/baris.</p>
                         <p id="badge-periode-awal-aktif" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 mt-1">Periode Awal Transaksi: Belum diatur</p>
                     </div>
                 </div>
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto flex-wrap">
-                    <button type="button" id="btn-buka-pop-periode-awal" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold px-4 py-2.5 rounded-none border border-slate-300 dark:border-slate-700 transition flex items-center justify-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto flex-wrap lg:flex-nowrap shrink-0">
+                    <button type="button" id="btn-buka-pop-periode-awal" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold px-3 py-2.5 rounded-none border border-slate-300 dark:border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span>Atur Periode Awal</span>
                     </button>
-                    <button type="button" id="btn-reset-batal-saldo" class="w-full sm:w-auto bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-none border border-slate-300 dark:border-slate-700 transition flex items-center justify-center gap-2 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    <button type="button" id="btn-reset-batal-saldo" class="w-full sm:w-auto bg-white hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold px-3 py-2.5 rounded-none border border-slate-300 dark:border-slate-700 transition flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>Reset (Batal)</span>
                     </button>
-                    <button type="button" id="btn-hapus-semua-saldo" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    <button type="button" id="btn-hapus-semua-saldo" class="w-full sm:w-auto bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-3 py-2.5 rounded-none transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm whitespace-nowrap">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         <span>Hapus Semua</span>
                     </button>
-                    <button type="button" id="btn-simpan-semua-saldo" class="w-full sm:w-auto bg-[#581c87] hover:bg-purple-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <button type="button" id="btn-simpan-semua-saldo" class="w-full sm:w-auto bg-[#581c87] hover:bg-purple-900 text-white text-xs font-semibold px-3.5 py-2.5 rounded-none transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm whitespace-nowrap">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         <span>Simpan Saldo Awal</span>
                     </button>
                 </div>
@@ -92,12 +92,12 @@ export function renderSaldoAwal() {
                     <label for="filter-cari-akun" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">CARI KODE / NAMA AKUN</label>
                     <input type="text" id="filter-cari-akun" placeholder="Ketik kode atau nama akun..." class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 flex flex-col justify-center">
+                <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 flex flex-col justify-center rounded-none">
                     <span class="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Total Debit</span>
                     <span id="total-debit-saldo" class="text-sm font-bold text-emerald-700 dark:text-emerald-400 mt-0.5">Rp 0</span>
                 </div>
-                <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 flex flex-col justify-center">
-                    <span class="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Total Kredit & Selisih</span>
+                <div class="bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-3 flex flex-col justify-center rounded-none">
+                    <span class="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Total Kredit &amp; Selisih</span>
                     <span id="total-kredit-saldo" class="text-sm font-bold text-indigo-700 dark:text-indigo-400 mt-0.5">Rp 0</span>
                     <span id="selisih-saldo" class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">Selisih: Rp 0 (Seimbang)</span>
                 </div>
@@ -120,12 +120,11 @@ export function renderSaldoAwal() {
                                 <th class="py-2.5 px-4 font-semibold">Saldo Normal</th>
                                 <th class="py-2.5 px-4 font-semibold text-right">Debit (Rp)</th>
                                 <th class="py-2.5 px-4 font-semibold text-right">Kredit (Rp)</th>
-                                <th class="py-2.5 px-4 font-semibold text-center">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="table-saldo-awal-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
                             <tr>
-                                <td colspan="6" class="py-6 text-center text-slate-400">Memuat data akun perkiraan...</td>
+                                <td colspan="5" class="py-6 text-center text-slate-400">Memuat data akun perkiraan...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -148,7 +147,7 @@ export function renderSaldoAwal() {
                 <div id="modal-konfirmasi-card" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-none w-full max-w-md overflow-hidden transform scale-95 opacity-0 transition-all duration-200 ease-out">
                     <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2.5">
-                            <span class="w-7 h-7 bg-rose-100 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 flex items-center justify-center flex-shrink-0">
+                            <span class="w-7 h-7 bg-rose-100 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 flex items-center justify-center rounded-none flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/></svg>
                             </span>
                             <h2 id="konfirmasi-saldo-judul" class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-100">Konfirmasi Hapus Data</h2>
@@ -212,8 +211,14 @@ export function renderSaldoAwal() {
 }
 
 let toastTimer = null;
+let saldoAwalCleanup = null;
 
 export async function initSaldoAwalHandler() {
+    if (typeof saldoAwalCleanup === "function") {
+        saldoAwalCleanup();
+        saldoAwalCleanup = null;
+    }
+
     const periodeInput = document.getElementById('filter-periode-saldo');
     const unitInput = document.getElementById('filter-unit-saldo');
     const cariInput = document.getElementById('filter-cari-akun');
@@ -255,14 +260,72 @@ export async function initSaldoAwalHandler() {
     let akunList = [];
     let saldoMap = {};
     let savedSaldoMap = {};
+    let existingDocIds = new Set();
     let currentPage = 1;
     let confirmResolver = null;
     let confirmCloseTimer = null;
+    let pendingFocusTarget = null;
     let periodeAwalConfig = {
         periodeAwal: defaultPeriode,
         tanggalMulaiTransaksi: defaultTanggal,
         catatan: ""
     };
+
+    function getVisibleInputsInContainer() {
+        const isDesktop = window.innerWidth >= 768;
+        const container = isDesktop ? tableBody : cardBody;
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.input-saldo')).filter((el) => el.offsetParent !== null);
+    }
+
+    function applyPendingFocus() {
+        if (!pendingFocusTarget) return;
+        const { kode, field } = pendingFocusTarget;
+        pendingFocusTarget = null;
+
+        requestAnimationFrame(() => {
+            const inputs = getVisibleInputsInContainer();
+            const target = inputs.find(
+                (el) => el.getAttribute('data-kode') === kode && el.getAttribute('data-field') === field
+            );
+            if (target) {
+                target.focus();
+                target.select();
+            }
+        });
+    }
+
+    function moveTabOnEnter(currentInput) {
+        const inputs = getVisibleInputsInContainer();
+        if (inputs.length === 0) return;
+
+        const currentIndex = inputs.indexOf(currentInput);
+        if (currentIndex !== -1 && currentIndex + 1 < inputs.length) {
+            const nextEl = inputs[currentIndex + 1];
+            nextEl.focus();
+            nextEl.select();
+            return;
+        }
+
+        const keyword = (cariInput ? cariInput.value : "").trim().toLowerCase();
+        const filtered = akunList.filter((acc) => {
+            if (!keyword) return true;
+            const kode = (acc.kodeAkun || "").toLowerCase();
+            const nama = (acc.namaAkun || "").toLowerCase();
+            return kode.includes(keyword) || nama.includes(keyword);
+        });
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+
+        if (currentPage < totalPages) {
+            const nextPage = currentPage + 1;
+            const firstItemNextPage = filtered[(nextPage - 1) * PAGE_SIZE];
+            if (firstItemNextPage) {
+                pendingFocusTarget = { kode: firstItemNextPage.kodeAkun, field: "debit" };
+                currentPage = nextPage;
+                renderRows();
+            }
+        }
+    }
 
     function finishConfirm(result) {
         if (!modalKonfirmasi || !modalKonfirmasiCard) {
@@ -349,10 +412,6 @@ export async function initSaldoAwalHandler() {
 
     function getDocId(periode, unitUsaha, kodeAkun) {
         return `${periode}_${unitSlug(unitUsaha)}_${String(kodeAkun).replace(/\./g, '_')}`;
-    }
-
-    function getLegacyDocId(periode, kodeAkun) {
-        return `${periode}_${String(kodeAkun).replace(/\./g, '_')}`;
     }
 
     function formatRupiah(num) {
@@ -467,8 +526,8 @@ export async function initSaldoAwalHandler() {
         }
     }
 
-    function buildPayload(periode, unitUsaha, acc, s) {
-        return {
+    function buildPayload(periode, unitUsaha, acc, s, nowIso, isUpdate) {
+        const payload = {
             periode,
             unitUsaha,
             kodeAkun: acc.kodeAkun,
@@ -477,8 +536,13 @@ export async function initSaldoAwalHandler() {
             reportGroup: "Neraca",
             debit: Number(s.debit || 0),
             kredit: Number(s.kredit || 0),
-            updatedAt: new Date().toISOString()
+            updatedAt: nowIso,
+            lastUpdatedAt: nowIso
         };
+        if (!isUpdate) {
+            payload.createdAt = nowIso;
+        }
+        return payload;
     }
 
     function renderPagination(totalItems, totalPages, startIdx, endIdx) {
@@ -549,7 +613,7 @@ export async function initSaldoAwalHandler() {
         renderPagination(totalItems, totalPages, startIdx, endIdx);
 
         if (pageItems.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-400">Tidak ada akun Neraca yang cocok.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">Tidak ada akun Neraca yang cocok.</td></tr>`;
             cardBody.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">Tidak ada akun Neraca yang cocok.</div>`;
             return;
         }
@@ -568,16 +632,10 @@ export async function initSaldoAwalHandler() {
                     <td class="py-2 px-4 font-semibold text-slate-800 dark:text-slate-200">${acc.namaAkun}</td>
                     <td class="py-2 px-4">${acc.saldoNormal || '-'}</td>
                     <td class="py-2 px-4 text-right">
-                        <input type="text" inputmode="numeric" data-kode="${acc.kodeAkun}" data-field="debit" value="${debitFormatted}" class="input-saldo w-36 text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-none focus:outline-none focus:border-indigo-600">
+                        <input type="text" inputmode="numeric" enterkeyhint="next" data-kode="${acc.kodeAkun}" data-field="debit" value="${debitFormatted}" class="input-saldo w-36 text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-none focus:outline-none focus:border-indigo-600">
                     </td>
                     <td class="py-2 px-4 text-right">
-                        <input type="text" inputmode="numeric" data-kode="${acc.kodeAkun}" data-field="kredit" value="${kreditFormatted}" class="input-saldo w-36 text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-none focus:outline-none focus:border-indigo-600">
-                    </td>
-                    <td class="py-2 px-4 text-center">
-                        <div class="inline-flex items-center gap-1.5">
-                            <button type="button" data-save-kode="${acc.kodeAkun}" class="btn-simpan-baris px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition text-[11px] font-semibold cursor-pointer">Simpan</button>
-                            <button type="button" data-delete-kode="${acc.kodeAkun}" class="btn-hapus-baris px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-semibold cursor-pointer">Hapus</button>
-                        </div>
+                        <input type="text" inputmode="numeric" enterkeyhint="next" data-kode="${acc.kodeAkun}" data-field="kredit" value="${kreditFormatted}" class="input-saldo w-36 text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1 rounded-none focus:outline-none focus:border-indigo-600">
                     </td>
                 </tr>
             `;
@@ -592,16 +650,12 @@ export async function initSaldoAwalHandler() {
                     <div class="grid grid-cols-2 gap-2 pt-1">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 mb-1">DEBIT (Rp)</label>
-                            <input type="text" inputmode="numeric" data-kode="${acc.kodeAkun}" data-field="debit" value="${debitFormatted}" class="input-saldo w-full text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none">
+                            <input type="text" inputmode="numeric" enterkeyhint="next" data-kode="${acc.kodeAkun}" data-field="debit" value="${debitFormatted}" class="input-saldo w-full text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none focus:outline-none focus:border-indigo-600">
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 mb-1">KREDIT (Rp)</label>
-                            <input type="text" inputmode="numeric" data-kode="${acc.kodeAkun}" data-field="kredit" value="${kreditFormatted}" class="input-saldo w-full text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none">
+                            <input type="text" inputmode="numeric" enterkeyhint="next" data-kode="${acc.kodeAkun}" data-field="kredit" value="${kreditFormatted}" class="input-saldo w-full text-right font-semibold bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none focus:outline-none focus:border-indigo-600">
                         </div>
-                    </div>
-                    <div class="flex justify-end gap-2 pt-1">
-                        <button type="button" data-save-kode="${acc.kodeAkun}" class="btn-simpan-baris px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition text-[11px] font-semibold cursor-pointer">Simpan Baris</button>
-                        <button type="button" data-delete-kode="${acc.kodeAkun}" class="btn-hapus-baris px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-semibold cursor-pointer">Hapus</button>
                     </div>
                 </div>
             `;
@@ -625,81 +679,17 @@ export async function initSaldoAwalHandler() {
                 });
                 hitungRingkasan();
             };
-        });
 
-        document.querySelectorAll('.btn-simpan-baris').forEach(btn => {
-            btn.onclick = async () => {
-                const kode = btn.getAttribute('data-save-kode');
-                const acc = akunList.find(a => a.kodeAkun === kode);
-                const periode = periodeInput ? periodeInput.value : defaultPeriode;
-                const unitUsaha = getSelectedUnit();
-                if (!periode) {
-                    showToast("Pilih periode terlebih dahulu.", true);
-                    return;
-                }
-                const s = saldoMap[kode] || { debit: 0, kredit: 0 };
-
-                btn.disabled = true;
-                try {
-                    const docId = getDocId(periode, unitUsaha, kode);
-                    await setDoc(doc(db, "saldo_awal", docId), buildPayload(periode, unitUsaha, acc || { kodeAkun: kode }, s), { merge: true });
-                    savedSaldoMap[kode] = {
-                        debit: Number(s.debit || 0),
-                        kredit: Number(s.kredit || 0)
-                    };
-                    showToast(`Saldo awal ${kode} (${unitUsaha}) tersimpan.`);
-                } catch (err) {
-                    console.error("Gagal menyimpan saldo baris:", err);
-                    showToast("Gagal menyimpan saldo awal.", true);
-                } finally {
-                    btn.disabled = false;
-                }
-            };
-        });
-
-        document.querySelectorAll('.btn-hapus-baris').forEach(btn => {
-            btn.onclick = async () => {
-                const kode = btn.getAttribute('data-delete-kode');
-                const acc = akunList.find(a => a.kodeAkun === kode);
-                const periode = periodeInput ? periodeInput.value : defaultPeriode;
-                const unitUsaha = getSelectedUnit();
-                if (!periode) {
-                    showToast("Pilih periode terlebih dahulu.", true);
-                    return;
-                }
-
-                const labelAkun = acc?.namaAkun ? `${kode} - ${acc.namaAkun}` : kode;
-                const yakin = await openConfirmModal({
-                    judul: "Hapus Saldo Awal Akun",
-                    pesan: `Hapus data saldo awal akun ${labelAkun} untuk periode ${periode} dan unit ${unitUsaha}?`,
-                    labelYa: "Ya, Hapus"
-                });
-                if (!yakin) return;
-
-                btn.disabled = true;
-                try {
-                    const targets = [
-                        getDocId(periode, unitUsaha, kode),
-                        ...(unitUsaha === DEFAULT_UNIT ? [getLegacyDocId(periode, kode)] : [])
-                    ];
-                    for (const docId of new Set(targets)) {
-                        await deleteDoc(doc(db, "saldo_awal", docId));
-                    }
-
-                    saldoMap[kode] = { debit: 0, kredit: 0 };
-                    savedSaldoMap[kode] = { debit: 0, kredit: 0 };
-                    renderRows();
-                    showToast(`Saldo awal ${kode} dihapus.`);
-                } catch (err) {
-                    console.error("Gagal menghapus saldo baris:", err);
-                    showToast("Gagal menghapus data saldo awal.", true);
-                } finally {
-                    btn.disabled = false;
+            inp.onkeydown = (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    moveTabOnEnter(inp);
                 }
             };
         });
 
         hitungRingkasan();
+        applyPendingFocus();
     }
 
     async function loadData() {
@@ -720,6 +710,8 @@ export async function initSaldoAwalHandler() {
             const unitUsaha = getSelectedUnit();
             const saldoSnap = await getDocs(collection(db, "saldo_awal"));
             const loadedMap = {};
+            const loadedDocIds = new Set();
+
             saldoSnap.forEach(d => {
                 const data = d.data();
                 if (periode && data.periode !== periode) return;
@@ -729,19 +721,21 @@ export async function initSaldoAwalHandler() {
                     : unitUsaha === DEFAULT_UNIT;
                 if (!matchesUnit) return;
 
+                loadedDocIds.add(d.id);
                 loadedMap[data.kodeAkun] = {
                     debit: Number(data.debit || 0),
                     kredit: Number(data.kredit || 0)
                 };
             });
 
+            existingDocIds = loadedDocIds;
             savedSaldoMap = cloneSaldoMap(loadedMap);
             saldoMap = cloneSaldoMap(loadedMap);
             currentPage = 1;
             renderRows();
         } catch (err) {
             console.error("Gagal memuat saldo awal:", err);
-            if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+            if (tableBody) tableBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
             if (cardBody) cardBody.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs">Gagal memuat data dari database.</div>`;
         }
     }
@@ -800,6 +794,7 @@ export async function initSaldoAwalHandler() {
                     await batch.commit();
                 }
 
+                existingDocIds.clear();
                 saldoMap = {};
                 savedSaldoMap = {};
                 renderRows();
@@ -897,27 +892,39 @@ export async function initSaldoAwalHandler() {
                 return;
             }
 
+            const isSubsequentSave = existingDocIds.size > 0;
             const originalBtnHtml = btnSimpanSemua.innerHTML;
             btnSimpanSemua.disabled = true;
-            btnSimpanSemua.innerHTML = `<span>Menyimpan...</span>`;
+            btnSimpanSemua.innerHTML = `<span>${isSubsequentSave ? "Memperbarui..." : "Menyimpan..."}</span>`;
 
             try {
+                const nowIso = new Date().toISOString();
                 const chunkSize = 450;
+                const writtenIds = [];
+
                 for (let i = 0; i < akunList.length; i += chunkSize) {
                     const batch = writeBatch(db);
                     const chunk = akunList.slice(i, i + chunkSize);
                     chunk.forEach(acc => {
                         const s = saldoMap[acc.kodeAkun] || { debit: 0, kredit: 0 };
                         const docId = getDocId(periode, unitUsaha, acc.kodeAkun);
+                        const docAlreadyExists = existingDocIds.has(docId);
                         const ref = doc(db, "saldo_awal", docId);
-                        batch.set(ref, buildPayload(periode, unitUsaha, acc, s), { merge: true });
+                        batch.set(ref, buildPayload(periode, unitUsaha, acc, s, nowIso, docAlreadyExists), { merge: true });
+                        writtenIds.push(docId);
                     });
                     await batch.commit();
                 }
+
+                writtenIds.forEach(id => existingDocIds.add(id));
                 savedSaldoMap = cloneSaldoMap(saldoMap);
-                showToast(`Semua saldo awal Neraca (${unitUsaha}) berhasil disimpan!`);
+                showToast(
+                    isSubsequentSave
+                        ? `Saldo awal Neraca (${unitUsaha}) berhasil diperbarui (update)!`
+                        : `Semua saldo awal Neraca (${unitUsaha}) berhasil disimpan!`
+                );
             } catch (err) {
-                console.error("Gagal simpan batch saldo awal:", err);
+                console.error("Gagal simpan/update batch saldo awal:", err);
                 showToast("Terjadi kesalahan saat menyimpan data.", true);
             } finally {
                 btnSimpanSemua.disabled = false;
@@ -926,6 +933,17 @@ export async function initSaldoAwalHandler() {
         };
     }
 
+    const cleanup = () => {
+        window.removeEventListener('keydown', onKeyDownEscape);
+        window.removeEventListener('hashchange', cleanup);
+        saldoAwalCleanup = null;
+    };
+
+    window.addEventListener('hashchange', cleanup);
+    saldoAwalCleanup = cleanup;
+
     await loadPeriodeAwalConfig();
     await loadData();
+
+    return cleanup;
 }

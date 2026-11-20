@@ -4,6 +4,39 @@ import { db } from "../firebase-init.js";
 
 const DEFAULT_UNIT = "KANTOR PUSAT (01)";
 
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function compareKodeAkun(a, b) {
+    const segA = String(a ?? "").trim().split(".");
+    const segB = String(b ?? "").trim().split(".");
+    const maxLen = Math.max(segA.length, segB.length);
+
+    for (let i = 0; i < maxLen; i++) {
+        const partA = segA[i];
+        const partB = segB[i];
+        if (partA === undefined) return -1;
+        if (partB === undefined) return 1;
+
+        const numA = Number(partA);
+        const numB = Number(partB);
+        const bothNumeric = !Number.isNaN(numA) && !Number.isNaN(numB) && partA.trim() !== "" && partB.trim() !== "";
+
+        if (bothNumeric && numA !== numB) {
+            return numA - numB;
+        }
+        const cmp = String(partA).localeCompare(String(partB), undefined, { numeric: true, sensitivity: "base" });
+        if (cmp !== 0) return cmp;
+    }
+    return 0;
+}
+
 function isCashOrBankAccount(coa, kodeAkun) {
     const kode = String(kodeAkun || coa?.kodeAkun || "").trim();
     const nama = String(coa?.namaAkun || "").toLowerCase();
@@ -55,30 +88,30 @@ export function renderLaporanArusKas() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman & Tombol Aksi -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3.5 min-w-0">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                     <a href="#/laporan" data-link title="Kembali ke Menu Laporan"
                         class="w-10 h-10 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center rounded-none transition flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div class="min-w-0">
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Laporan Arus Kas (Cash Flow Statement)</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Rekapitulasi saldo awal kas, arus kas masuk/keluar per aktivitas, dan saldo kas akhir BUMKal.</p>
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Laporan Arus Kas (Cash Flow Statement)</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug break-words">Rekapitulasi saldo awal kas, arus kas masuk/keluar per aktivitas, dan saldo kas akhir BUMKal.</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full md:w-auto">
+                <div class="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
                     <button id="btn-cetak-arus-kas" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Cetak / Print Laporan
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Cetak / Print Laporan</span>
                     </button>
                 </div>
             </div>
 
             <!-- Filter Bar -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 md:grid-cols-4 gap-4 text-xs items-end">
-                <div>
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs items-end">
+                <div class="min-w-0">
                     <label for="filter-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER UNIT USAHA</label>
                     <select id="filter-unit" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                         <option value="">-- Semua Unit Usaha --</option>
@@ -88,51 +121,51 @@ export function renderLaporanArusKas() {
                         <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
                     </select>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="filter-tgl-mulai" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL MULAI</label>
                     <input type="date" id="filter-tgl-mulai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="filter-tgl-sampai" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL SAMPAI</label>
                     <input type="date" id="filter-tgl-sampai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                 </div>
-                <div>
+                <div class="min-w-0">
                     <button id="btn-tampilkan" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan Laporan</button>
                 </div>
             </div>
 
             <!-- Card Ringkasan Arus Kas Bersih & Saldo Kas -->
-            <div class="bg-indigo-900 text-white p-6 rounded-none shadow-sm space-y-4">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <p class="text-xs uppercase tracking-widest text-indigo-200 font-semibold">Kenaikan / Penurunan Kas Bersih</p>
-                        <h2 id="summary-kas-bersih" class="text-2xl font-extrabold mt-1">Rp 0</h2>
+            <div class="bg-indigo-900 text-white p-4 sm:p-6 rounded-none shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="min-w-0">
+                        <p class="text-[11px] sm:text-xs uppercase tracking-widest text-indigo-200 font-semibold">Kenaikan / Penurunan Kas Bersih</p>
+                        <h2 id="summary-kas-bersih" class="text-xl sm:text-2xl font-extrabold mt-1 break-words">Rp 0</h2>
                     </div>
-                    <div class="text-right">
-                        <span id="badge-arus-kas" class="px-3 py-1 bg-indigo-800 text-indigo-100 font-bold text-xs uppercase">Menunggu Proses</span>
+                    <div>
+                        <span id="badge-arus-kas" class="inline-block px-3 py-1 bg-indigo-800 text-indigo-100 font-bold text-xs uppercase rounded-none">Menunggu Proses</span>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-indigo-800/80 text-xs">
-                    <div class="bg-indigo-950/60 border border-indigo-800 p-3">
+                    <div class="bg-indigo-950/60 border border-indigo-800 p-3 rounded-none min-w-0">
                         <span class="block text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">Saldo Kas Awal (Saldo Awal)</span>
-                        <span id="summary-saldo-awal-kas" class="text-sm font-bold text-white mt-0.5 block">Rp 0</span>
+                        <span id="summary-saldo-awal-kas" class="text-sm font-bold text-white mt-0.5 block break-words">Rp 0</span>
                     </div>
-                    <div class="bg-indigo-950/60 border border-indigo-800 p-3">
+                    <div class="bg-indigo-950/60 border border-indigo-800 p-3 rounded-none min-w-0">
                         <span class="block text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">Mutasi Kas Bersih Periode</span>
-                        <span id="summary-mutasi-kas" class="text-sm font-bold text-emerald-300 mt-0.5 block">Rp 0</span>
+                        <span id="summary-mutasi-kas" class="text-sm font-bold text-emerald-300 mt-0.5 block break-words">Rp 0</span>
                     </div>
-                    <div class="bg-indigo-950/60 border border-indigo-800 p-3">
+                    <div class="bg-indigo-950/60 border border-indigo-800 p-3 rounded-none min-w-0">
                         <span class="block text-[10px] uppercase tracking-wider text-indigo-300 font-semibold">Saldo Kas Akhir</span>
-                        <span id="summary-saldo-akhir-kas" class="text-sm font-bold text-amber-300 mt-0.5 block">Rp 0</span>
+                        <span id="summary-saldo-akhir-kas" class="text-sm font-bold text-amber-300 mt-0.5 block break-words">Rp 0</span>
                     </div>
                 </div>
             </div>
 
             <!-- Rincian Saldo Awal Kas & Bank -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
-                    <span>SALDO AWAL KAS &amp; BANK (SUMBER: SALDO AWAL)</span>
-                    <span id="total-saldo-awal-kas" class="text-indigo-600 dark:text-indigo-400">Rp 0</span>
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-1">
+                    <span class="break-words">SALDO AWAL KAS &amp; BANK (SUMBER: SALDO AWAL)</span>
+                    <span id="total-saldo-awal-kas" class="text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp 0</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
@@ -155,9 +188,9 @@ export function renderLaporanArusKas() {
             <div class="space-y-6">
                 <!-- I. Aktivitas Operasi -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                    <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-1">
                         <span>I. ARUS KAS DARI AKTIVITAS OPERASI</span>
-                        <span id="total-operasi" class="text-indigo-600 dark:text-indigo-400">Rp 0</span>
+                        <span id="total-operasi" class="text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp 0</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-xs">
@@ -177,9 +210,9 @@ export function renderLaporanArusKas() {
 
                 <!-- II. Aktivitas Investasi -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                    <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-1">
                         <span>II. ARUS KAS DARI AKTIVITAS INVESTASI</span>
-                        <span id="total-investasi" class="text-indigo-600 dark:text-indigo-400">Rp 0</span>
+                        <span id="total-investasi" class="text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp 0</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-xs">
@@ -199,9 +232,9 @@ export function renderLaporanArusKas() {
 
                 <!-- III. Aktivitas Pendanaan -->
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                    <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                    <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-1">
                         <span>III. ARUS KAS DARI AKTIVITAS PENDANAAN</span>
-                        <span id="total-pendanaan" class="text-indigo-600 dark:text-indigo-400">Rp 0</span>
+                        <span id="total-pendanaan" class="text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp 0</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-xs">
@@ -297,7 +330,6 @@ export function initLaporanArusKasHandler() {
         const endPeriod = normalizePeriodKey(tglSampaiVal);
         const byKode = {};
 
-        // 1. Ambil seluruh saldo awal kas/bank hingga periode akhir filter (termasuk periode awal / bulan lalu)
         allSaldoAwalList.forEach(item => {
             if (!matchesUnitFilter(item.unitUsaha, unitVal)) return;
 
@@ -327,7 +359,6 @@ export function initLaporanArusKasHandler() {
             }
         });
 
-        // 2. Jika ada Tanggal Mulai, tambahkan mutasi kas sebelum Tanggal Mulai agar menjadi saldo awal per Tanggal Mulai
         if (tglMulaiVal) {
             allJurnalList.forEach(item => {
                 if (!matchesUnitFilter(item.unitUsaha, unitVal)) return;
@@ -359,7 +390,7 @@ export function initLaporanArusKasHandler() {
 
         return Object.values(byKode)
             .filter(r => r.jumlah !== 0)
-            .sort((a, b) => String(a.kodeAkun).localeCompare(String(b.kodeAkun)));
+            .sort((a, b) => compareKodeAkun(a.kodeAkun, b.kodeAkun));
     }
 
     function prosesArusKas() {
@@ -423,7 +454,7 @@ export function initLaporanArusKasHandler() {
         const toSortedActiveList = (mapObj) =>
             Object.values(mapObj)
                 .filter(row => row.jumlah !== 0)
-                .sort((a, b) => String(a.kodeAkun).localeCompare(String(b.kodeAkun)));
+                .sort((a, b) => compareKodeAkun(a.kodeAkun, b.kodeAkun));
 
         const listOperasi = toSortedActiveList(buckets.operasi);
         const listInvestasi = toSortedActiveList(buckets.investasi);
@@ -448,13 +479,13 @@ export function initLaporanArusKasHandler() {
         if (badgeArusKas) {
             if (saldoKasAkhir > 0) {
                 badgeArusKas.textContent = "Surplus Kas";
-                badgeArusKas.className = "px-3 py-1 bg-emerald-600 text-white font-bold text-xs uppercase";
+                badgeArusKas.className = "inline-block px-3 py-1 bg-emerald-600 text-white font-bold text-xs uppercase rounded-none";
             } else if (saldoKasAkhir < 0) {
                 badgeArusKas.textContent = "Defisit Kas";
-                badgeArusKas.className = "px-3 py-1 bg-rose-600 text-white font-bold text-xs uppercase";
+                badgeArusKas.className = "inline-block px-3 py-1 bg-rose-600 text-white font-bold text-xs uppercase rounded-none";
             } else {
                 badgeArusKas.textContent = "Impas (Zero)";
-                badgeArusKas.className = "px-3 py-1 bg-amber-600 text-white font-bold text-xs uppercase";
+                badgeArusKas.className = "inline-block px-3 py-1 bg-amber-600 text-white font-bold text-xs uppercase rounded-none";
             }
         }
 
@@ -464,10 +495,10 @@ export function initLaporanArusKasHandler() {
             } else {
                 tableSaldoAwalKasBody.innerHTML = saldoAwalKasList.map(row => `
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                        <td class="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-400">${row.kodeAkun}</td>
-                        <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${row.namaAkun}</td>
-                        <td class="py-3 px-4 text-slate-500">${row.periodeLabel}</td>
-                        <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">${formatRupiah(row.jumlah)}</td>
+                        <td class="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">${escapeHtml(row.kodeAkun)}</td>
+                        <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${escapeHtml(row.namaAkun)}</td>
+                        <td class="py-3 px-4 text-slate-500 whitespace-nowrap">${escapeHtml(row.periodeLabel)}</td>
+                        <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">${escapeHtml(formatRupiah(row.jumlah))}</td>
                     </tr>
                 `).join("");
             }
@@ -481,9 +512,9 @@ export function initLaporanArusKasHandler() {
                 list.forEach(item => {
                     html += `
                         <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                            <td class="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-400">${item.kodeAkun}</td>
-                            <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${item.namaAkun}</td>
-                            <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">${formatRupiah(item.jumlah)}</td>
+                            <td class="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">${escapeHtml(item.kodeAkun)}</td>
+                            <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${escapeHtml(item.namaAkun)}</td>
+                            <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">${escapeHtml(formatRupiah(item.jumlah))}</td>
                         </tr>
                     `;
                 });

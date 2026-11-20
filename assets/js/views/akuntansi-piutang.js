@@ -2,54 +2,81 @@
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function parseDigitsToNumber(val) {
+    const cleaned = String(val ?? "").replace(/\D/g, "");
+    if (!cleaned) return 0;
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatRibuanInput(val) {
+    const raw = String(val ?? "").replace(/\D/g, "");
+    if (!raw) return "";
+    const num = Number(raw);
+    return Number.isFinite(num) ? num.toLocaleString("id-ID") : "";
+}
+
+function formatRupiah(num) {
+    return "Rp " + Number(num || 0).toLocaleString("id-ID");
+}
+
 export function renderPiutang() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                     <a href="#/akuntansi" data-link title="Kembali ke Akuntansi" class="w-9 h-9 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div>
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Pengelolaan Piutang Usaha</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Catat tagihan piutang, pantau jatuh tempo, dan proses pelunasan piutang BUMKal.</p>
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Pengelolaan Piutang Usaha</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug break-words">Catat tagihan piutang, pantau jatuh tempo, dan proses pelunasan piutang BUMKal.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Ringkasan Piutang -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
                     <span class="block text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Total Piutang Tercatat</span>
-                    <span id="total-piutang-semua" class="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1 block">Rp 0</span>
+                    <span id="total-piutang-semua" class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 mt-1 block break-words">Rp 0</span>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
                     <span class="block text-[10px] font-bold uppercase text-amber-600 dark:text-amber-400">Sisa Tagihan Belum Lunas</span>
-                    <span id="total-piutang-sisa" class="text-sm font-bold text-amber-700 dark:text-amber-300 mt-1 block">Rp 0</span>
+                    <span id="total-piutang-sisa" class="text-sm sm:text-base font-bold text-amber-700 dark:text-amber-300 mt-1 block break-words">Rp 0</span>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none min-w-0">
                     <span class="block text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400">Sudah Dilunasi</span>
-                    <span id="total-piutang-lunas" class="text-sm font-bold text-emerald-700 dark:text-emerald-300 mt-1 block">Rp 0</span>
+                    <span id="total-piutang-lunas" class="text-sm sm:text-base font-bold text-emerald-700 dark:text-emerald-300 mt-1 block break-words">Rp 0</span>
                 </div>
             </div>
 
             <!-- Form Input Piutang Baru -->
-            <div class="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
                 <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">Form Pencatatan Piutang Baru</h2>
                 <form id="form-piutang" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL TRANSAKSI *</label>
+                    <div class="min-w-0">
+                        <label for="piutang-tgl" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL TRANSAKSI *</label>
                         <input type="date" id="piutang-tgl" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JATUH TEMPO</label>
+                    <div class="min-w-0">
+                        <label for="piutang-jatuh-tempo" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JATUH TEMPO</label>
                         <input type="date" id="piutang-jatuh-tempo" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">UNIT USAHA *</label>
+                    <div class="min-w-0">
+                        <label for="piutang-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">UNIT USAHA *</label>
                         <select id="piutang-unit" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                             <option value="">-- Pilih Unit Usaha --</option>
                             <option value="KANTOR PUSAT (01)">KANTOR PUSAT (01)</option>
@@ -58,50 +85,52 @@ export function renderPiutang() {
                             <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">NAMA DEBITUR / PELANGGAN *</label>
+                    <div class="min-w-0">
+                        <label for="piutang-debitur" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">NAMA DEBITUR / PELANGGAN *</label>
                         <input type="text" id="piutang-debitur" placeholder="Nama pihak yang berutang / pelanggan" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN PIUTANG (COA) *</label>
+                    <div class="min-w-0">
+                        <label for="piutang-akun-kode" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN PIUTANG (COA) *</label>
                         <select id="piutang-akun-kode" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                             <option value="">-- Memuat Akun Piutang --</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JUMLAH TAGIHAN (RP) *</label>
-                        <input type="number" id="piutang-jumlah" min="1" step="any" placeholder="0" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    <div class="min-w-0">
+                        <label for="piutang-jumlah" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JUMLAH TAGIHAN (RP) *</label>
+                        <input type="text" inputmode="numeric" id="piutang-jumlah" placeholder="0" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div class="md:col-span-3">
-                        <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">KETERANGAN / URAIAN *</label>
+                    <div class="md:col-span-3 min-w-0">
+                        <label for="piutang-keterangan" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">KETERANGAN / URAIAN *</label>
                         <input type="text" id="piutang-keterangan" placeholder="Contoh: Penjualan pupuk kompos / paket wisata tempo" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div class="md:col-span-3 flex justify-end gap-2 pt-2">
-                        <button type="submit" id="btn-simpan-piutang" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-none transition cursor-pointer shadow-sm">Simpan Piutang</button>
+                    <div class="md:col-span-3 flex flex-col sm:flex-row justify-end gap-2 pt-2">
+                        <button type="submit" id="btn-simpan-piutang" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-none transition cursor-pointer shadow-sm">Simpan Piutang</button>
                     </div>
                 </form>
             </div>
 
-            <!-- Filter & Tabel Daftar Piutang -->
+            <!-- Filter & Daftar Piutang -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
                     <span class="font-bold text-slate-800 dark:text-slate-200">DAFTAR PIUTANG USAHA</span>
-                    <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex flex-wrap items-center justify-between md:justify-end gap-2">
                         <select id="filter-status-piutang" class="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-1.5 rounded-none">
                             <option value="">-- Semua Status --</option>
                             <option value="Belum Lunas">Belum Lunas</option>
                             <option value="Lunas">Lunas</option>
                         </select>
-                        <span id="total-piutang-count" class="text-slate-500 font-normal">Total: 0 Data</span>
+                        <span id="total-piutang-count" class="text-slate-500 font-normal whitespace-nowrap">Total: 0 Data</span>
                     </div>
                 </div>
-                <div class="overflow-x-auto">
+
+                <!-- 1. TAMPILAN DESKTOP: Tabel -->
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
                                 <th class="py-3 px-4 font-semibold">Tanggal / Tempo</th>
                                 <th class="py-3 px-4 font-semibold">Unit Usaha</th>
-                                <th class="py-3 px-4 font-semibold">Debitur & Keterangan</th>
+                                <th class="py-3 px-4 font-semibold">Debitur &amp; Keterangan</th>
                                 <th class="py-3 px-4 font-semibold text-right">Jumlah (Rp)</th>
                                 <th class="py-3 px-4 font-semibold text-center">Status</th>
                                 <th class="py-3 px-4 font-semibold text-center">Aksi</th>
@@ -111,6 +140,11 @@ export function renderPiutang() {
                             <tr><td colspan="6" class="py-8 text-center text-slate-400">Memuat data piutang...</td></tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- 2. TAMPILAN HP: Card Versi Mobile -->
+                <div id="card-piutang-body" class="block md:hidden divide-y divide-slate-200 dark:divide-slate-800">
+                    <div class="p-6 text-center text-slate-400 text-xs">Memuat data piutang...</div>
                 </div>
             </div>
 
@@ -126,8 +160,14 @@ export function renderPiutang() {
 }
 
 let piutangToastTimer = null;
+let piutangCleanup = null;
 
 export function initPiutangHandler() {
+    if (typeof piutangCleanup === "function") {
+        piutangCleanup();
+        piutangCleanup = null;
+    }
+
     const formPiutang = document.getElementById('form-piutang');
     const piutangTgl = document.getElementById('piutang-tgl');
     const piutangJatuhTempo = document.getElementById('piutang-jatuh-tempo');
@@ -140,6 +180,7 @@ export function initPiutangHandler() {
 
     const filterStatus = document.getElementById('filter-status-piutang');
     const tableBody = document.getElementById('table-piutang-body');
+    const cardBody = document.getElementById('card-piutang-body');
     const totalCountEl = document.getElementById('total-piutang-count');
     const totalSemuaEl = document.getElementById('total-piutang-semua');
     const totalSisaEl = document.getElementById('total-piutang-sisa');
@@ -150,9 +191,11 @@ export function initPiutangHandler() {
     }
 
     let piutangList = [];
+    let rowListeners = [];
 
-    function formatRupiah(num) {
-        return "Rp " + Number(num || 0).toLocaleString('id-ID');
+    function clearRowListeners() {
+        rowListeners.forEach(({ el, type, fn }) => el.removeEventListener(type, fn));
+        rowListeners = [];
     }
 
     function showToast(message, isError = false) {
@@ -237,11 +280,13 @@ export function initPiutangHandler() {
         } catch (err) {
             console.error("Gagal memuat data piutang:", err);
             if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+            if (cardBody) cardBody.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs">Gagal memuat data dari database.</div>`;
         }
     }
 
     function renderTable() {
-        if (!tableBody) return;
+        clearRowListeners();
+        if (!tableBody || !cardBody) return;
         const statusFilter = filterStatus ? filterStatus.value : "";
         const filtered = piutangList.filter(item => !statusFilter || item.status === statusFilter);
 
@@ -249,46 +294,90 @@ export function initPiutangHandler() {
 
         if (filtered.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada data piutang.</td></tr>`;
+            cardBody.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">Belum ada data piutang.</div>`;
             return;
         }
 
-        let html = "";
+        let htmlTable = "";
+        let htmlCard = "";
+
         filtered.forEach(item => {
             const isLunas = item.status === "Lunas";
             const badgeClass = isLunas
                 ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
                 : "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300";
 
-            html += `
+            const safeId = escapeHtml(item.id);
+            const safeTgl = escapeHtml(item.tglTransaksi || '-');
+            const safeTempo = escapeHtml(item.jatuhTempo || '-');
+            const safeUnit = escapeHtml(item.unitUsaha || '-');
+            const safeDebitur = escapeHtml(item.debitur || '-');
+            const safeKode = escapeHtml(item.kodeAkun || '-');
+            const safeKet = escapeHtml(item.keterangan || '-');
+            const safeStatus = escapeHtml(item.status || 'Belum Lunas');
+            const nominalFmt = escapeHtml(formatRupiah(item.jumlah));
+
+            htmlTable += `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">
-                        <div>${item.tglTransaksi || '-'}</div>
-                        <div class="text-[11px] text-slate-500">Tempo: ${item.jatuhTempo || '-'}</div>
+                    <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                        <div>${safeTgl}</div>
+                        <div class="text-[11px] text-slate-500">Tempo: ${safeTempo}</div>
                     </td>
-                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium">${item.unitUsaha || '-'}</td>
+                    <td class="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium">${safeUnit}</td>
                     <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
-                        <div class="font-bold text-indigo-600 dark:text-indigo-400">${item.debitur || '-'} (${item.kodeAkun || '-'})</div>
-                        <div class="text-slate-500 text-[11px] mt-0.5">${item.keterangan || '-'}</div>
+                        <div class="font-bold text-indigo-600 dark:text-indigo-400">${safeDebitur} (${safeKode})</div>
+                        <div class="text-slate-500 text-[11px] mt-0.5">${safeKet}</div>
                     </td>
-                    <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">${formatRupiah(item.jumlah)}</td>
-                    <td class="py-3 px-4 text-center">
-                        <span class="px-2 py-0.5 text-[11px] font-bold ${badgeClass}">${item.status || 'Belum Lunas'}</span>
+                    <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">${nominalFmt}</td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <span class="px-2 py-0.5 text-[11px] font-bold rounded-none ${badgeClass}">${safeStatus}</span>
                     </td>
-                    <td class="py-3 px-4 text-center">
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
                         <div class="flex items-center justify-center gap-1.5">
-                            ${!isLunas ? `<button type="button" data-lunasi-id="${item.id}" class="btn-lunasi-piutang px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition text-[11px] font-semibold cursor-pointer">Lunasi</button>` : ''}
-                            <button type="button" data-delete-piutang="${item.id}" class="btn-hapus-piutang text-rose-600 hover:text-rose-800 p-1 cursor-pointer" title="Hapus Piutang">
+                            ${!isLunas ? `<button type="button" data-lunasi-id="${safeId}" class="btn-lunasi-piutang px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 rounded-none transition text-[11px] font-semibold cursor-pointer">Lunasi</button>` : ''}
+                            <button type="button" data-delete-piutang="${safeId}" class="btn-hapus-piutang text-rose-600 hover:text-rose-800 p-1 cursor-pointer" title="Hapus Piutang">
                                 <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                     </td>
                 </tr>
             `;
+
+            htmlCard += `
+                <div class="p-4 space-y-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/40 transition min-w-0">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="font-semibold text-slate-800 dark:text-slate-200">${safeTgl}</div>
+                            <div class="text-[11px] text-slate-500">Tempo: ${safeTempo}</div>
+                        </div>
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-none flex-shrink-0 ${badgeClass}">${safeStatus}</span>
+                    </div>
+                    <div class="font-medium text-slate-600 dark:text-slate-300 break-words">
+                        Unit: ${safeUnit}
+                    </div>
+                    <div class="text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 space-y-1 break-words">
+                        <div class="font-bold text-indigo-600 dark:text-indigo-400">${safeDebitur} (${safeKode})</div>
+                        <div class="text-slate-500 text-[11px] leading-snug">${safeKet}</div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                        <span class="font-bold text-sm text-slate-800 dark:text-slate-100 whitespace-nowrap">${nominalFmt}</span>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            ${!isLunas ? `<button type="button" data-lunasi-id="${safeId}" class="btn-lunasi-piutang px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 rounded-none transition text-[11px] font-semibold cursor-pointer">Lunasi</button>` : ''}
+                            <button type="button" data-delete-piutang="${safeId}" class="btn-hapus-piutang inline-flex items-center gap-1 px-2 py-1 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900 rounded-none text-[11px] font-semibold cursor-pointer" title="Hapus Piutang">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                <span>Hapus</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
-        tableBody.innerHTML = html;
+
+        tableBody.innerHTML = htmlTable;
+        cardBody.innerHTML = htmlCard;
 
         document.querySelectorAll('.btn-lunasi-piutang').forEach(btn => {
-            btn.onclick = async () => {
+            const onLunasi = async () => {
                 const id = btn.getAttribute('data-lunasi-id');
                 const target = piutangList.find(p => p.id === id);
                 if (!target) return;
@@ -323,10 +412,12 @@ export function initPiutangHandler() {
                     btn.disabled = false;
                 }
             };
+            btn.addEventListener('click', onLunasi);
+            rowListeners.push({ el: btn, type: 'click', fn: onLunasi });
         });
 
         document.querySelectorAll('.btn-hapus-piutang').forEach(btn => {
-            btn.onclick = async () => {
+            const onDelete = async () => {
                 const id = btn.getAttribute('data-delete-piutang');
                 if (!id) return;
                 if (confirm("Apakah Anda yakin ingin menghapus data piutang ini?")) {
@@ -340,82 +431,109 @@ export function initPiutangHandler() {
                     }
                 }
             };
+            btn.addEventListener('click', onDelete);
+            rowListeners.push({ el: btn, type: 'click', fn: onDelete });
         });
     }
 
-    if (filterStatus) filterStatus.onchange = renderTable;
+    const onJumlahInput = () => {
+        if (!piutangJumlah) return;
+        piutangJumlah.value = formatRibuanInput(piutangJumlah.value);
+    };
 
-    if (formPiutang) {
-        formPiutang.onsubmit = async (e) => {
-            e.preventDefault();
-            const tgl = piutangTgl ? piutangTgl.value : "";
-            const jatuhTempo = piutangJatuhTempo ? piutangJatuhTempo.value : "";
-            const unit = piutangUnit ? piutangUnit.value : "";
-            const debitur = piutangDebitur ? piutangDebitur.value.trim() : "";
-            const akunKode = piutangAkunKode ? piutangAkunKode.value : "";
-            const jumlah = parseFloat(piutangJumlah ? piutangJumlah.value : 0) || 0;
-            const ket = piutangKeterangan ? piutangKeterangan.value.trim() : "";
+    const onFilterChange = () => renderTable();
 
-            if (!akunKode) {
-                showToast("Pilih akun piutang terlebih dahulu.", true);
-                return;
-            }
-            if (jumlah <= 0) {
-                showToast("Jumlah tagihan harus lebih besar dari 0.", true);
-                return;
-            }
+    const onFormSubmit = async (e) => {
+        e.preventDefault();
+        const tgl = piutangTgl ? piutangTgl.value : "";
+        const jatuhTempo = piutangJatuhTempo ? piutangJatuhTempo.value : "";
+        const unit = piutangUnit ? piutangUnit.value : "";
+        const debitur = piutangDebitur ? piutangDebitur.value.trim() : "";
+        const akunKode = piutangAkunKode ? piutangAkunKode.value : "";
+        const jumlah = parseDigitsToNumber(piutangJumlah ? piutangJumlah.value : 0);
+        const ket = piutangKeterangan ? piutangKeterangan.value.trim() : "";
 
-            const selectedCoaOpt = piutangAkunKode.options[piutangAkunKode.selectedIndex];
-            const namaAkun = selectedCoaOpt ? selectedCoaOpt.textContent.split(' - ').slice(1).join(' - ') || "Piutang Usaha" : "Piutang Usaha";
+        if (!akunKode) {
+            showToast("Pilih akun piutang terlebih dahulu.", true);
+            return;
+        }
+        if (jumlah <= 0) {
+            showToast("Jumlah tagihan harus lebih besar dari 0.", true);
+            return;
+        }
 
+        const selectedCoaOpt = piutangAkunKode.options[piutangAkunKode.selectedIndex];
+        const namaAkun = selectedCoaOpt ? selectedCoaOpt.textContent.split(' - ').slice(1).join(' - ') || "Piutang Usaha" : "Piutang Usaha";
+
+        if (btnSimpanPiutang) {
+            btnSimpanPiutang.disabled = true;
+            btnSimpanPiutang.textContent = "Menyimpan...";
+        }
+
+        try {
+            await addDoc(collection(db, "piutang"), {
+                noRef: `PIU-${Date.now().toString().slice(-6)}`,
+                tglTransaksi: tgl,
+                jatuhTempo,
+                unitUsaha: unit,
+                debitur,
+                kodeAkun: akunKode,
+                namaAkun,
+                jumlah,
+                keterangan: ket,
+                status: "Belum Lunas",
+                createdAt: new Date().toISOString()
+            });
+
+            await addDoc(collection(db, "jurnal_umum"), {
+                noRef: `PIU-${Date.now().toString().slice(-6)}`,
+                tglTransaksi: tgl,
+                unitUsaha: unit,
+                keterangan: `[Piutang] ${debitur} - ${ket}`,
+                rincian: [
+                    { kodeAkun: akunKode, namaAkun, debet: jumlah, kredit: 0 },
+                    { kodeAkun: "4.01.01", namaAkun: "Pendapatan Usaha", debet: 0, kredit: jumlah }
+                ],
+                totalNilai: jumlah,
+                createdAt: new Date().toISOString()
+            });
+
+            showToast("Data piutang berhasil disimpan.");
+            formPiutang.reset();
+            if (piutangTgl) piutangTgl.value = new Date().toISOString().split('T')[0];
+            await loadCoaAndPiutang();
+        } catch (err) {
+            console.error("Gagal menyimpan piutang:", err);
+            showToast("Terjadi kesalahan saat menyimpan data piutang.", true);
+        } finally {
             if (btnSimpanPiutang) {
-                btnSimpanPiutang.disabled = true;
-                btnSimpanPiutang.textContent = "Menyimpan...";
+                btnSimpanPiutang.disabled = false;
+                btnSimpanPiutang.textContent = "Simpan Piutang";
             }
+        }
+    };
 
-            try {
-                await addDoc(collection(db, "piutang"), {
-                    noRef: `PIU-${Date.now().toString().slice(-6)}`,
-                    tglTransaksi: tgl,
-                    jatuhTempo,
-                    unitUsaha: unit,
-                    debitur,
-                    kodeAkun: akunKode,
-                    namaAkun,
-                    jumlah,
-                    keterangan: ket,
-                    status: "Belum Lunas",
-                    createdAt: new Date().toISOString()
-                });
+    if (piutangJumlah) piutangJumlah.addEventListener('input', onJumlahInput);
+    if (filterStatus) filterStatus.addEventListener('change', onFilterChange);
+    if (formPiutang) formPiutang.addEventListener('submit', onFormSubmit);
 
-                await addDoc(collection(db, "jurnal_umum"), {
-                    noRef: `PIU-${Date.now().toString().slice(-6)}`,
-                    tglTransaksi: tgl,
-                    unitUsaha: unit,
-                    keterangan: `[Piutang] ${debitur} - ${ket}`,
-                    rincian: [
-                        { kodeAkun: akunKode, namaAkun, debet: jumlah, kredit: 0 },
-                        { kodeAkun: "4.01.01", namaAkun: "Pendapatan Usaha", debet: 0, kredit: jumlah }
-                    ],
-                    totalNilai: jumlah,
-                    createdAt: new Date().toISOString()
-                });
+    const cleanup = () => {
+        clearRowListeners();
+        if (piutangToastTimer) {
+            clearTimeout(piutangToastTimer);
+            piutangToastTimer = null;
+        }
+        if (piutangJumlah) piutangJumlah.removeEventListener('input', onJumlahInput);
+        if (filterStatus) filterStatus.removeEventListener('change', onFilterChange);
+        if (formPiutang) formPiutang.removeEventListener('submit', onFormSubmit);
+        window.removeEventListener('hashchange', cleanup);
+        piutangCleanup = null;
+    };
 
-                showToast("Data piutang berhasil disimpan.");
-                formPiutang.reset();
-                if (piutangTgl) piutangTgl.value = new Date().toISOString().split('T')[0];
-                await loadCoaAndPiutang();
-            } catch (err) {
-                console.error("Gagal menyimpan piutang:", err);
-                showToast("Terjadi kesalahan saat menyimpan data piutang.", true);
-            } finally {
-                if (btnSimpanPiutang) {
-                    btnSimpanPiutang.disabled = false;
-                    btnSimpanPiutang.textContent = "Simpan Piutang";
-                }
-            }
-        };
-    }
+    window.addEventListener('hashchange', cleanup);
+    piutangCleanup = cleanup;
 
     loadCoaAndPiutang();
+
+    return cleanup;
 }

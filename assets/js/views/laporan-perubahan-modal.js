@@ -2,6 +2,39 @@
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function compareKodeAkun(a, b) {
+    const segA = String(a ?? "").trim().split(".");
+    const segB = String(b ?? "").trim().split(".");
+    const maxLen = Math.max(segA.length, segB.length);
+
+    for (let i = 0; i < maxLen; i++) {
+        const partA = segA[i];
+        const partB = segB[i];
+        if (partA === undefined) return -1;
+        if (partB === undefined) return 1;
+
+        const numA = Number(partA);
+        const numB = Number(partB);
+        const bothNumeric = !Number.isNaN(numA) && !Number.isNaN(numB) && partA.trim() !== "" && partB.trim() !== "";
+
+        if (bothNumeric && numA !== numB) {
+            return numA - numB;
+        }
+        const cmp = String(partA).localeCompare(String(partB), undefined, { numeric: true, sensitivity: "base" });
+        if (cmp !== 0) return cmp;
+    }
+    return 0;
+}
+
 function formatRupiah(num) {
     const rounded = Math.round(Number(num) || 0);
     return (rounded < 0 ? "-Rp " : "Rp ") + Math.abs(rounded).toLocaleString("id-ID");
@@ -19,30 +52,30 @@ export function renderLaporanPerubahanModal() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman & Tombol Aksi -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3.5 min-w-0">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                     <a href="#/laporan" data-link title="Kembali ke Menu Laporan"
                         class="w-10 h-10 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center rounded-none transition flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div class="min-w-0">
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Laporan Perubahan Modal (Statement of Changes in Equity)</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Rekapitulasi perubahan modal BUMKal dari awal periode hingga akhir periode (rinci per akun).</p>
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Laporan Perubahan Modal (Statement of Changes in Equity)</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug break-words">Rekapitulasi perubahan modal BUMKal dari awal periode hingga akhir periode (rinci per akun).</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full md:w-auto">
+                <div class="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
                     <button id="btn-cetak-perubahan-modal" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Cetak / Print Laporan
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Cetak / Print Laporan</span>
                     </button>
                 </div>
             </div>
 
             <!-- Filter Bar -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 md:grid-cols-4 gap-4 text-xs items-end">
-                <div>
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs items-end">
+                <div class="min-w-0">
                     <label for="filter-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER UNIT USAHA</label>
                     <select id="filter-unit" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                         <option value="">-- Semua Unit Usaha --</option>
@@ -52,43 +85,43 @@ export function renderLaporanPerubahanModal() {
                         <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
                     </select>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="filter-tgl-mulai" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL MULAI</label>
                     <input type="date" id="filter-tgl-mulai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="filter-tgl-sampai" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL SAMPAI</label>
                     <input type="date" id="filter-tgl-sampai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                 </div>
-                <div>
+                <div class="min-w-0">
                     <button id="btn-tampilkan" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan Laporan</button>
                 </div>
             </div>
 
             <!-- Card Ringkasan Modal Akhir -->
-            <div class="bg-indigo-900 text-white p-6 rounded-none shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <p class="text-xs uppercase tracking-widest text-indigo-200 font-semibold">Total Modal Akhir Periode</p>
-                    <h2 id="summary-modal-akhir" class="text-2xl font-extrabold mt-1">Rp 0</h2>
+            <div class="bg-indigo-900 text-white p-4 sm:p-6 rounded-none shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div class="min-w-0">
+                    <p class="text-[11px] sm:text-xs uppercase tracking-widest text-indigo-200 font-semibold">Total Modal Akhir Periode</p>
+                    <h2 id="summary-modal-akhir" class="text-xl sm:text-2xl font-extrabold mt-1 break-words">Rp 0</h2>
                 </div>
-                <div class="text-right">
-                    <span id="badge-status-modal" class="px-3 py-1 bg-indigo-800 text-indigo-100 font-bold text-xs uppercase">Menunggu Proses</span>
+                <div>
+                    <span id="badge-status-modal" class="inline-block px-3 py-1 bg-indigo-800 text-indigo-100 font-bold text-xs uppercase rounded-none">Menunggu Proses</span>
                 </div>
             </div>
 
             <!-- Tabel Komponen Perubahan Modal Rinci Per Akun -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                    <span>RINCIAN PERUBAHAN MODAL PER AKUN</span>
-                    <span id="periode-label" class="text-slate-500 font-normal">Periode: -</span>
+                    <span class="break-words">RINCIAN PERUBAHAN MODAL PER AKUN</span>
+                    <span id="periode-label" class="text-slate-500 font-normal break-words">Periode: -</span>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-                                <th class="py-3 px-4 font-semibold w-36">Kode Akun</th>
+                                <th class="py-3 px-4 font-semibold w-32">Kode Akun</th>
                                 <th class="py-3 px-4 font-semibold">Keterangan Komponen / Nama Akun</th>
-                                <th class="py-3 px-4 font-semibold text-right w-56">Jumlah (Rp)</th>
+                                <th class="py-3 px-4 font-semibold text-right w-44">Jumlah (Rp)</th>
                             </tr>
                         </thead>
                         <tbody id="table-perubahan-modal-body" class="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
@@ -281,7 +314,7 @@ export function initLaporanPerubahanModalHandler() {
         let totalBeban = 0;
 
         Object.values(akunMap)
-            .sort((a, b) => a.kodeAkun.localeCompare(b.kodeAkun))
+            .sort((a, b) => compareKodeAkun(a.kodeAkun, b.kodeAkun))
             .forEach(acc => {
                 const saldoKreditNet = acc.totalKredit - acc.totalDebet;
                 const saldoDebetNet = acc.totalDebet - acc.totalKredit;
@@ -341,8 +374,8 @@ export function initLaporanPerubahanModalHandler() {
         if (badgeStatusModal) {
             badgeStatusModal.textContent = modalAkhir >= 0 ? "Normal / Sehat" : "Defisit Ekuitas";
             badgeStatusModal.className = modalAkhir >= 0
-                ? "px-3 py-1 bg-emerald-600 text-white font-bold text-xs uppercase"
-                : "px-3 py-1 bg-rose-600 text-white font-bold text-xs uppercase";
+                ? "inline-block px-3 py-1 bg-emerald-600 text-white font-bold text-xs uppercase rounded-none"
+                : "inline-block px-3 py-1 bg-rose-600 text-white font-bold text-xs uppercase rounded-none";
         }
 
         const renderSectionRows = ({
@@ -356,9 +389,9 @@ export function initLaporanPerubahanModalHandler() {
         }) => {
             let rowsHtml = `
                 <tr class="bg-slate-50/90 dark:bg-slate-950/80 font-bold text-slate-800 dark:text-slate-100">
-                    <td class="py-2.5 px-4 text-slate-400">—</td>
-                    <td class="py-2.5 px-4">${headerTitle}</td>
-                    <td class="py-2.5 px-4 text-right ${headerTotalClass}">${headerTotalText}</td>
+                    <td class="py-2.5 px-4 text-slate-400 whitespace-nowrap">—</td>
+                    <td class="py-2.5 px-4 break-words">${escapeHtml(headerTitle)}</td>
+                    <td class="py-2.5 px-4 text-right whitespace-nowrap ${headerTotalClass}">${escapeHtml(headerTotalText)}</td>
                 </tr>
             `;
 
@@ -366,8 +399,8 @@ export function initLaporanPerubahanModalHandler() {
                 rowsHtml += `
                     <tr>
                         <td class="py-2 px-4 text-slate-400"></td>
-                        <td class="py-2 px-8 italic text-slate-400">${emptyText}</td>
-                        <td class="py-2 px-4 text-right text-slate-400">Rp 0</td>
+                        <td class="py-2 px-6 sm:px-8 italic text-slate-400 break-words">${escapeHtml(emptyText)}</td>
+                        <td class="py-2 px-4 text-right text-slate-400 whitespace-nowrap">Rp 0</td>
                     </tr>
                 `;
                 return rowsHtml;
@@ -376,9 +409,9 @@ export function initLaporanPerubahanModalHandler() {
             items.forEach(row => {
                 rowsHtml += `
                     <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                        <td class="py-2 px-4 pl-6 font-semibold text-indigo-600 dark:text-indigo-400">${row.kodeAkun}</td>
-                        <td class="py-2 px-4 pl-6 text-slate-700 dark:text-slate-300">${row.namaAkun}</td>
-                        <td class="py-2 px-4 text-right font-medium ${valueClassFn(row.jumlah)}">${valueFormatter(row.jumlah)}</td>
+                        <td class="py-2 px-4 pl-5 sm:pl-6 font-semibold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">${escapeHtml(row.kodeAkun)}</td>
+                        <td class="py-2 px-4 pl-5 sm:pl-6 text-slate-700 dark:text-slate-300 break-words">${escapeHtml(row.namaAkun)}</td>
+                        <td class="py-2 px-4 text-right font-medium whitespace-nowrap ${valueClassFn(row.jumlah)}">${escapeHtml(valueFormatter(row.jumlah))}</td>
                     </tr>
                 `;
             });
@@ -419,7 +452,7 @@ export function initLaporanPerubahanModalHandler() {
                 namaAkun: `Beban — ${b.namaAkun}`,
                 jumlah: -Math.abs(b.jumlah)
             }))
-        ];
+        ].sort((a, b) => compareKodeAkun(a.kodeAkun, b.kodeAkun));
 
         html += renderSectionRows({
             headerTitle: "Laba / Rugi Bersih Periode Berjalan",
@@ -451,7 +484,7 @@ export function initLaporanPerubahanModalHandler() {
             <tr class="bg-slate-100 dark:bg-slate-950 font-bold border-t-2 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100">
                 <td class="py-3.5 px-4"></td>
                 <td class="py-3.5 px-4 text-right uppercase">Total Modal Akhir :</td>
-                <td class="py-3.5 px-4 text-right text-indigo-600 dark:text-indigo-400 text-sm">${formatRupiah(modalAkhir)}</td>
+                <td class="py-3.5 px-4 text-right text-indigo-600 dark:text-indigo-400 text-sm whitespace-nowrap">${escapeHtml(formatRupiah(modalAkhir))}</td>
             </tr>
         `;
 

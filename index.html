@@ -222,39 +222,50 @@
     <div class="flex-1 flex flex-col h-screen overflow-hidden w-full bg-slate-50 dark:bg-slate-950 relative">
         
         <!-- Header Atas -->
-        <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 min-h-[4.5rem] py-2 flex items-center justify-between px-4 md:px-6 z-10 flex-shrink-0">
-            <div class="flex items-center gap-3">
+        <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 h-14 md:min-h-[4.5rem] md:py-2 flex items-center justify-between gap-2 px-3 md:px-6 z-10 flex-shrink-0">
+            <div class="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
                 <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="hidden md:flex items-center justify-center p-2 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none cursor-pointer" title="Sembunyikan/Tampilkan Sidebar">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
                 </button>
 
-                <div class="flex items-center md:hidden">
-                    <span class="border border-transparent rounded-none px-1.5 py-1 flex items-center shadow-none bg-transparent">
-                        <img id="mobile-logo-img" src="assets/icons/Logo.png" alt="Logo" class="h-7 w-7 object-contain">
+                <!-- Logo Mobile (Kotak Siku Ramping) -->
+                <div class="flex items-center md:hidden flex-shrink-0">
+                    <span class="w-8 h-8 border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 rounded-none flex items-center justify-center overflow-hidden">
+                        <img id="mobile-logo-img" src="assets/icons/Logo.png" alt="Logo" class="w-6 h-6 object-contain">
                     </span>
                 </div>
 
-                <div class="flex items-center gap-3.5">
+                <!-- Info Perusahaan -->
+                <div class="flex items-center gap-3.5 min-w-0 flex-1">
                     <img id="header-logo-img" src="assets/icons/icon-192.png" alt="Logo Perusahaan" class="h-12 w-12 object-cover rounded-none border border-transparent hidden md:block flex-shrink-0">
                     
-                    <div class="flex flex-col justify-center truncate">
-                        <h2 class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-100 truncate" id="header-company-name">BUMKal Srihardono</h2>
+                    <div class="flex flex-col justify-center min-w-0 flex-1">
+                        <h2 class="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-100 truncate leading-tight" id="header-company-name">BUMKal Srihardono</h2>
                         
-                        <div class="flex flex-col text-[10px] text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5">
+                        <!-- Mobile: 1 baris alamat ringkas -->
+                        <span id="header-company-address-mobile" class="block md:hidden text-[10px] text-slate-500 dark:text-slate-400 truncate leading-tight mt-0.5">Memuat...</span>
+
+                        <!-- Desktop: Alamat & Telp lengkap -->
+                        <div class="hidden md:flex flex-col text-[10px] text-slate-500 dark:text-slate-400 min-w-0 leading-tight mt-0.5">
                             <span id="header-company-address" class="truncate">Alamat: Memuat...</span>
                             <span id="header-company-phone" class="truncate">Telp: Memuat...</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 md:gap-3">
-                <span id="header-active-period" title="Periode Buku / Bulan Aktif"
-                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-[11px] md:text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
-                    <span class="text-slate-500 dark:text-slate-400 font-normal hidden sm:inline">Bulan Aktif:</span>
-                    <span id="header-active-period-text">Memuat...</span>
-                </span>
+
+            <div class="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                <!-- Indikator Bulan Aktif -->
+                <div id="header-active-period" title="Periode Buku / Bulan Aktif"
+                    class="h-8 px-2 md:px-2.5 rounded-none bg-emerald-50/90 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 border-l-2 border-l-emerald-600 dark:border-l-emerald-400 flex flex-col md:flex-row items-center justify-center md:gap-1.5 whitespace-nowrap">
+                    <span class="text-[8px] md:text-xs font-bold md:font-normal tracking-wider md:tracking-normal uppercase md:normal-case text-emerald-700/80 md:text-slate-500 dark:text-emerald-300/80 dark:md:text-slate-400 leading-none">
+                        <span class="md:hidden">PERIODE</span>
+                        <span class="hidden md:inline">Bulan Aktif:</span>
+                    </span>
+                    <span id="header-active-period-text" class="text-[11px] md:text-xs font-extrabold md:font-semibold tracking-wider md:tracking-normal text-emerald-900 dark:text-emerald-200 leading-tight mt-0.5 md:mt-0">Memuat...</span>
+                </div>
 
                 <button id="theme-toggle-btn" onclick="toggleTheme()" class="hidden md:block p-2 rounded-none text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none cursor-pointer" title="Ubah Tema Cerah/Gelap">
                     <svg class="w-5 h-5 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
@@ -265,8 +276,9 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse"></span> Aktif
                 </span>
                 
-                <div class="md:hidden relative">
-                    <button id="mobile-profile-btn" class="w-8 h-8 rounded-none overflow-hidden border border-slate-200 dark:border-slate-800 flex items-center justify-center bg-indigo-600 text-white text-xs font-bold focus:outline-none">
+                <!-- Foto Profil Mobile (Kotak Siku Sejajar h-8) -->
+                <div class="md:hidden relative flex-shrink-0">
+                    <button id="mobile-profile-btn" class="w-8 h-8 rounded-none overflow-hidden border border-slate-200 dark:border-slate-700 flex items-center justify-center bg-indigo-600 text-white text-xs font-bold focus:outline-none">
                         <img src="" alt="Profile" class="w-full h-full object-cover" id="mobile-user-avatar-img">
                         <script>
                             (function() {
@@ -395,22 +407,47 @@
             "Juli", "Agustus", "September", "Oktober", "November", "Desember"
         ];
 
+        const BULAN_SHORT = [
+            "JAN", "FEB", "MAR", "APR", "MEI", "JUN",
+            "JUL", "AGU", "SEP", "OKT", "NOV", "DES"
+        ];
+
         let latestRunningText = "Selamat datang di Sistem BUMKal Srihardono.";
         let latestSpeed = "normal";
 
-        function formatPeriodLabel(periodKey, fallbackNamaBulan = "", fallbackTahun = "") {
+        function toShortMobilePeriod(periodKey = "", fallbackNamaBulan = "", fallbackTahun = "") {
             const key = String(periodKey || "").trim();
+            if (/^\d{4}-\d{2}$/.test(key)) {
+                const [yyyy, mm] = key.split("-");
+                const idx = parseInt(mm, 10) - 1;
+                const monShort = BULAN_SHORT[idx] || mm;
+                const yy = yyyy.slice(-2);
+                return `${monShort} '${yy}`;
+            }
+            if (fallbackNamaBulan && fallbackTahun) {
+                const shortMon = String(fallbackNamaBulan).slice(0, 3).toUpperCase();
+                const yy = String(fallbackTahun).slice(-2);
+                return `${shortMon} '${yy}`;
+            }
+            return key || "-";
+        }
+
+        function formatPeriodHtml(periodKey, fallbackNamaBulan = "", fallbackTahun = "") {
+            const key = String(periodKey || "").trim();
+            const shortMobile = toShortMobilePeriod(key, fallbackNamaBulan, fallbackTahun);
+            let fullLabel = key || "-";
+
             if (/^\d{4}-\d{2}$/.test(key)) {
                 const [yyyy, mm] = key.split("-");
                 const idx = parseInt(mm, 10) - 1;
                 const namaBulan = fallbackNamaBulan || (BULAN_NAMES[idx] || mm);
                 const tahun = fallbackTahun || yyyy;
-                return `${namaBulan} ${tahun} (${key})`;
+                fullLabel = `${namaBulan} ${tahun} (${key})`;
+            } else if (fallbackNamaBulan && fallbackTahun) {
+                fullLabel = `${fallbackNamaBulan} ${fallbackTahun}`;
             }
-            if (fallbackNamaBulan && fallbackTahun) {
-                return `${fallbackNamaBulan} ${fallbackTahun}`;
-            }
-            return key || "-";
+
+            return `<span class="md:hidden">${shortMobile}</span><span class="hidden md:inline">${fullLabel}</span>`;
         }
 
         function nextPeriodKeyFrom(periodKey) {
@@ -449,7 +486,7 @@
                 // 1. Cari dokumen di tutup_bulan yang statusnya belum ditutup (aktif/terbuka)
                 const openDoc = records.find((r) => !r.isClosed);
                 if (openDoc) {
-                    elText.textContent = formatPeriodLabel(openDoc.key, openDoc.namaBulan, openDoc.tahun);
+                    elText.innerHTML = formatPeriodHtml(openDoc.key, openDoc.namaBulan, openDoc.tahun);
                     return;
                 }
 
@@ -457,7 +494,7 @@
                 for (let i = records.length - 1; i >= 0; i -= 1) {
                     const nextKey = String(records[i].nextPeriodKey || nextPeriodKeyFrom(records[i].key) || "").trim();
                     if (nextKey && !closedKeys.has(nextKey)) {
-                        elText.textContent = formatPeriodLabel(nextKey);
+                        elText.innerHTML = formatPeriodHtml(nextKey);
                         return;
                     }
                 }
@@ -465,12 +502,12 @@
                 // 3. Fallback ke bulan berjalan saat ini
                 const now = new Date();
                 const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-                elText.textContent = formatPeriodLabel(currentKey);
+                elText.innerHTML = formatPeriodHtml(currentKey);
             } catch (err) {
                 console.warn("Gagal memuat bulan aktif dari tutup_bulan:", err);
                 const now = new Date();
                 const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-                elText.textContent = formatPeriodLabel(currentKey);
+                elText.innerHTML = formatPeriodHtml(currentKey);
             }
         }
 
@@ -530,6 +567,7 @@
                 }
 
                 const headerCompanyNameEl = document.getElementById('header-company-name');
+                const headerAddressMobileEl = document.getElementById('header-company-address-mobile');
                 const headerAddressEl = document.getElementById('header-company-address');
                 const headerPhoneEl = document.getElementById('header-company-phone');
                 const headerLogoEl = document.getElementById('header-logo-img');
@@ -537,6 +575,7 @@
                 const appleIconEl = document.getElementById('apple-touch-icon-link');
 
                 if (headerCompanyNameEl) headerCompanyNameEl.textContent = namaPerusahaan;
+                if (headerAddressMobileEl) headerAddressMobileEl.textContent = alamatPerusahaan;
                 if (headerAddressEl) headerAddressEl.textContent = `Alamat: ${alamatPerusahaan}`;
                 if (headerPhoneEl) headerPhoneEl.textContent = `Telp: ${teleponPerusahaan}`;
 

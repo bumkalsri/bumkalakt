@@ -22,9 +22,9 @@ export function renderAkuntansiEntriJurnal() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman & Tombol Aksi -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors duration-200">
                 <div class="flex items-center gap-3">
-                    <a href="#/akuntansi" data-link title="Kembali ke Akuntansi" class="w-9 h-9 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0">
+                    <a href="#/akuntansi" data-link title="Kembali ke Akuntansi" class="w-9 h-9 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition-all duration-200 flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
@@ -32,14 +32,14 @@ export function renderAkuntansiEntriJurnal() {
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Entri Jurnal Umum</h1>
-                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">Type: ${JURNAL_TYPE}</span>
-                            <span id="badge-bulan-aktif-jurnal" class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Memuat Periode...</span>
+                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-colors duration-200">Type: ${JURNAL_TYPE}</span>
+                            <span id="badge-bulan-aktif-jurnal" class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors duration-200">Memuat Periode...</span>
                         </div>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Kelola pencatatan transaksi jurnal finansial BUMKal.</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full md:w-auto">
-                    <button id="btn-buka-modal-jurnal" type="button" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                    <button id="btn-buka-modal-jurnal" type="button" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white text-xs font-semibold px-4 py-2.5 rounded-none transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer shadow-sm">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Tambah Jurnal Baru
                     </button>
@@ -47,14 +47,14 @@ export function renderAkuntansiEntriJurnal() {
             </div>
 
             <!-- Filter Bar (Kata Kunci, Unit Usaha, Tanggal Mulai, Tanggal Sampai) -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 md:grid-cols-5 gap-4 text-xs items-end">
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 md:grid-cols-5 gap-4 text-xs items-end transition-colors duration-200">
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">CARI NO. REF / KETERANGAN</label>
-                    <input type="text" id="filter-keyword" placeholder="Ketik kata kunci..." class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    <input type="text" id="filter-keyword" placeholder="Ketik kata kunci..." class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER UNIT USAHA</label>
-                    <select id="filter-unit" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    <select id="filter-unit" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
                         <option value="">--Semua Unit--</option>
                         <option value="KANTOR PUSAT (01)">KANTOR PUSAT (01)</option>
                         <option value="AGROWISATA (02)">AGROWISATA (02)</option>
@@ -64,19 +64,19 @@ export function renderAkuntansiEntriJurnal() {
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL MULAI</label>
-                    <input type="date" id="filter-tgl-mulai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    <input type="date" id="filter-tgl-mulai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
                 </div>
                 <div>
                     <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL SAMPAI</label>
-                    <input type="date" id="filter-tgl-sampai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                    <input type="date" id="filter-tgl-sampai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
                 </div>
                 <div>
-                    <button id="btn-reset-filter" type="button" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold px-4 py-2.5 border border-slate-300 dark:border-slate-700 transition cursor-pointer">Reset Filter</button>
+                    <button id="btn-reset-filter" type="button" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold px-4 py-2.5 border border-slate-300 dark:border-slate-700 transition-all duration-200 cursor-pointer">Reset Filter</button>
                 </div>
             </div>
 
             <!-- Daftar Transaksi Jurnal (Responsive: Tabel Desktop & Card Mobile) -->
-            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden transition-colors duration-200">
                 <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-950/50">
                     <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200">Daftar Transaksi Jurnal Umum (${JURNAL_TYPE})</h3>
                     <span id="total-jurnal" class="text-[11px] text-slate-500 font-medium">Memuat data...</span>
@@ -109,38 +109,38 @@ export function renderAkuntansiEntriJurnal() {
                 </div>
             </div>
 
-            <!-- MODAL FORM INPUT/EDIT JURNAL UMUM -->
-            <div id="modal-entri-jurnal" class="hidden fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-2 md:p-4 transition-all duration-300 overflow-y-auto">
-                <div class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-none shadow-2xl flex flex-col border border-slate-200 dark:border-slate-800 overflow-hidden my-auto">
-                    <!-- Modal Header -->
-                    <div class="bg-[#0b2f64] px-4 md:px-6 py-3.5 flex items-center justify-between text-white">
+            <!-- MODAL FORM INPUT/EDIT JURNAL UMUM (SMOOTH & WARNA CERAH) -->
+            <div id="modal-entri-jurnal" class="hidden fixed inset-0 z-50 bg-slate-950/0 backdrop-blur-[1px] flex items-center justify-center p-2 md:p-4 opacity-0 transition-all duration-200 ease-out overflow-y-auto">
+                <div id="modal-entri-jurnal-card" class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-none shadow-2xl flex flex-col border border-slate-200 dark:border-slate-800 overflow-hidden my-auto opacity-0 scale-95 transition-all duration-200 ease-out">
+                    <!-- Modal Header Cerah -->
+                    <div class="bg-indigo-600 dark:bg-indigo-700 px-4 md:px-6 py-3.5 flex items-center justify-between text-white border-b border-indigo-500/40">
                         <div class="flex items-center gap-2 min-w-0">
-                            <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-5 h-5 flex-shrink-0 text-indigo-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             <h2 id="modal-title" class="text-xs md:text-sm font-bold tracking-wide truncate">Form Input Jurnal Umum Baru</h2>
                         </div>
-                        <button id="btn-tutup-modal" type="button" class="text-white hover:text-slate-200 transition cursor-pointer p-1">
+                        <button id="btn-tutup-modal" type="button" class="text-white/90 hover:text-white hover:bg-white/15 transition-all duration-150 cursor-pointer p-1">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
 
                     <!-- Modal Body Form -->
-                    <form id="form-entri-jurnal" class="p-4 md:p-6 space-y-4 max-h-[82vh] overflow-y-auto text-xs">
+                    <form id="form-entri-jurnal" class="p-4 md:p-6 space-y-4 max-h-[82vh] overflow-y-auto scroll-smooth text-xs">
                         <input type="hidden" id="edit-jurnal-id" value="">
 
                         <!-- Baris 1: Tanggal, No Ref, Unit Usaha -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                             <div>
                                 <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tanggal Transaksi *</label>
-                                <input type="date" id="tgl-transaksi" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition">
-                                <p id="jurnal-tgl-warning" class="hidden text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-1"></p>
+                                <input type="date" id="tgl-transaksi" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
+                                <p id="jurnal-tgl-warning" class="hidden text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-1 transition-all duration-200"></p>
                             </div>
                             <div>
                                 <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">No. Referensi / Bukti</label>
-                                <input type="text" id="no-ref" required readonly class="w-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-none focus:outline-none font-bold">
+                                <input type="text" id="no-ref" required readonly class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-none focus:outline-none font-bold transition-colors duration-200">
                             </div>
                             <div>
                                 <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Unit Usaha (Cabang)</label>
-                                <select id="unit-usaha" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                                <select id="unit-usaha" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
                                     <option value="KANTOR PUSAT (01)">KANTOR PUSAT (01)</option>
                                     <option value="AGROWISATA (02)">AGROWISATA (02)</option>
                                     <option value="KOMPOS (03)">KOMPOS (03)</option>
@@ -152,14 +152,14 @@ export function renderAkuntansiEntriJurnal() {
                         <!-- Keterangan Transaksi Tunggal -->
                         <div>
                             <label class="block font-bold text-slate-700 dark:text-slate-300 mb-1">Keterangan Transaksi *</label>
-                            <input type="text" id="keterangan-transaksi" required placeholder="Masukkan keterangan atau uraian transaksi..." class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
+                            <input type="text" id="keterangan-transaksi" required placeholder="Masukkan keterangan atau uraian transaksi..." class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
                         </div>
 
                         <!-- Tabel Rincian Baris Jurnal -->
-                        <div class="border border-slate-200 dark:border-slate-800 rounded-none overflow-hidden mt-4">
-                            <div class="bg-slate-900 text-white px-4 py-2 font-bold flex items-center justify-between text-xs">
+                        <div class="border border-slate-200 dark:border-slate-800 rounded-none overflow-hidden mt-4 transition-colors duration-200">
+                            <div class="bg-sky-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 border-b border-sky-200 dark:border-slate-700 px-4 py-2 font-bold flex items-center justify-between text-xs">
                                 <span>Rincian Akun Jurnal (Debet &amp; Kredit)</span>
-                                <span id="jurnal-periode-info" class="text-[10px] font-semibold text-sky-300"></span>
+                                <span id="jurnal-periode-info" class="text-[10px] font-bold text-indigo-700 dark:text-sky-300"></span>
                             </div>
                             <div class="overflow-x-auto w-full">
                                 <table class="w-full min-w-[550px] text-left border-collapse text-xs">
@@ -176,10 +176,10 @@ export function renderAkuntansiEntriJurnal() {
                                         <!-- Baris dinamis dimasukkan via JS -->
                                     </tbody>
                                     <tfoot>
-                                        <tr class="bg-slate-50 dark:bg-slate-950 font-bold border-t border-slate-200 dark:border-slate-800">
+                                        <tr class="bg-slate-50 dark:bg-slate-950 font-bold border-t border-slate-200 dark:border-slate-800 transition-colors duration-200">
                                             <td colspan="2" class="py-3 px-4 text-right">TOTAL :</td>
-                                            <td id="total-debet-view" class="py-3 px-3 text-right text-slate-800 dark:text-slate-100">Rp 0</td>
-                                            <td id="total-kredit-view" class="py-3 px-3 text-right text-slate-800 dark:text-slate-100">Rp 0</td>
+                                            <td id="total-debet-view" class="py-3 px-3 text-right text-slate-800 dark:text-slate-100 transition-colors duration-200">Rp 0</td>
+                                            <td id="total-kredit-view" class="py-3 px-3 text-right text-slate-800 dark:text-slate-100 transition-colors duration-200">Rp 0</td>
                                             <td></td>
                                         </tr>
                                     </tfoot>
@@ -191,23 +191,23 @@ export function renderAkuntansiEntriJurnal() {
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-2">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-slate-700 dark:text-slate-300">Status Validasi Transaksi:</span>
-                                <span id="status-balance-badge" class="px-3 py-1 text-[11px] font-bold uppercase rounded-none bg-rose-500 text-white">Belum Balance</span>
+                                <span id="status-balance-badge" class="px-3 py-1 text-[11px] font-bold uppercase rounded-none bg-rose-500 text-white transition-all duration-200">Belum Balance</span>
                             </div>
                             <span class="text-[11px] text-slate-500">(*) Wajib diisi</span>
                         </div>
 
                         <!-- Modal Footer Action Buttons -->
                         <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-                            <button type="button" id="btn-batal-modal" class="bg-slate-500 hover:bg-slate-600 text-white font-bold px-5 py-2.5 rounded-none transition cursor-pointer">Reset Form</button>
-                            <button type="submit" id="btn-simpan-jurnal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-none transition cursor-pointer shadow-sm">Simpan Jurnal</button>
+                            <button type="button" id="btn-batal-modal" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 active:scale-[0.99] font-bold px-5 py-2.5 rounded-none transition-all duration-200 cursor-pointer">Reset Form</button>
+                            <button type="submit" id="btn-simpan-jurnal" class="bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold px-6 py-2.5 rounded-none transition-all duration-200 cursor-pointer shadow-sm">Simpan Jurnal</button>
                         </div>
                     </form>
                 </div>
             </div>
 
             <!-- MODAL KONFIRMASI SMOOTH -->
-            <div id="modal-konfirmasi-jurnal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-[1px] flex items-center justify-center p-4 transition-opacity duration-200">
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 shadow-2xl rounded-none space-y-4 transform transition-all duration-200">
+            <div id="modal-konfirmasi-jurnal" class="hidden fixed inset-0 z-50 bg-slate-950/0 backdrop-blur-[1px] flex items-center justify-center p-4 opacity-0 transition-all duration-200 ease-out">
+                <div id="modal-konfirmasi-jurnal-card" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 shadow-2xl rounded-none space-y-4 opacity-0 scale-95 transition-all duration-200 ease-out">
                     <div class="flex items-start gap-3">
                         <div class="w-9 h-9 flex items-center justify-center bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 flex-shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -218,14 +218,14 @@ export function renderAkuntansiEntriJurnal() {
                         </div>
                     </div>
                     <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                        <button type="button" id="btn-konfirmasi-jurnal-batal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-none transition cursor-pointer">Batal</button>
-                        <button type="button" id="btn-konfirmasi-jurnal-ya" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-none transition cursor-pointer">Ya, Hapus</button>
+                        <button type="button" id="btn-konfirmasi-jurnal-batal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-none transition-all duration-150 cursor-pointer">Batal</button>
+                        <button type="button" id="btn-konfirmasi-jurnal-ya" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-none transition-all duration-150 cursor-pointer">Ya, Hapus</button>
                     </div>
                 </div>
             </div>
 
             <!-- TOAST NOTIFIKASI HALUS -->
-            <div id="toast-notif" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-in-out pointer-events-none">
+            <div id="toast-notif" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 ease-out pointer-events-none">
                 <div id="toast-content" class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-none shadow-xl border border-slate-700 dark:border-slate-200 flex items-center gap-3 text-xs font-semibold">
                     <svg id="toast-icon" class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     <span id="toast-message">Pesan notifikasi berhasil.</span>
@@ -245,6 +245,7 @@ export async function initAkuntansiEntriJurnalHandler() {
     }
 
     const modal = document.getElementById('modal-entri-jurnal');
+    const modalCard = document.getElementById('modal-entri-jurnal-card');
     const modalTitle = document.getElementById('modal-title');
     const editJurnalIdInput = document.getElementById('edit-jurnal-id');
     const btnBuka = document.getElementById('btn-buka-modal-jurnal');
@@ -274,6 +275,7 @@ export async function initAkuntansiEntriJurnalHandler() {
     const keteranganTransaksiInput = document.getElementById('keterangan-transaksi');
 
     const confirmModal = document.getElementById('modal-konfirmasi-jurnal');
+    const confirmCard = document.getElementById('modal-konfirmasi-jurnal-card');
     const confirmTitleEl = document.getElementById('modal-konfirmasi-jurnal-title');
     const confirmDescEl = document.getElementById('modal-konfirmasi-jurnal-desc');
     const btnConfirmBatal = document.getElementById('btn-konfirmasi-jurnal-batal');
@@ -284,6 +286,41 @@ export async function initAkuntansiEntriJurnalHandler() {
     let tutupBulanMap = new Map();
     let activePeriodKey = "";
     let pendingConfirmResolver = null;
+    let modalCloseTimer = null;
+    let confirmCloseTimer = null;
+
+    function animateModalOpen(overlayEl, cardEl) {
+        if (!overlayEl) return;
+        overlayEl.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                overlayEl.classList.remove('bg-slate-950/0', 'opacity-0');
+                overlayEl.classList.add('bg-slate-950/75', 'opacity-100');
+                if (cardEl) {
+                    cardEl.classList.remove('opacity-0', 'scale-95');
+                    cardEl.classList.add('opacity-100', 'scale-100');
+                }
+            });
+        });
+    }
+
+    function animateModalClose(overlayEl, cardEl, timerRefSetter, onAfterClose) {
+        if (!overlayEl) {
+            if (typeof onAfterClose === "function") onAfterClose();
+            return;
+        }
+        overlayEl.classList.remove('bg-slate-950/75', 'opacity-100');
+        overlayEl.classList.add('bg-slate-950/0', 'opacity-0');
+        if (cardEl) {
+            cardEl.classList.remove('opacity-100', 'scale-100');
+            cardEl.classList.add('opacity-0', 'scale-95');
+        }
+        const timerId = setTimeout(() => {
+            overlayEl.classList.add('hidden');
+            if (typeof onAfterClose === "function") onAfterClose();
+        }, 200);
+        if (typeof timerRefSetter === "function") timerRefSetter(timerId);
+    }
 
     function showToast(message, isError = false) {
         const toast = document.getElementById('toast-notif');
@@ -314,22 +351,39 @@ export async function initAkuntansiEntriJurnalHandler() {
     }
 
     function closeConfirmModal(result = false) {
-        if (confirmModal) confirmModal.classList.add('hidden');
-        if (typeof pendingConfirmResolver === "function") {
-            const resolve = pendingConfirmResolver;
-            pendingConfirmResolver = null;
-            resolve(result);
+        if (confirmCloseTimer) {
+            clearTimeout(confirmCloseTimer);
+            confirmCloseTimer = null;
         }
+        const resolve = typeof pendingConfirmResolver === "function" ? pendingConfirmResolver : null;
+        pendingConfirmResolver = null;
+
+        animateModalClose(
+            confirmModal,
+            confirmCard,
+            (t) => { confirmCloseTimer = t; },
+            () => {
+                if (resolve) resolve(result);
+            }
+        );
     }
 
     function askSmoothConfirm(title, message, confirmText = "Ya, Hapus") {
         if (!confirmModal || !btnConfirmYa || !btnConfirmBatal) return Promise.resolve(true);
-        if (pendingConfirmResolver) closeConfirmModal(false);
+        if (confirmCloseTimer) {
+            clearTimeout(confirmCloseTimer);
+            confirmCloseTimer = null;
+        }
+        if (pendingConfirmResolver) {
+            const prevResolve = pendingConfirmResolver;
+            pendingConfirmResolver = null;
+            prevResolve(false);
+        }
         if (confirmTitleEl) confirmTitleEl.textContent = title;
         if (confirmDescEl) confirmDescEl.textContent = message;
         btnConfirmYa.textContent = confirmText;
-        confirmModal.classList.remove('hidden');
-        btnConfirmYa.focus();
+        animateModalOpen(confirmModal, confirmCard);
+        requestAnimationFrame(() => btnConfirmYa.focus());
         return new Promise((resolve) => {
             pendingConfirmResolver = resolve;
         });
@@ -519,10 +573,10 @@ export async function initAkuntansiEntriJurnalHandler() {
         if (badgeBulanAktif) {
             if (effectiveActivePeriod) {
                 badgeBulanAktif.textContent = `Bulan Aktif: ${effectiveActivePeriod}`;
-                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800";
+                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors duration-200";
             } else {
                 badgeBulanAktif.textContent = "Periode Terbuka";
-                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700";
+                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors duration-200";
             }
         }
 
@@ -699,11 +753,13 @@ export async function initAkuntansiEntriJurnalHandler() {
         }
     }
 
-    function tambahBarisJurnal(akunSelected = "", debet = 0, kredit = 0) {
+    function tambahBarisJurnal(akunSelected = "", debet = 0, kredit = 0, smoothEnter = true) {
         if (!jurnalRowsContainer) return;
         const rowIdx = jurnalRowsContainer.children.length + 1;
         const tr = document.createElement('tr');
-        tr.className = "jurnal-row";
+        tr.className = smoothEnter
+            ? "jurnal-row opacity-0 translate-y-1 transition-all duration-200 ease-out"
+            : "jurnal-row transition-all duration-200 ease-out";
 
         let optionsHtml = '<option value="">-- Pilih Akun --</option>';
         coaLevel4List.forEach(coa => {
@@ -717,22 +773,22 @@ export async function initAkuntansiEntriJurnalHandler() {
         tr.innerHTML = `
             <td class="py-2.5 px-3 text-center font-bold text-slate-500 row-number">${rowIdx}</td>
             <td class="py-2.5 px-3">
-                <select class="row-akun w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none focus:outline-none focus:border-indigo-600">
+                <select class="row-akun w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none focus:outline-none focus:border-indigo-600 transition-colors duration-200">
                     ${optionsHtml}
                 </select>
             </td>
             <td class="py-2.5 px-3 text-right">
-                <input type="text" value="${escapeHtml(formattedDebet)}" class="row-debet w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none text-right focus:outline-none focus:border-indigo-600 font-bold">
+                <input type="text" value="${escapeHtml(formattedDebet)}" class="row-debet w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none text-right focus:outline-none focus:border-indigo-600 font-bold transition-colors duration-200">
             </td>
             <td class="py-2.5 px-3 text-right">
-                <input type="text" value="${escapeHtml(formattedKredit)}" class="row-kredit w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none text-right focus:outline-none focus:border-indigo-600 font-bold">
+                <input type="text" value="${escapeHtml(formattedKredit)}" class="row-kredit w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-2.5 py-1.5 rounded-none text-right focus:outline-none focus:border-indigo-600 font-bold transition-colors duration-200">
             </td>
             <td class="py-2.5 px-3 text-center">
                 <div class="flex items-center justify-center gap-1">
-                    <button type="button" class="btn-tambah-baris p-1 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 transition cursor-pointer" title="Tambah Baris">
+                    <button type="button" class="btn-tambah-baris p-1 bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100 transition-all duration-150 cursor-pointer" title="Tambah Baris">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     </button>
-                    <button type="button" class="btn-hapus-baris p-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition cursor-pointer" title="Hapus Baris">
+                    <button type="button" class="btn-hapus-baris p-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-all duration-150 cursor-pointer" title="Hapus Baris">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                 </div>
@@ -740,6 +796,12 @@ export async function initAkuntansiEntriJurnalHandler() {
         `;
 
         jurnalRowsContainer.appendChild(tr);
+        if (smoothEnter) {
+            requestAnimationFrame(() => {
+                tr.classList.remove('opacity-0', 'translate-y-1');
+                tr.classList.add('opacity-100', 'translate-y-0');
+            });
+        }
         attachRowEvents(tr);
         hitungTotalJurnal();
     }
@@ -769,14 +831,17 @@ export async function initAkuntansiEntriJurnalHandler() {
         };
 
         btnPlus.onclick = () => {
-            tambahBarisJurnal();
+            tambahBarisJurnal("", 0, 0, true);
         };
 
         btnTrash.onclick = () => {
             if (jurnalRowsContainer.children.length > 2) {
-                trEl.remove();
-                reorderRows();
-                hitungTotalJurnal();
+                trEl.classList.add('opacity-0', '-translate-y-1');
+                setTimeout(() => {
+                    trEl.remove();
+                    reorderRows();
+                    hitungTotalJurnal();
+                }, 160);
             } else {
                 showToast("Minimal harus ada 2 baris rincian jurnal!", true);
             }
@@ -808,31 +873,38 @@ export async function initAkuntansiEntriJurnalHandler() {
         const badge = document.getElementById('status-balance-badge');
         if (totalDebet > 0 && totalDebet === totalKredit) {
             badge.textContent = "Balance";
-            badge.className = "px-3 py-1 text-[11px] font-bold uppercase rounded-none bg-emerald-600 text-white";
+            badge.className = "px-3 py-1 text-[11px] font-bold uppercase rounded-none bg-emerald-600 text-white transition-all duration-200";
         } else {
             badge.textContent = "Belum Balance";
-            badge.className = "px-3 py-1 text-[11px] font-bold uppercase rounded-none bg-rose-500 text-white";
+            badge.className = "px-3 py-1 text-[11px] font-bold uppercase rounded-none bg-rose-500 text-white transition-all duration-200";
         }
     }
 
     const toggleModal = async (show, isEdit = false) => {
-        if (modal) {
-            if (show) {
-                await loadTutupBulan();
-                modal.classList.remove('hidden');
-                if (!isEdit) {
-                    resetFormBaru();
-                } else {
-                    syncPeriodeValidationUI();
-                }
-            } else {
-                modal.classList.add('hidden');
-                resetFormBaru();
+        if (!modal) return;
+        if (show) {
+            if (modalCloseTimer) {
+                clearTimeout(modalCloseTimer);
+                modalCloseTimer = null;
             }
+            await loadTutupBulan();
+            if (!isEdit) {
+                resetFormBaru(false);
+            } else {
+                syncPeriodeValidationUI();
+            }
+            animateModalOpen(modal, modalCard);
+        } else {
+            animateModalClose(
+                modal,
+                modalCard,
+                (t) => { modalCloseTimer = t; },
+                () => resetFormBaru(false)
+            );
         }
     };
 
-    function resetFormBaru() {
+    function resetFormBaru(smoothRows = false) {
         const effectiveActivePeriod = activePeriodKey || detectPeriodFromHeaderDom();
         if (editJurnalIdInput) editJurnalIdInput.value = "";
         if (modalTitle) modalTitle.textContent = "Form Input Jurnal Umum Baru";
@@ -849,8 +921,8 @@ export async function initAkuntansiEntriJurnalHandler() {
         generateNoReferensi();
         if (jurnalRowsContainer) {
             jurnalRowsContainer.innerHTML = "";
-            tambahBarisJurnal();
-            tambahBarisJurnal();
+            tambahBarisJurnal("", 0, 0, smoothRows);
+            tambahBarisJurnal("", 0, 0, smoothRows);
         }
         syncPeriodeValidationUI();
     }
@@ -862,7 +934,7 @@ export async function initAkuntansiEntriJurnalHandler() {
         btnBatal.onclick = async (e) => {
             e.preventDefault();
             await loadTutupBulan();
-            resetFormBaru();
+            resetFormBaru(true);
             showToast("Form berhasil direset.");
         };
     }
@@ -938,7 +1010,7 @@ export async function initAkuntansiEntriJurnalHandler() {
             const safeUnit = escapeHtml(item.unitUsaha || '-');
 
             htmlTable += `
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition align-top">
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-150 align-top">
                     <td class="py-3 px-4 font-medium">${safeTgl}</td>
                     <td class="py-3 px-4 font-bold text-indigo-600 dark:text-indigo-400">${safeRef}</td>
                     <td class="py-3 px-4"><span class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">${safeUnit}</span></td>
@@ -949,15 +1021,15 @@ export async function initAkuntansiEntriJurnalHandler() {
                     <td class="py-3 px-4 text-right font-bold text-slate-800 dark:text-slate-100">Rp ${totalNilai.toLocaleString('id-ID')}</td>
                     <td class="py-3 px-4 text-center">
                         <div class="flex items-center justify-center gap-1.5">
-                            <button type="button" data-edit-id="${safeId}" class="btn-edit-jurnal px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 transition text-[11px] font-medium cursor-pointer">Edit</button>
-                            <button type="button" data-delete-id="${safeId}" class="btn-delete-jurnal px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-medium cursor-pointer">Hapus</button>
+                            <button type="button" data-edit-id="${safeId}" class="btn-edit-jurnal px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 transition-colors duration-150 text-[11px] font-medium cursor-pointer">Edit</button>
+                            <button type="button" data-delete-id="${safeId}" class="btn-delete-jurnal px-2.5 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors duration-150 text-[11px] font-medium cursor-pointer">Hapus</button>
                         </div>
                     </td>
                 </tr>
             `;
 
             htmlCard += `
-                <div class="p-4 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition text-xs border-b border-slate-100 dark:border-slate-800 last:border-none">
+                <div class="p-4 space-y-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors duration-150 text-xs border-b border-slate-100 dark:border-slate-800 last:border-none">
                     <div class="flex items-center justify-between">
                         <span class="font-bold text-indigo-600 dark:text-indigo-400 text-sm">${safeRef}</span>
                         <span class="text-[11px] text-slate-500">${safeTgl}</span>
@@ -972,8 +1044,8 @@ export async function initAkuntansiEntriJurnalHandler() {
                     <div class="flex items-center justify-between pt-1">
                         <span class="font-bold text-slate-800 dark:text-slate-100">Total: Rp ${totalNilai.toLocaleString('id-ID')}</span>
                         <div class="flex items-center gap-1">
-                            <button type="button" data-edit-id="${safeId}" class="btn-edit-jurnal px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 transition text-[11px] font-medium cursor-pointer">Edit</button>
-                            <button type="button" data-delete-id="${safeId}" class="btn-delete-jurnal px-3 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition text-[11px] font-medium cursor-pointer">Hapus</button>
+                            <button type="button" data-edit-id="${safeId}" class="btn-edit-jurnal px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 hover:bg-amber-100 transition-colors duration-150 text-[11px] font-medium cursor-pointer">Edit</button>
+                            <button type="button" data-delete-id="${safeId}" class="btn-delete-jurnal px-3 py-1 bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 transition-colors duration-150 text-[11px] font-medium cursor-pointer">Hapus</button>
                         </div>
                     </div>
                 </div>
@@ -1000,11 +1072,11 @@ export async function initAkuntansiEntriJurnalHandler() {
                     jurnalRowsContainer.innerHTML = "";
                     if (jurnalData.rincian && jurnalData.rincian.length > 0) {
                         jurnalData.rincian.forEach(r => {
-                            tambahBarisJurnal(r.kodeAkun, r.debet || 0, r.kredit || 0);
+                            tambahBarisJurnal(r.kodeAkun, r.debet || 0, r.kredit || 0, false);
                         });
                     } else {
-                        tambahBarisJurnal();
-                        tambahBarisJurnal();
+                        tambahBarisJurnal("", 0, 0, false);
+                        tambahBarisJurnal("", 0, 0, false);
                     }
                 }
 
@@ -1164,7 +1236,7 @@ export async function initAkuntansiEntriJurnalHandler() {
                 }
 
                 await loadJurnalData();
-                resetFormBaru();
+                resetFormBaru(true);
             } catch (err) {
                 console.error("Gagal menyimpan jurnal:", err);
                 showToast("Terjadi kesalahan saat menyimpan transaksi.", true);
@@ -1178,6 +1250,8 @@ export async function initAkuntansiEntriJurnalHandler() {
     }
 
     const cleanup = () => {
+        if (modalCloseTimer) clearTimeout(modalCloseTimer);
+        if (confirmCloseTimer) clearTimeout(confirmCloseTimer);
         if (pendingConfirmResolver) closeConfirmModal(false);
         if (btnConfirmYa) btnConfirmYa.removeEventListener('click', onConfirmYa);
         if (btnConfirmBatal) btnConfirmBatal.removeEventListener('click', onConfirmBatal);
@@ -1191,7 +1265,7 @@ export async function initAkuntansiEntriJurnalHandler() {
     jurnalCleanup = cleanup;
 
     await Promise.all([loadTutupBulan(), loadCoaData(), loadJurnalData()]);
-    resetFormBaru();
+    resetFormBaru(false);
 
     return cleanup;
 }

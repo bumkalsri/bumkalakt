@@ -2,6 +2,39 @@
 import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
+function escapeHtml(val) {
+    return String(val ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+function compareKodeAkun(a, b) {
+    const segA = String(a ?? "").trim().split(".");
+    const segB = String(b ?? "").trim().split(".");
+    const maxLen = Math.max(segA.length, segB.length);
+
+    for (let i = 0; i < maxLen; i++) {
+        const partA = segA[i];
+        const partB = segB[i];
+        if (partA === undefined) return -1;
+        if (partB === undefined) return 1;
+
+        const numA = Number(partA);
+        const numB = Number(partB);
+        const bothNumeric = !Number.isNaN(numA) && !Number.isNaN(numB) && partA.trim() !== "" && partB.trim() !== "";
+
+        if (bothNumeric && numA !== numB) {
+            return numA - numB;
+        }
+        const cmp = String(partA).localeCompare(String(partB), undefined, { numeric: true, sensitivity: "base" });
+        if (cmp !== 0) return cmp;
+    }
+    return 0;
+}
+
 function isDetailAccount(coa) {
     const level = String(coa?.levelAkun || "").trim();
     const tipe = String(coa?.tipeAkun || "").trim().toLowerCase();
@@ -116,30 +149,30 @@ export function renderLaporanNeraca() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman & Tombol Aksi -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3.5 min-w-0">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                     <a href="#/laporan" data-link title="Kembali ke Menu Laporan"
                         class="w-10 h-10 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center rounded-none transition flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div class="min-w-0">
-                        <h1 class="text-base font-bold text-slate-800 dark:text-slate-100 truncate">Laporan Neraca (Balance Sheet)</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">Laporan posisi keuangan aset, kewajiban, dan ekuitas BUMKal.</p>
+                    <div class="flex-1 min-w-0">
+                        <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Laporan Neraca (Balance Sheet)</h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug break-words">Laporan posisi keuangan aset, kewajiban, dan ekuitas BUMKal.</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    <button id="btn-cetak-neraca" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Cetak / Print Laporan
+                <div class="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
+                    <button id="btn-cetak-neraca" type="button" class="w-full md:w-auto bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-4 py-2.5 rounded-none transition flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>Cetak / Print Laporan</span>
                     </button>
                 </div>
             </div>
 
             <!-- Filter Bar -->
             <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none grid grid-cols-1 md:grid-cols-3 gap-4 text-xs items-end">
-                <div>
+                <div class="min-w-0">
                     <label for="filter-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">FILTER UNIT USAHA</label>
                     <select id="filter-unit" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                         <option value="">-- Semua Unit Usaha --</option>
@@ -149,22 +182,22 @@ export function renderLaporanNeraca() {
                         <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
                     </select>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <label for="filter-tgl-sampai" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">PER PERIODE TANGGAL SAMPAI</label>
                     <input type="date" id="filter-tgl-sampai" class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                 </div>
-                <div>
-                    <button id="btn-tampilkan" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan Neraca</button>
+                <div class="min-w-0">
+                    <button id="btn-tampilkan" type="button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-none transition cursor-pointer shadow-sm">Tampilkan Neraca</button>
                 </div>
             </div>
 
             <!-- Status Balance & Ringkasan -->
-            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
-                <div class="flex items-center gap-3">
+            <div class="bg-white dark:bg-slate-900 p-4 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none flex flex-col md:flex-row justify-between items-start md:items-center gap-3 text-xs">
+                <div class="flex items-center gap-2.5 flex-wrap">
                     <span class="font-bold text-slate-700 dark:text-slate-300">Status Keseimbangan Neraca:</span>
                     <span id="status-balance-badge" class="px-3 py-1 font-bold uppercase rounded-none bg-slate-200 text-slate-700">Menunggu Proses</span>
                 </div>
-                <div id="summary-neraca-info" class="font-bold text-slate-600 dark:text-slate-400">
+                <div id="summary-neraca-info" class="font-bold text-slate-600 dark:text-slate-400 break-words">
                     Total Aset: Rp 0 | Kewajiban + Ekuitas: Rp 0 | Selisih: Rp 0
                 </div>
             </div>
@@ -174,9 +207,9 @@ export function renderLaporanNeraca() {
                 <!-- KOLOM KIRI: ASET -->
                 <div class="flex flex-col">
                     <div class="flex-1 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center gap-2">
                             <span>ASET (ASSETS)</span>
-                            <span id="header-total-aset" class="text-indigo-600 dark:text-indigo-400">Rp 0</span>
+                            <span id="header-total-aset" class="text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp 0</span>
                         </div>
 
                         <!-- Tampilan Desktop -->
@@ -205,8 +238,14 @@ export function renderLaporanNeraca() {
                         </div>
 
                         <!-- Tampilan Mobile -->
-                        <div id="card-aset-body" class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                            <div class="p-6 text-center text-slate-400 text-xs">Memuat data neraca...</div>
+                        <div class="block md:hidden">
+                            <div id="card-aset-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <div class="p-6 text-center text-slate-400 text-xs">Memuat data neraca...</div>
+                            </div>
+                            <div class="bg-slate-100 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-700 px-4 py-3 flex items-center justify-between gap-2 text-xs font-extrabold text-slate-900 dark:text-slate-100">
+                                <span class="uppercase">Total Aset</span>
+                                <span id="mobile-total-aset" class="text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp 0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -215,9 +254,9 @@ export function renderLaporanNeraca() {
                 <div class="flex flex-col gap-6">
                     <!-- Kewajiban -->
                     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center gap-2">
                             <span>KEWAJIBAN / LIABILITAS</span>
-                            <span id="header-total-kewajiban" class="text-rose-600 dark:text-rose-400">Rp 0</span>
+                            <span id="header-total-kewajiban" class="text-rose-600 dark:text-rose-400 whitespace-nowrap">Rp 0</span>
                         </div>
 
                         <!-- Tampilan Desktop -->
@@ -243,16 +282,22 @@ export function renderLaporanNeraca() {
                         </div>
 
                         <!-- Tampilan Mobile -->
-                        <div id="card-kewajiban-body" class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                            <div class="p-6 text-center text-slate-400 text-xs">Memuat data neraca...</div>
+                        <div class="block md:hidden">
+                            <div id="card-kewajiban-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <div class="p-6 text-center text-slate-400 text-xs">Memuat data neraca...</div>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between gap-2 text-xs font-bold text-slate-800 dark:text-slate-100">
+                                <span class="uppercase">Total Kewajiban</span>
+                                <span id="mobile-total-kewajiban" class="whitespace-nowrap">Rp 0</span>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Ekuitas / Modal -->
                     <div class="flex-1 flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
+                        <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center gap-2">
                             <span>EKUITAS / MODAL</span>
-                            <span id="header-total-ekuitas" class="text-emerald-600 dark:text-emerald-400">Rp 0</span>
+                            <span id="header-total-ekuitas" class="text-emerald-600 dark:text-emerald-400 whitespace-nowrap">Rp 0</span>
                         </div>
 
                         <!-- Tampilan Desktop -->
@@ -285,8 +330,18 @@ export function renderLaporanNeraca() {
                         </div>
 
                         <!-- Tampilan Mobile -->
-                        <div id="card-ekuitas-body" class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                            <div class="p-6 text-center text-slate-400 text-xs">Memuat data neraca...</div>
+                        <div class="block md:hidden">
+                            <div id="card-ekuitas-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <div class="p-6 text-center text-slate-400 text-xs">Memuat data neraca...</div>
+                            </div>
+                            <div class="bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 px-4 py-2.5 flex items-center justify-between gap-2 text-xs font-bold text-slate-800 dark:text-slate-100">
+                                <span class="uppercase">Total Ekuitas</span>
+                                <span id="mobile-total-ekuitas" class="whitespace-nowrap">Rp 0</span>
+                            </div>
+                            <div class="bg-slate-100 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-700 px-4 py-3 flex items-center justify-between gap-2 text-xs font-extrabold text-slate-900 dark:text-slate-100">
+                                <span class="uppercase">Total Kewajiban &amp; Ekuitas</span>
+                                <span id="mobile-total-pasiva" class="text-indigo-600 dark:text-indigo-400 whitespace-nowrap">Rp 0</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -313,17 +368,21 @@ export function initLaporanNeracaHandler() {
 
     const headerTotalAset = document.getElementById('header-total-aset');
     const footerTotalAset = document.getElementById('footer-total-aset');
+    const mobileTotalAset = document.getElementById('mobile-total-aset');
     const tableAsetBody = document.getElementById('table-aset-body');
     const cardAsetBody = document.getElementById('card-aset-body');
 
     const headerTotalKewajiban = document.getElementById('header-total-kewajiban');
     const footerTotalKewajiban = document.getElementById('footer-total-kewajiban');
+    const mobileTotalKewajiban = document.getElementById('mobile-total-kewajiban');
     const tableKewajibanBody = document.getElementById('table-kewajiban-body');
     const cardKewajibanBody = document.getElementById('card-kewajiban-body');
 
     const headerTotalEkuitas = document.getElementById('header-total-ekuitas');
     const footerTotalEkuitas = document.getElementById('footer-total-ekuitas');
     const footerTotalPasiva = document.getElementById('footer-total-pasiva');
+    const mobileTotalEkuitas = document.getElementById('mobile-total-ekuitas');
+    const mobileTotalPasiva = document.getElementById('mobile-total-pasiva');
     const tableEkuitasBody = document.getElementById('table-ekuitas-body');
     const cardEkuitasBody = document.getElementById('card-ekuitas-body');
 
@@ -371,8 +430,8 @@ export function initLaporanNeracaHandler() {
         if (!tableEl || !cardEl) return;
 
         if (!rows || rows.length === 0) {
-            tableEl.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-slate-400">${emptyText}</td></tr>`;
-            cardEl.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">${emptyText}</div>`;
+            tableEl.innerHTML = `<tr><td colspan="3" class="py-6 text-center text-slate-400">${escapeHtml(emptyText)}</td></tr>`;
+            cardEl.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">${escapeHtml(emptyText)}</div>`;
             return;
         }
 
@@ -383,12 +442,12 @@ export function initLaporanNeracaHandler() {
             if (row.isSubHeader) {
                 htmlTable += `
                     <tr class="bg-slate-50/80 dark:bg-slate-950/60 font-bold text-slate-700 dark:text-slate-300">
-                        <td colspan="3" class="py-2 px-4 text-[11px] uppercase tracking-wider">${row.label}</td>
+                        <td colspan="3" class="py-2 px-4 text-[11px] uppercase tracking-wider">${escapeHtml(row.label)}</td>
                     </tr>
                 `;
                 htmlCard += `
                     <div class="px-4 py-2 bg-slate-50 dark:bg-slate-950 font-bold text-[11px] uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                        ${row.label}
+                        ${escapeHtml(row.label)}
                     </div>
                 `;
                 return;
@@ -406,20 +465,20 @@ export function initLaporanNeracaHandler() {
 
             htmlTable += `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${row.isCalculated ? 'bg-indigo-50/40 dark:bg-indigo-950/20 font-semibold' : ''}">
-                    <td class="py-2.5 px-4 font-bold text-indigo-600 dark:text-indigo-400">${row.kodeAkun}</td>
-                    <td class="py-2.5 px-4 font-medium text-slate-800 dark:text-slate-200">${row.namaAkun}</td>
-                    <td class="py-2.5 px-4 text-right font-semibold ${valueClass}">${saldoFormatted}</td>
+                    <td class="py-2.5 px-4 font-bold text-indigo-600 dark:text-indigo-400 whitespace-nowrap">${escapeHtml(row.kodeAkun)}</td>
+                    <td class="py-2.5 px-4 font-medium text-slate-800 dark:text-slate-200">${escapeHtml(row.namaAkun)}</td>
+                    <td class="py-2.5 px-4 text-right font-semibold whitespace-nowrap ${valueClass}">${escapeHtml(saldoFormatted)}</td>
                 </tr>
             `;
 
             htmlCard += `
-                <div class="p-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition text-xs">
-                    <div class="min-w-0">
-                        <div class="font-bold text-indigo-600 dark:text-indigo-400">${row.kodeAkun}</div>
-                        <div class="font-medium text-slate-800 dark:text-slate-200 truncate">${row.namaAkun}</div>
+                <div class="p-4 flex items-start justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition text-xs ${row.isCalculated ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : ''}">
+                    <div class="flex-1 min-w-0">
+                        <div class="font-bold text-indigo-600 dark:text-indigo-400">${escapeHtml(row.kodeAkun)}</div>
+                        <div class="font-medium text-slate-800 dark:text-slate-200 leading-snug break-words mt-0.5">${escapeHtml(row.namaAkun)}</div>
                     </div>
-                    <div class="font-semibold text-right flex-shrink-0 ${valueClass}">
-                        ${saldoFormatted}
+                    <div class="font-semibold text-right flex-shrink-0 whitespace-nowrap ${valueClass}">
+                        ${escapeHtml(saldoFormatted)}
                     </div>
                 </div>
             `;
@@ -494,7 +553,7 @@ export function initLaporanNeracaHandler() {
         let totalBeban = 0;
 
         Object.values(akunMap)
-            .sort((a, b) => String(a.kodeAkun).localeCompare(String(b.kodeAkun)))
+            .sort((a, b) => compareKodeAkun(a.kodeAkun, b.kodeAkun))
             .forEach(acc => {
                 const debitNet = acc.totalDebet - acc.totalKredit;
                 const kreditNet = acc.totalKredit - acc.totalDebet;
@@ -558,18 +617,27 @@ export function initLaporanNeracaHandler() {
         const totalPasiva = totalKewajiban + totalEkuitas;
         const selisih = Math.abs(totalAset - totalPasiva);
 
-        if (headerTotalAset) headerTotalAset.textContent = `Rp ${totalAset.toLocaleString('id-ID')}`;
-        if (footerTotalAset) footerTotalAset.textContent = `Rp ${totalAset.toLocaleString('id-ID')}`;
+        const fmtAset = `Rp ${totalAset.toLocaleString('id-ID')}`;
+        const fmtKewajiban = `Rp ${totalKewajiban.toLocaleString('id-ID')}`;
+        const fmtEkuitas = `Rp ${totalEkuitas.toLocaleString('id-ID')}`;
+        const fmtPasiva = `Rp ${totalPasiva.toLocaleString('id-ID')}`;
 
-        if (headerTotalKewajiban) headerTotalKewajiban.textContent = `Rp ${totalKewajiban.toLocaleString('id-ID')}`;
-        if (footerTotalKewajiban) footerTotalKewajiban.textContent = `Rp ${totalKewajiban.toLocaleString('id-ID')}`;
+        if (headerTotalAset) headerTotalAset.textContent = fmtAset;
+        if (footerTotalAset) footerTotalAset.textContent = fmtAset;
+        if (mobileTotalAset) mobileTotalAset.textContent = fmtAset;
 
-        if (headerTotalEkuitas) headerTotalEkuitas.textContent = `Rp ${totalEkuitas.toLocaleString('id-ID')}`;
-        if (footerTotalEkuitas) footerTotalEkuitas.textContent = `Rp ${totalEkuitas.toLocaleString('id-ID')}`;
-        if (footerTotalPasiva) footerTotalPasiva.textContent = `Rp ${totalPasiva.toLocaleString('id-ID')}`;
+        if (headerTotalKewajiban) headerTotalKewajiban.textContent = fmtKewajiban;
+        if (footerTotalKewajiban) footerTotalKewajiban.textContent = fmtKewajiban;
+        if (mobileTotalKewajiban) mobileTotalKewajiban.textContent = fmtKewajiban;
+
+        if (headerTotalEkuitas) headerTotalEkuitas.textContent = fmtEkuitas;
+        if (footerTotalEkuitas) footerTotalEkuitas.textContent = fmtEkuitas;
+        if (footerTotalPasiva) footerTotalPasiva.textContent = fmtPasiva;
+        if (mobileTotalEkuitas) mobileTotalEkuitas.textContent = fmtEkuitas;
+        if (mobileTotalPasiva) mobileTotalPasiva.textContent = fmtPasiva;
 
         if (summaryNeracaInfo) {
-            summaryNeracaInfo.textContent = `Total Aset: Rp ${totalAset.toLocaleString('id-ID')} | Kewajiban + Ekuitas: Rp ${totalPasiva.toLocaleString('id-ID')} | Selisih: Rp ${selisih.toLocaleString('id-ID')}`;
+            summaryNeracaInfo.textContent = `Total Aset: ${fmtAset} | Kewajiban + Ekuitas: ${fmtPasiva} | Selisih: Rp ${selisih.toLocaleString('id-ID')}`;
         }
 
         if (statusBalanceBadge) {

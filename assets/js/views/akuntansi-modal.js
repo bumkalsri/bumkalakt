@@ -41,37 +41,37 @@ export function renderModal() {
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
             <!-- Header Halaman -->
-            <div class="bg-white dark:bg-slate-900 p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-none border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+                <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                     <a href="#/akuntansi" data-link title="Kembali ke Akuntansi" class="w-9 h-9 bg-slate-50 dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center rounded-none transition flex-shrink-0">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
-                    <div>
+                    <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <h1 class="text-base font-bold text-slate-800 dark:text-slate-100">Pengelolaan Modal &amp; Ekuitas (Modal / Prive)</h1>
-                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">Type: ${TRANSACTION_TYPE}</span>
-                            <span id="badge-bulan-aktif-modal" class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">Memuat Periode...</span>
+                            <h1 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">Pengelolaan Modal &amp; Ekuitas (Modal / Prive)</h1>
+                            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-none">Type: ${TRANSACTION_TYPE}</span>
+                            <span id="badge-bulan-aktif-modal" class="px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-none">Memuat Periode...</span>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pencatatan setoran modal awal, penambahan modal, atau prive penarikan pemilik/pengelola BUMKal.</p>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-snug break-words">Pencatatan setoran modal awal, penambahan modal, atau prive penarikan pemilik/pengelola BUMKal.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Form Input Transaksi Modal -->
-            <div class="bg-white dark:bg-slate-900 p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
-                <div class="flex items-center justify-between gap-2 mb-4 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div class="bg-white dark:bg-slate-900 p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-4 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                     <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Form Transaksi Modal &amp; Prive</h2>
-                    <span id="modal-periode-info" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400"></span>
+                    <span id="modal-periode-info" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 break-words"></span>
                 </div>
                 <form id="form-modal" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div>
+                    <div class="min-w-0">
                         <label for="modal-tgl" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">TANGGAL TRANSAKSI *</label>
                         <input type="date" id="modal-tgl" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600 transition">
-                        <p id="modal-tgl-warning" class="hidden text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-1"></p>
+                        <p id="modal-tgl-warning" class="hidden text-[10px] font-semibold text-rose-600 dark:text-rose-400 mt-1 break-words"></p>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <label for="modal-unit" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">UNIT USAHA *</label>
                         <select id="modal-unit" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                             <option value="">-- Pilih Unit Usaha --</option>
@@ -81,47 +81,49 @@ export function renderModal() {
                             <option value="GREENHOUSE (04)">GREENHOUSE (04)</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <label for="modal-jenis" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JENIS TRANSAKSI MODAL *</label>
                         <select id="modal-jenis" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                             <option value="Setoran Modal">Setoran / Penambahan Modal</option>
                             <option value="Prive / Penarikan">Prive / Penarikan Dana Pihak Pengelola</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <label for="modal-akun-kode" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN MODAL / EKUITAS (COA) *</label>
                         <select id="modal-akun-kode" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                             <option value="">-- Memuat Akun Modal --</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <label for="modal-akun-lawan-kode" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">AKUN LAWAN (COA) *</label>
                         <select id="modal-akun-lawan-kode" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                             <option value="">-- Memuat Akun Lawan --</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <label for="modal-jumlah" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">JUMLAH NOMINAL (RP) *</label>
                         <input type="text" inputmode="numeric" id="modal-jumlah" placeholder="0" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div class="md:col-span-3">
+                    <div class="md:col-span-3 min-w-0">
                         <label for="modal-keterangan" class="block font-bold text-slate-700 dark:text-slate-300 mb-1">KETERANGAN / URAIAN *</label>
                         <input type="text" id="modal-keterangan" placeholder="Contoh: Setoran modal awal untuk pengembangan unit usaha" required class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 px-3 py-2 rounded-none focus:outline-none focus:border-indigo-600">
                     </div>
-                    <div class="md:col-span-3 flex justify-end gap-2 pt-2">
-                        <button type="button" id="btn-batal-modal" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold px-5 py-2.5 rounded-none border border-slate-300 dark:border-slate-700 transition cursor-pointer">Batal</button>
-                        <button type="submit" id="btn-simpan-modal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-none transition cursor-pointer shadow-sm">Simpan Transaksi Modal</button>
+                    <div class="md:col-span-3 flex flex-col sm:flex-row justify-end gap-2 pt-2">
+                        <button type="button" id="btn-batal-modal" class="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold px-5 py-2.5 rounded-none border border-slate-300 dark:border-slate-700 transition cursor-pointer">Batal</button>
+                        <button type="submit" id="btn-simpan-modal" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-none transition cursor-pointer shadow-sm">Simpan Transaksi Modal</button>
                     </div>
                 </form>
             </div>
 
-            <!-- Tabel Riwayat Transaksi Modal -->
+            <!-- Tabel & Kartu Riwayat Transaksi Modal -->
             <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-none overflow-hidden">
-                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex justify-between items-center">
-                    <span>RIWAYAT TRANSAKSI MODAL &amp; EKUITAS</span>
-                    <span id="total-modal-count" class="text-slate-500 font-normal">Total: 0 Data</span>
+                <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-bold text-xs text-slate-800 dark:text-slate-200 flex flex-wrap justify-between items-center gap-2">
+                    <span class="break-words">RIWAYAT TRANSAKSI MODAL &amp; EKUITAS</span>
+                    <span id="total-modal-count" class="text-slate-500 font-normal whitespace-nowrap">Total: 0 Data</span>
                 </div>
-                <div class="overflow-x-auto">
+
+                <!-- 1. TAMPILAN DESKTOP: Tabel -->
+                <div class="hidden md:block overflow-x-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
                             <tr class="text-slate-500 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
@@ -138,18 +140,23 @@ export function renderModal() {
                         </tbody>
                     </table>
                 </div>
+
+                <!-- 2. TAMPILAN HP: Card Versi Mobile -->
+                <div id="card-modal-body" class="block md:hidden divide-y divide-slate-200 dark:divide-slate-800">
+                    <div class="p-6 text-center text-slate-400 text-xs">Memuat data riwayat modal...</div>
+                </div>
             </div>
 
             <!-- MODAL KONFIRMASI SMOOTH -->
             <div id="modal-konfirmasi-modal" class="hidden fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-[1px] flex items-center justify-center p-4 transition-opacity duration-200">
                 <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md p-5 sm:p-6 shadow-2xl rounded-none space-y-4 transform transition-all duration-200">
                     <div class="flex items-start gap-3">
-                        <div class="w-9 h-9 flex items-center justify-center bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 flex-shrink-0">
+                        <div class="w-9 h-9 flex items-center justify-center bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-300 flex-shrink-0 rounded-none">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                         </div>
                         <div class="min-w-0 flex-1">
                             <h3 id="modal-konfirmasi-modal-title" class="font-bold text-slate-800 dark:text-slate-100 text-sm">Konfirmasi Hapus Transaksi</h3>
-                            <p id="modal-konfirmasi-modal-desc" class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">Apakah Anda yakin ingin menghapus transaksi modal ini?</p>
+                            <p id="modal-konfirmasi-modal-desc" class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed break-words">Apakah Anda yakin ingin menghapus transaksi modal ini?</p>
                         </div>
                     </div>
                     <div class="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
@@ -190,6 +197,7 @@ export function initModalHandler() {
     const btnBatalModal = document.getElementById('btn-batal-modal');
     const btnSimpanModal = document.getElementById('btn-simpan-modal');
     const tableBody = document.getElementById('table-modal-body');
+    const cardBody = document.getElementById('card-modal-body');
     const totalCountEl = document.getElementById('total-modal-count');
 
     const badgeBulanAktif = document.getElementById('badge-bulan-aktif-modal');
@@ -382,10 +390,10 @@ export function initModalHandler() {
         if (badgeBulanAktif) {
             if (effectiveActivePeriod) {
                 badgeBulanAktif.textContent = `Bulan Aktif: ${effectiveActivePeriod}`;
-                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800";
+                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-none";
             } else {
                 badgeBulanAktif.textContent = "Periode Terbuka";
-                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700";
+                badgeBulanAktif.className = "px-2 py-0.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-none";
             }
         }
 
@@ -630,20 +638,24 @@ export function initModalHandler() {
         } catch (err) {
             console.error("Gagal memuat data modal:", err);
             if (tableBody) tableBody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-rose-500">Gagal memuat data dari database.</td></tr>`;
+            if (cardBody) cardBody.innerHTML = `<div class="p-6 text-center text-rose-500 text-xs">Gagal memuat data dari database.</div>`;
         }
     }
 
     function renderTable() {
         clearRowListeners();
-        if (!tableBody) return;
+        if (!tableBody || !cardBody) return;
         if (totalCountEl) totalCountEl.textContent = `Total: ${modalList.length} Data`;
 
         if (modalList.length === 0) {
             tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Belum ada data transaksi modal atau prive.</td></tr>`;
+            cardBody.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs">Belum ada data transaksi modal atau prive.</div>`;
             return;
         }
 
-        let html = "";
+        let htmlTable = "";
+        let htmlCard = "";
+
         modalList.forEach(item => {
             let nominal = Number(item.totalNilai || 0);
             let akunModalText = "-";
@@ -670,14 +682,19 @@ export function initModalHandler() {
             const safeAkunModal = escapeHtml(akunModalText);
             const safeAkunLawan = escapeHtml(akunLawanText);
             const safeKet = escapeHtml(ketText || '-');
+            const nominalFmt = `Rp ${nominal.toLocaleString('id-ID')}`;
+            const badgeClass = isPrive
+                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+            const badgeLabel = isPrive ? 'Prive / Penarikan' : 'Setoran Modal';
 
-            html += `
+            htmlTable += `
                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200">${safeTgl}</td>
+                    <td class="py-3 px-4 font-medium text-slate-800 dark:text-slate-200 whitespace-nowrap">${safeTgl}</td>
                     <td class="py-3 px-4 text-slate-700 dark:text-slate-300 font-medium">${safeUnit}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2 py-0.5 text-[11px] font-bold ${isPrive ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'}">
-                            ${isPrive ? 'Prive / Penarikan' : 'Setoran Modal'}
+                    <td class="py-3 px-4 whitespace-nowrap">
+                        <span class="px-2 py-0.5 text-[11px] font-bold rounded-none ${badgeClass}">
+                            ${badgeLabel}
                         </span>
                     </td>
                     <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
@@ -685,16 +702,44 @@ export function initModalHandler() {
                         ${akunLawanText ? `<div class="text-slate-600 dark:text-slate-400 text-[11px] mt-0.5">Lawan: ${safeAkunLawan}</div>` : ""}
                         <div class="text-slate-500 text-[11px] mt-0.5">${safeKet}</div>
                     </td>
-                    <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100">Rp ${nominal.toLocaleString('id-ID')}</td>
-                    <td class="py-3 px-4 text-center">
+                    <td class="py-3 px-4 text-right font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">${escapeHtml(nominalFmt)}</td>
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
                         <button type="button" data-delete-modal="${safeId}" class="btn-hapus-modal text-rose-600 hover:text-rose-800 p-1 cursor-pointer" title="Hapus Transaksi">
                             <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </td>
                 </tr>
             `;
+
+            htmlCard += `
+                <div class="p-4 space-y-2.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800/40 transition min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-semibold text-slate-500 dark:text-slate-400">${safeTgl}</span>
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-none flex-shrink-0 ${badgeClass}">
+                            ${badgeLabel}
+                        </span>
+                    </div>
+                    <div class="font-semibold text-slate-800 dark:text-slate-200 break-words">
+                        Unit: ${safeUnit}
+                    </div>
+                    <div class="text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-2.5 rounded-none border border-slate-100 dark:border-slate-800 space-y-1 break-words">
+                        <div class="font-bold text-indigo-600 dark:text-indigo-400">${safeAkunModal}</div>
+                        ${akunLawanText ? `<div class="text-slate-600 dark:text-slate-400 text-[11px]">Lawan: ${safeAkunLawan}</div>` : ""}
+                        <div class="text-slate-500 text-[11px] leading-snug">${safeKet}</div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                        <span class="font-bold text-sm text-slate-800 dark:text-slate-100 whitespace-nowrap">${escapeHtml(nominalFmt)}</span>
+                        <button type="button" data-delete-modal="${safeId}" class="btn-hapus-modal inline-flex items-center gap-1 px-2.5 py-1 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 text-rose-600 dark:text-rose-300 border border-rose-200 dark:border-rose-900 text-[11px] font-semibold rounded-none cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span>Hapus</span>
+                        </button>
+                    </div>
+                </div>
+            `;
         });
-        tableBody.innerHTML = html;
+
+        tableBody.innerHTML = htmlTable;
+        cardBody.innerHTML = htmlCard;
 
         document.querySelectorAll('.btn-hapus-modal').forEach(btn => {
             const onDelete = async () => {
