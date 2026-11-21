@@ -1,8 +1,8 @@
 // File: assets/js/views/database-reset-data.js
-import { collection, getDocs, doc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { db } from "../firebase-init.js";
 
-const RESET_COLLECTIONS = [
+const DEFAULT_RESET_COLLECTIONS = [
     { key: "jurnal_umum", label: "Jurnal Umum (jurnal_umum)", desc: "Data transaksi jurnal keuangan & rincian debet/kredit.", defaultChecked: false },
     { key: "saldo_awal", label: "Saldo Awal (saldo_awal)", desc: "Data saldo awal akun neraca per periode dan unit usaha.", defaultChecked: false },
     { key: "tutup_bulan", label: "Tutup Bulan (tutup_bulan)", desc: "Catatan penutupan buku dan rekapan bulanan.", defaultChecked: false },
@@ -30,31 +30,49 @@ function escapeHtml(val) {
         .replace(/'/g, "&#39;");
 }
 
-export function renderResetData() {
-    const desktopItemsHtml = RESET_COLLECTIONS.map((item) => `
-        <label class="flex items-start gap-3 p-3.5 bg-slate-50/80 dark:bg-slate-950/60 hover:bg-slate-100/80 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-none transition cursor-pointer select-none">
-            <input type="checkbox" name="reset-collection-item" value="${escapeHtml(item.key)}" ${item.defaultChecked ? "checked" : ""}
+function buildDesktopItemHtml(item, isChecked, isNew) {
+    return `
+        <label data-item-key="${escapeHtml(item.key)}" class="reset-desktop-item flex items-start gap-3 p-3.5 ${isNew ? "bg-sky-50/70 dark:bg-sky-950/25 border-sky-300 dark:border-sky-800" : "bg-slate-50/80 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800"} hover:bg-slate-100/80 dark:hover:bg-slate-900 border rounded-none transition cursor-pointer select-none">
+            <input type="checkbox" name="reset-collection-item" value="${escapeHtml(item.key)}" ${isChecked ? "checked" : ""}
                 class="chk-reset-item mt-0.5 w-4 h-4 accent-rose-600 border-slate-300 rounded-none cursor-pointer flex-shrink-0">
             <div class="min-w-0 flex-1">
-                <div class="text-xs font-bold text-slate-800 dark:text-slate-100">${escapeHtml(item.label)}</div>
+                <div class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center flex-wrap gap-1.5">
+                    <span>${escapeHtml(item.label)}</span>
+                    ${isNew ? `<span class="px-1.5 py-0.5 text-[9px] font-bold uppercase bg-sky-600 text-white">Baru</span>` : ""}
+                </div>
                 <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">${escapeHtml(item.desc)}</div>
             </div>
         </label>
-    `).join("");
+    `;
+}
 
-    const mobileCardsHtml = RESET_COLLECTIONS.map((item) => `
-        <label data-card-key="${escapeHtml(item.key)}" class="reset-mobile-card flex items-start gap-3 p-3.5 bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 rounded-none transition cursor-pointer select-none active:bg-slate-100 dark:active:bg-slate-900">
-            <input type="checkbox" value="${escapeHtml(item.key)}" ${item.defaultChecked ? "checked" : ""}
+function buildMobileCardHtml(item, isChecked, isNew) {
+    return `
+        <label data-card-key="${escapeHtml(item.key)}" class="reset-mobile-card flex items-start gap-3 p-3.5 ${isNew ? "bg-sky-50/50 dark:bg-sky-950/20 border-sky-300 dark:border-sky-800" : "bg-white dark:bg-slate-950/70 border-slate-200 dark:border-slate-800"} border rounded-none transition cursor-pointer select-none active:bg-slate-100 dark:active:bg-slate-900">
+            <input type="checkbox" value="${escapeHtml(item.key)}" ${isChecked ? "checked" : ""}
                 class="chk-reset-mobile mt-1 w-5 h-5 accent-rose-600 border-slate-300 rounded-none cursor-pointer flex-shrink-0">
             <div class="min-w-0 flex-1 space-y-1">
                 <div class="flex items-center justify-between gap-2">
-                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100 break-all">${escapeHtml(item.label)}</span>
+                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100 break-all inline-flex items-center flex-wrap gap-1.5">
+                        <span>${escapeHtml(item.label)}</span>
+                        ${isNew ? `<span class="px-1.5 py-0.5 text-[9px] font-bold uppercase bg-sky-600 text-white">Baru</span>` : ""}
+                    </span>
                     <span class="badge-reset-status px-2 py-0.5 text-[10px] font-bold uppercase bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex-shrink-0">Belum</span>
                 </div>
                 <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">${escapeHtml(item.desc)}</p>
             </div>
         </label>
-    `).join("");
+    `;
+}
+
+export function renderResetData() {
+    const desktopItemsHtml = DEFAULT_RESET_COLLECTIONS.map((item) =>
+        buildDesktopItemHtml(item, item.defaultChecked, false)
+    ).join("");
+
+    const mobileCardsHtml = DEFAULT_RESET_COLLECTIONS.map((item) =>
+        buildMobileCardHtml(item, item.defaultChecked, false)
+    ).join("");
 
     return `
         <div class="space-y-6 pb-10 max-w-7xl mx-auto animate-fade-in">
@@ -78,9 +96,12 @@ export function renderResetData() {
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
                     <div>
                         <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold">Peringatan: Data pada koleksi yang dicentang akan dihapus permanen dari Firestore.</p>
-                        <p id="reset-selected-count" class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">0 dari ${RESET_COLLECTIONS.length} koleksi dipilih</p>
+                        <p id="reset-selected-count" class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">0 dari ${DEFAULT_RESET_COLLECTIONS.length} koleksi dipilih</p>
                     </div>
-                    <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
+                    <div class="grid grid-cols-3 sm:flex items-center gap-2 w-full sm:w-auto flex-shrink-0">
+                        <button type="button" id="btn-deteksi-koleksi-reset" class="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold border border-sky-700 rounded-none transition cursor-pointer text-center">
+                            Deteksi Koleksi
+                        </button>
                         <button type="button" id="btn-pilih-semua-reset" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-100 text-xs font-semibold border border-slate-300 dark:border-slate-700 rounded-none transition cursor-pointer text-center">
                             Pilih Semua
                         </button>
@@ -156,10 +177,10 @@ export function initResetDataHandler() {
         databaseResetCleanup = null;
     }
 
-    const desktopCheckboxes = Array.from(document.querySelectorAll('.chk-reset-item'));
-    const mobileCheckboxes = Array.from(document.querySelectorAll('.chk-reset-mobile'));
-    const mobileCards = Array.from(document.querySelectorAll('.reset-mobile-card'));
+    const desktopContainer = document.getElementById('reset-checklist-container');
+    const mobileContainer = document.getElementById('reset-card-container');
 
+    const btnDeteksi = document.getElementById('btn-deteksi-koleksi-reset');
     const btnPilihSemua = document.getElementById('btn-pilih-semua-reset');
     const btnBatal = document.getElementById('btn-batal-reset');
     const btnEksekusi = document.getElementById('btn-eksekusi-reset');
@@ -176,7 +197,10 @@ export function initResetDataHandler() {
 
     let confirmResolver = null;
     let confirmCloseTimer = null;
+    let resetCollections = [...DEFAULT_RESET_COLLECTIONS];
+    let newlyDetectedSet = new Set();
     let selectedKeysSet = new Set();
+    let isBusy = false;
 
     function showToast(message, isError = false) {
         const toast = document.getElementById('toast-reset-data');
@@ -204,16 +228,22 @@ export function initResetDataHandler() {
     }
 
     function getSelectedCollections() {
-        return RESET_COLLECTIONS.filter((item) => selectedKeysSet.has(item.key));
+        return resetCollections.filter((item) => selectedKeysSet.has(item.key));
     }
 
-    function syncAllCheckboxesAndCards() {
+    function syncVisualStates() {
+        const desktopCheckboxes = Array.from(document.querySelectorAll('.chk-reset-item'));
+        const mobileCheckboxes = Array.from(document.querySelectorAll('.chk-reset-mobile'));
+        const mobileCards = Array.from(document.querySelectorAll('.reset-mobile-card'));
+
         desktopCheckboxes.forEach((chk) => {
             chk.checked = selectedKeysSet.has(chk.value);
+            chk.disabled = isBusy;
         });
 
         mobileCheckboxes.forEach((chk) => {
             chk.checked = selectedKeysSet.has(chk.value);
+            chk.disabled = isBusy;
         });
 
         mobileCards.forEach((card) => {
@@ -236,15 +266,99 @@ export function initResetDataHandler() {
         });
 
         if (selectedCountEl) {
-            selectedCountEl.textContent = `${selectedKeysSet.size} dari ${RESET_COLLECTIONS.length} koleksi dipilih`;
+            selectedCountEl.textContent = `${selectedKeysSet.size} dari ${resetCollections.length} koleksi dipilih`;
         }
     }
 
-    function setCheckboxDisabledState(disabled) {
-        desktopCheckboxes.forEach((chk) => { chk.disabled = disabled; });
-        mobileCheckboxes.forEach((chk) => { chk.disabled = disabled; });
+    function renderChecklistContainers() {
+        if (desktopContainer) {
+            desktopContainer.innerHTML = resetCollections
+                .map((item) => buildDesktopItemHtml(item, selectedKeysSet.has(item.key), newlyDetectedSet.has(item.key)))
+                .join("");
+        }
+        if (mobileContainer) {
+            mobileContainer.innerHTML = resetCollections
+                .map((item) => buildMobileCardHtml(item, selectedKeysSet.has(item.key), newlyDetectedSet.has(item.key)))
+                .join("");
+        }
+        syncVisualStates();
+    }
+
+    function setControlsDisabledState(disabled) {
+        isBusy = disabled;
+        if (btnDeteksi) btnDeteksi.disabled = disabled;
         if (btnPilihSemua) btnPilihSemua.disabled = disabled;
         if (btnBatal) btnBatal.disabled = disabled;
+        syncVisualStates();
+    }
+
+    async function deteksiKoleksiBaru() {
+        if (isBusy) return;
+        setControlsDisabledState(true);
+        if (btnDeteksi) btnDeteksi.textContent = "Mendeteksi...";
+        if (progressStatusEl) progressStatusEl.textContent = "Memindai koleksi database Firestore...";
+
+        const existingKeys = new Set(resetCollections.map((c) => c.key));
+        const candidateKeys = new Set(resetCollections.map((c) => c.key));
+
+        try {
+            const monCfgSnap = await getDoc(doc(db, "pengaturan", "monitoring_config"));
+            if (monCfgSnap.exists() && Array.isArray(monCfgSnap.data()?.collections)) {
+                monCfgSnap.data().collections.forEach((k) => {
+                    if (typeof k === "string" && k.trim()) candidateKeys.add(k.trim());
+                });
+            }
+        } catch (_) {
+            // Abaikan jika tidak tersedia
+        }
+
+        try {
+            const sysCfgSnap = await getDoc(doc(db, "pengaturan_sistem", "app_config"));
+            if (sysCfgSnap.exists() && Array.isArray(sysCfgSnap.data()?.collections)) {
+                sysCfgSnap.data().collections.forEach((k) => {
+                    if (typeof k === "string" && k.trim()) candidateKeys.add(k.trim());
+                });
+            }
+        } catch (_) {
+            // Abaikan jika tidak tersedia
+        }
+
+        const addedKeys = [];
+        for (const key of Array.from(candidateKeys)) {
+            if (existingKeys.has(key)) continue;
+            try {
+                const snap = await getDocs(collection(db, key));
+                if (!snap.empty) {
+                    resetCollections.push({
+                        key,
+                        label: `${key.replace(/_/g, " ").replace(/\b\w/g, (ch) => ch.toUpperCase())} (${key})`,
+                        desc: "Koleksi baru terdeteksi otomatis dari database Firestore.",
+                        defaultChecked: false
+                    });
+                    existingKeys.add(key);
+                    newlyDetectedSet.add(key);
+                    addedKeys.push(key);
+                }
+            } catch (_) {
+                // Lewati koleksi yang tidak dapat dibaca
+            }
+        }
+
+        if (addedKeys.length > 0) {
+            renderChecklistContainers();
+            if (progressStatusEl) {
+                progressStatusEl.textContent = `Ditemukan ${addedKeys.length} koleksi baru: ${addedKeys.join(", ")}.`;
+            }
+            showToast(`Ditambahkan ${addedKeys.length} koleksi baru ke ceklist.`);
+        } else {
+            if (progressStatusEl) {
+                progressStatusEl.textContent = "Deteksi selesai: tidak ada koleksi baru yang perlu ditambahkan.";
+            }
+            showToast("Tidak ada koleksi baru ditemukan.");
+        }
+
+        if (btnDeteksi) btnDeteksi.textContent = "Deteksi Koleksi";
+        setControlsDisabledState(false);
     }
 
     function finishConfirm(result) {
@@ -326,28 +440,24 @@ export function initResetDataHandler() {
         return docRefs.length;
     }
 
-    const onDesktopCheckboxChange = (e) => {
-        const chk = e.currentTarget;
-        if (chk.checked) selectedKeysSet.add(chk.value);
-        else selectedKeysSet.delete(chk.value);
-        syncAllCheckboxesAndCards();
-    };
+    const onContainerChange = (e) => {
+        const target = e.target;
+        if (!target || !(target instanceof HTMLInputElement)) return;
+        if (!target.classList.contains('chk-reset-item') && !target.classList.contains('chk-reset-mobile')) return;
 
-    const onMobileCheckboxChange = (e) => {
-        const chk = e.currentTarget;
-        if (chk.checked) selectedKeysSet.add(chk.value);
-        else selectedKeysSet.delete(chk.value);
-        syncAllCheckboxesAndCards();
+        if (target.checked) selectedKeysSet.add(target.value);
+        else selectedKeysSet.delete(target.value);
+        syncVisualStates();
     };
 
     const onPilihSemuaClick = () => {
-        selectedKeysSet = new Set(RESET_COLLECTIONS.map((item) => item.key));
-        syncAllCheckboxesAndCards();
+        selectedKeysSet = new Set(resetCollections.map((item) => item.key));
+        syncVisualStates();
     };
 
     const onBatalClick = () => {
         selectedKeysSet.clear();
-        syncAllCheckboxesAndCards();
+        syncVisualStates();
         if (progressStatusEl) {
             progressStatusEl.textContent = "Pilihan ceklist dibatalkan (dikosongkan).";
         }
@@ -355,6 +465,7 @@ export function initResetDataHandler() {
     };
 
     const onEksekusiClick = async () => {
+        if (isBusy) return;
         const selectedList = getSelectedCollections();
         if (selectedList.length === 0) {
             showToast("Pilih minimal satu koleksi pada ceklist terlebih dahulu.", true);
@@ -369,7 +480,7 @@ export function initResetDataHandler() {
             btnEksekusi.disabled = true;
             btnEksekusi.textContent = "Mereset Data...";
         }
-        setCheckboxDisabledState(true);
+        setControlsDisabledState(true);
 
         let totalDeletedDocs = 0;
 
@@ -384,7 +495,7 @@ export function initResetDataHandler() {
             }
 
             selectedKeysSet.clear();
-            syncAllCheckboxesAndCards();
+            syncVisualStates();
 
             if (progressStatusEl) {
                 progressStatusEl.textContent = `Selesai: ${totalDeletedDocs} dokumen dihapus dari ${selectedList.length} koleksi.`;
@@ -401,7 +512,7 @@ export function initResetDataHandler() {
                 btnEksekusi.disabled = false;
                 btnEksekusi.textContent = originalBtnText;
             }
-            setCheckboxDisabledState(false);
+            setControlsDisabledState(false);
         }
     };
 
@@ -417,16 +528,14 @@ export function initResetDataHandler() {
         }
     };
 
-    desktopCheckboxes.forEach((chk) => {
+    document.querySelectorAll('.chk-reset-item, .chk-reset-mobile').forEach((chk) => {
         if (chk.checked) selectedKeysSet.add(chk.value);
-        chk.addEventListener('change', onDesktopCheckboxChange);
     });
 
-    mobileCheckboxes.forEach((chk) => {
-        if (chk.checked) selectedKeysSet.add(chk.value);
-        chk.addEventListener('change', onMobileCheckboxChange);
-    });
+    desktopContainer?.addEventListener('change', onContainerChange);
+    mobileContainer?.addEventListener('change', onContainerChange);
 
+    if (btnDeteksi) btnDeteksi.addEventListener('click', deteksiKoleksiBaru);
     if (btnPilihSemua) btnPilihSemua.addEventListener('click', onPilihSemuaClick);
     if (btnBatal) btnBatal.addEventListener('click', onBatalClick);
     if (btnEksekusi) btnEksekusi.addEventListener('click', onEksekusiClick);
@@ -437,7 +546,7 @@ export function initResetDataHandler() {
     if (modalKonfirmasi) modalKonfirmasi.addEventListener('click', onModalBackdropClick);
     window.addEventListener('keydown', onEscapeKey);
 
-    syncAllCheckboxesAndCards();
+    syncVisualStates();
 
     const cleanup = () => {
         if (confirmResolver) {
@@ -453,12 +562,9 @@ export function initResetDataHandler() {
             clearTimeout(resetToastTimer);
             resetToastTimer = null;
         }
-        desktopCheckboxes.forEach((chk) => {
-            chk.removeEventListener('change', onDesktopCheckboxChange);
-        });
-        mobileCheckboxes.forEach((chk) => {
-            chk.removeEventListener('change', onMobileCheckboxChange);
-        });
+        desktopContainer?.removeEventListener('change', onContainerChange);
+        mobileContainer?.removeEventListener('change', onContainerChange);
+        if (btnDeteksi) btnDeteksi.removeEventListener('click', deteksiKoleksiBaru);
         if (btnPilihSemua) btnPilihSemua.removeEventListener('click', onPilihSemuaClick);
         if (btnBatal) btnBatal.removeEventListener('click', onBatalClick);
         if (btnEksekusi) btnEksekusi.removeEventListener('click', onEksekusiClick);

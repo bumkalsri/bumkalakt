@@ -1,4 +1,4 @@
-const CACHE_NAME = 'app-akuntansi-cache-v23';
+const CACHE_NAME = 'app-akuntansi-cache-v24';
 const assetsToCache = [
     './index.html',
     './manifest.json',

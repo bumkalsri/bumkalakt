@@ -3,15 +3,22 @@ import { doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.co
 import { db } from "../firebase-init.js";
 
 const DEFAULT_COLLECTIONS = [
-    "jurnal_umum",
-    "coa",
-    "products",
     "banners",
-    "galeri",
+    "coa",
     "events",
-    "users",
+    "galeri",
+    "jurnal_umum",
+    "kontak",
+    "nota_aset",
+    "pagu_anggaran",
+    "pengaturan",
+    "pengaturan_sistem",
+    "products",
+    "running_text",
+    "saldo_awal",
+    "tutup_bulan",
     "unit_usaha",
-    "running_text"
+    "users"
 ];
 
 const DEFAULT_CONFIG = {
@@ -138,7 +145,13 @@ export function renderControlSize() {
                 <!-- Daftar Koleksi Firestore -->
                 <div class="space-y-3 pt-2">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <label for="new-collection-input" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Koleksi Firestore yang Diukur</label>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label for="new-collection-input" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Koleksi Firestore yang Diukur</label>
+                            <button type="button" id="btn-auto-detect-collections"
+                                class="bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-semibold px-2.5 py-1 rounded-none cursor-pointer transition">
+                                Deteksi Koleksi Otomatis
+                            </button>
+                        </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <input type="text" id="new-collection-input" placeholder="Nama koleksi baru..."
                                 class="flex-1 sm:w-48 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs rounded-none text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-600 min-w-0">
@@ -245,6 +258,7 @@ export function initControlSizeHandler() {
     const collectionsContainer = document.getElementById("mon-collections-list");
     const newColInput = document.getElementById("new-collection-input");
     const btnAddCol = document.getElementById("btn-add-collection");
+    const btnAutoDetect = document.getElementById("btn-auto-detect-collections");
     const btnResetDefault = document.getElementById("btn-reset-default");
     const btnScanNow = document.getElementById("btn-scan-now");
     const statusBox = document.getElementById("mon-config-status");
@@ -258,6 +272,7 @@ export function initControlSizeHandler() {
     const panelGrafik = document.getElementById("tab-panel-grafik");
 
     let activeCollections = [...DEFAULT_COLLECTIONS];
+    let newlyDetectedSet = new Set();
     let latestRows = [];
     let latestTotalBytes = 0;
 
@@ -332,9 +347,13 @@ export function initControlSizeHandler() {
 
         collectionsContainer.innerHTML = activeCollections.map((colName) => {
             const safeCol = escapeHtml(colName);
+            const isNew = newlyDetectedSet.has(colName);
             return `
-                <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-none min-w-0">
-                    <span class="font-mono text-[11px] text-slate-700 dark:text-slate-300 break-all">${safeCol}</span>
+                <div class="flex items-center justify-between gap-2 ${isNew ? "bg-sky-50 dark:bg-sky-950/30 border-sky-300 dark:border-sky-800" : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800"} border px-2.5 py-1.5 rounded-none min-w-0">
+                    <span class="font-mono text-[11px] text-slate-700 dark:text-slate-300 break-all inline-flex items-center gap-1.5">
+                        <span>${safeCol}</span>
+                        ${isNew ? `<span class="px-1 py-0.5 text-[9px] font-sans font-bold uppercase bg-sky-600 text-white">Baru</span>` : ""}
+                    </span>
                     <button type="button" data-remove-col="${safeCol}" title="Hapus koleksi"
                         class="text-rose-500 hover:text-rose-700 font-bold text-xs leading-none cursor-pointer flex-shrink-0">&times;</button>
                 </div>
@@ -344,12 +363,68 @@ export function initControlSizeHandler() {
         collectionsContainer.querySelectorAll("[data-remove-col]").forEach((btn) => {
             const onRemove = () => {
                 const target = btn.getAttribute("data-remove-col");
+                newlyDetectedSet.delete(target);
                 activeCollections = activeCollections.filter((item) => item !== target);
                 renderCollectionsChips();
             };
             btn.addEventListener("click", onRemove);
             chipListeners.push({ btn, onRemove });
         });
+    }
+
+    async function autoDetectCollections() {
+        if (btnAutoDetect) {
+            btnAutoDetect.disabled = true;
+            btnAutoDetect.textContent = "Mendeteksi...";
+        }
+
+        const prevSet = new Set(activeCollections);
+        const candidateSet = new Set([...DEFAULT_COLLECTIONS, ...activeCollections]);
+
+        try {
+            const sysSnap = await getDoc(doc(db, "pengaturan_sistem", "app_config"));
+            if (sysSnap.exists() && Array.isArray(sysSnap.data()?.collections)) {
+                sysSnap.data().collections.forEach((c) => {
+                    if (typeof c === "string" && c.trim()) candidateSet.add(c.trim());
+                });
+            }
+        } catch (_) {
+            // Abaikan jika dokumen tidak ada
+        }
+
+        const foundCollections = [];
+        const addedNow = [];
+        for (const colName of Array.from(candidateSet)) {
+            try {
+                const snap = await getDocs(collection(db, colName));
+                if (!snap.empty) {
+                    foundCollections.push(colName);
+                    if (!prevSet.has(colName)) {
+                        newlyDetectedSet.add(colName);
+                        addedNow.push(colName);
+                    }
+                }
+            } catch (_) {
+                // Lewati koleksi yang tidak dapat dibaca
+            }
+        }
+
+        if (foundCollections.length > 0) {
+            activeCollections = foundCollections.sort((a, b) => a.localeCompare(b, "id"));
+            renderCollectionsChips();
+            if (addedNow.length > 0) {
+                showStatus(`Deteksi selesai: ${activeCollections.length} koleksi aktif. Koleksi baru ditambahkan: ${addedNow.join(", ")}.`);
+            } else {
+                showStatus(`Deteksi selesai: ditemukan ${activeCollections.length} koleksi aktif di Firestore.`);
+            }
+        } else {
+            showStatus("Tidak ada koleksi berisi dokumen yang terdeteksi otomatis.", true);
+        }
+
+        if (btnAutoDetect) {
+            btnAutoDetect.disabled = false;
+            btnAutoDetect.textContent = "Deteksi Koleksi Otomatis";
+        }
     }
 
     function renderBreakdownAndChart(rows, totalBytes) {
@@ -563,6 +638,7 @@ export function initControlSizeHandler() {
         const val = newColInput.value.trim();
         if (!val) return;
         if (!activeCollections.includes(val)) {
+            newlyDetectedSet.add(val);
             activeCollections.push(val);
             renderCollectionsChips();
         }
@@ -577,6 +653,7 @@ export function initControlSizeHandler() {
     };
 
     const onResetDefaultClick = () => {
+        newlyDetectedSet.clear();
         if (quotaInput) quotaInput.value = DEFAULT_CONFIG.quotaGB;
         if (warnInput) warnInput.value = DEFAULT_CONFIG.warnPercent;
         if (dangerInput) dangerInput.value = DEFAULT_CONFIG.dangerPercent;
@@ -602,6 +679,9 @@ export function initControlSizeHandler() {
                 updatedAt: new Date().toISOString()
             }, { merge: true });
 
+            newlyDetectedSet.clear();
+            renderCollectionsChips();
+
             if (latestRows.length > 0) {
                 renderBreakdownAndChart(latestRows, latestTotalBytes);
             }
@@ -616,6 +696,10 @@ export function initControlSizeHandler() {
     if (btnAddCol && newColInput) {
         btnAddCol.addEventListener("click", onAddColClick);
         newColInput.addEventListener("keydown", onNewColKeydown);
+    }
+
+    if (btnAutoDetect) {
+        btnAutoDetect.addEventListener("click", autoDetectCollections);
     }
 
     if (btnResetDefault) {
@@ -635,6 +719,7 @@ export function initControlSizeHandler() {
         tabListeners.forEach(({ btn, onTabClick }) => btn.removeEventListener("click", onTabClick));
         if (btnAddCol) btnAddCol.removeEventListener("click", onAddColClick);
         if (newColInput) newColInput.removeEventListener("keydown", onNewColKeydown);
+        if (btnAutoDetect) btnAutoDetect.removeEventListener("click", autoDetectCollections);
         if (btnResetDefault) btnResetDefault.removeEventListener("click", onResetDefaultClick);
         if (btnScanNow) btnScanNow.removeEventListener("click", scanCollectionsBreakdown);
         if (formEl) formEl.removeEventListener("submit", onFormSubmit);
